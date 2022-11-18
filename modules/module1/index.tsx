@@ -1,4 +1,5 @@
-import { Module, Styles, Container, customModule, application, Panel, CodeEditor } from '@ijstech/components';
+import { Module, Styles, Container, customModule, application, Panel, CodeEditor, RequireJS } from '@ijstech/components';
+import {Wallet} from '@ijstech/eth-wallet';
 import Assets from '@modules/assets';
 import customStyles from './index.css';
 
@@ -9,28 +10,35 @@ export default class Module1 extends Module {
     private codeEditorOptions: CodeEditor;
     private codeEditorResult: CodeEditor;
     private pnlPreview: Panel;
+    private logs: HTMLElement;
 
     renderDeployResult(content: string) {
-        this.pnlPreview.clearInnerHTML();
-        const contentArray = content.split(/\n/gm);
-        const elm = contentArray.map((item, key) => {
-            const newContent = item.replace(/(<)(.*)(>)/g, '&lt$2&gt');
-            return (
-                <i-hstack verticalAlignment="center" gap="15px" margin={{ bottom: 4 }}>
-                    <i-label caption={`${key + 1}`} width={20} class="text-right prevent-select"></i-label>
-                    <i-label caption={newContent}></i-label>
-                </i-hstack>
-            )
-        })
-        this.pnlPreview.append(...elm);
+        const newContent = content.replace(/(<)(.*)(>)/g, '&lt$2&gt');
+        this.logs.append(<i-label caption={newContent}></i-label>);
     }
-
+    init() {
+        super.init();
+        if (this.options.contract) {
+            RequireJS.require([this.options.contract], (contract: any) => {
+                if (contract.DefaultDeployOptions) {
+                    this.codeEditorOptions.value = JSON.stringify(contract.DefaultDeployOptions, null, 4);
+                }
+            });
+        };
+    };
     deploy() {
         this.pnlPreview.visible = true;
-        const content = this.codeEditorOptions.value || this.codeEditorResult.value || "";
-        this.renderDeployResult(content);
-    }
-
+        if (this.options.contract) {
+            RequireJS.require([this.options.contract], async (contract: any) => {
+                if (contract.onProgress)
+                    contract.onProgress((msg: string)=>{
+                        this.renderDeployResult(msg)
+                    });
+                let result = await contract.deploy(Wallet.getInstance());
+                this.codeEditorResult.value = JSON.stringify(result, null, 4);
+            });
+        };
+    };
     render() {
         return (
             <i-panel class={customStyles} width="100%" padding={{ top: '1rem', bottom: '1rem', left: '1rem', right: '1rem' }}>
@@ -90,6 +98,9 @@ export default class Module1 extends Module {
                             border={{ width: 1, style: 'solid', color: Theme.divider, radius: 5 }}
                             padding={{ top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }}
                         >
+                            <i-vstack id="logs" gap="5px" margin={{ bottom: 4 }}>
+                                
+                            </i-vstack>
                         </i-panel>
                     </i-vstack>
                 </i-grid-layout>

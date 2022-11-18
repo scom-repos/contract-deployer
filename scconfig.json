@@ -1,5 +1,4 @@
 {    
-    "env": "testnet",
     "logo": "logo",
     "main": "@scom/dapp",
     "assets": "@modules/assets",
@@ -13,11 +12,12 @@
         }
     },
     "dependencies": {
+        "@ijstech/eth-contract": "*"
     },
     "menus": [
         {
-            "caption": "Module 1",
-            "url": "/module1",
+            "caption": "Contract Deploy",
+            "url": "/deployer",
             "module": "@modules/module1",
             "params": {},
             "menus": []
@@ -25,43 +25,12 @@
     ],    
     "routes": [
         {
-            "url": "/module1",
+            "url": "/deployer",
             "module": "@modules/module1",
             "default": true
         }
     ],
-    "networks": [
-        {
-          "name": "Ethereum",
-          "chainId": 1,
-          "img": "eth",
-          "rpc": "https://mainnet.infura.io/v3/{InfuraId}",
-          "env": "mainnet",
-          "explorerName": "Etherscan",
-          "explorerTxUrl": "https://etherscan.io/tx/",
-          "explorerAddressUrl": "https://etherscan.io/address/"
-        },
-        {
-          "name": "Binance Smart Chain",
-          "chainId": 56,
-          "img": "bsc",
-          "rpc": "https://bsc-dataseed.binance.org/",   
-          "env": "mainnet",
-          "explorerName": "BSCScan",
-          "explorerTxUrl": "https://bscscan.com/tx/",
-          "explorerAddressUrl": "https://bscscan.com/address/"
-        },
-        {
-          "name": "BSC Testnet",
-          "chainId": 97,
-          "img": "bsc",
-          "rpc": "https://data-seed-prebsc-1-s1.binance.org:8545/",   
-          "env": "testnet",
-          "explorerName": "BSCScan",
-          "explorerTxUrl": "https://testnet.bscscan.com/tx/",
-          "explorerAddressUrl": "https://testnet.bscscan.com/address/"
-        }
-    ],
+    "networks": "*",
     "themes": {
         "default": "dark",
         "dark": {
