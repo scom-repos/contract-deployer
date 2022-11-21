@@ -34,7 +34,10 @@ export default class Module1 extends Module {
                     contract.onProgress((msg: string)=>{
                         this.renderDeployResult(msg)
                     });
-                let result = await contract.deploy(Wallet.getInstance());
+                let options: any = {};
+                if (this.codeEditorOptions.value)
+                    options = JSON.parse(this.codeEditorOptions.value)
+                let result = await contract.deploy(Wallet.getInstance(), options);
                 this.codeEditorResult.value = JSON.stringify(result, null, 4);
             });
         };
