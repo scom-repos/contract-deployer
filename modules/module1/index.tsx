@@ -30,14 +30,19 @@ export default class Module1 extends Module {
         this.pnlPreview.visible = true;
         if (this.options.contract) {
             RequireJS.require([this.options.contract], async (contract: any) => {
-                if (contract.onProgress)
+                if (contract.onProgress){
                     contract.onProgress((msg: string)=>{
                         this.renderDeployResult(msg)
                     });
+                };
                 let options: any = {};
                 if (this.codeEditorOptions.value)
                     options = JSON.parse(this.codeEditorOptions.value)
-                let result = await contract.deploy(Wallet.getInstance(), options);
+                this.renderDeployResult('Contracts deployment start');
+                let result = await contract.deploy(Wallet.getInstance(), options, (msg: string)=>{
+                    this.renderDeployResult(msg)
+                });
+                this.renderDeployResult('Contracts deployment finished');
                 this.codeEditorResult.value = JSON.stringify(result, null, 4);
             });
         };
