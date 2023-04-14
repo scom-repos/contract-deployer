@@ -1,0 +1,61 @@
+{
+    "logo": "logo",
+    "main": "@scom/dapp",
+    "assets": "@modules/assets",
+    "moduleDir": "modules",
+    "modules": {
+        "@modules/assets": {
+            "path": "assets",
+            "dependencies": []
+        },
+        "@modules/module1": {
+            "path": "module1",
+            "dependencies": [
+                "@ijstech/eth-wallet",
+                "@modules/assets"
+            ]
+        }
+    },
+    "dependencies": {
+        "@ijstech/eth-wallet": "*",
+        "@scom/scom-network-list": "*",
+        "@ijstech/eth-contract": "*",
+        "@scom/dapp": "*"
+    },
+    "menus": [
+        {
+            "caption": "Contract Deploy",
+            "url": "/deployer",
+            "module": "@modules/module1",
+            "params": {},
+            "menus": []
+        }
+    ],
+    "routes": [
+        {
+            "url": "/deployer",
+            "module": "@modules/module1",
+            "default": true
+        }
+    ],
+    "wallets": [
+        {
+            "name": "metamask"
+        }
+    ],
+    "networks": "*",
+    "themes": {
+        "default": "dark",
+        "dark": {
+            "background": {
+                "modal": "#050120"
+            },
+            "colors": {
+                "primary": {
+                    "main": "#2862BB"
+                }
+            }
+        }
+    },
+    "copyright": "&#169; 2022 IJS Technologies. All rights reserved."
+}

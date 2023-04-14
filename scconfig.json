@@ -12,7 +12,8 @@
         }
     },
     "dependencies": {
-        "@ijstech/eth-contract": "*"
+        "@ijstech/eth-contract": "*",
+        "@scom/scom-network-list": "*"
     },
     "menus": [
         {
@@ -28,6 +29,11 @@
             "url": "/deployer",
             "module": "@modules/module1",
             "default": true
+        }
+    ],
+    "wallets": [
+        {
+          "name": "metamask"
         }
     ],
     "networks": "*",
