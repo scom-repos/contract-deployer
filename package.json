@@ -8,12 +8,13 @@
     "dependencies": {
         "@ijstech/components": "^0.1.32",
         "@ijstech/eth-contract": "^0.1.13",
-        "@ijstech/eth-wallet": "^0.1.35"
+        "@ijstech/eth-wallet": "^0.1.52"
     },
     "devDependencies": {
         "@ijstech/cli": "^0.1.28",
         "@ijstech/compiler": "^0.1.22",
-        "@scom/dapp": "^0.1.6"
+        "@scom/dapp": "^0.1.17",
+        "@scom/scom-network-list": "^0.1.0"
     },
     "scripts": {
         "build": "rm -rf dist && npx @ijstech/compiler",
