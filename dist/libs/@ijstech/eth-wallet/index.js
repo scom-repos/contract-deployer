@@ -1016,7 +1016,6 @@ __export(utils_exports, {
   bytes32ToString: () => bytes32ToString,
   constructTypedMessageData: () => constructTypedMessageData,
   fromDecimals: () => fromDecimals,
-  getMultiCallAddress: () => getMultiCallAddress,
   nullAddress: () => nullAddress,
   numberToBytes32: () => numberToBytes32,
   padLeft: () => padLeft,
@@ -1033,7 +1032,9 @@ var import_bignumber = __toModule(require("bignumber.js"));
 // src/constants.ts
 var constants_exports = {};
 __export(constants_exports, {
+  ClientWalletEvent: () => ClientWalletEvent,
   EIP712DomainAbi: () => EIP712DomainAbi,
+  RpcWalletEvent: () => RpcWalletEvent,
   TYPED_MESSAGE_SCHEMA: () => TYPED_MESSAGE_SCHEMA
 });
 var EIP712DomainAbi = [
@@ -1065,6 +1066,18 @@ var TYPED_MESSAGE_SCHEMA = {
   },
   required: ["types", "primaryType", "domain", "message"]
 };
+var ClientWalletEvent;
+(function(ClientWalletEvent2) {
+  ClientWalletEvent2["AccountsChanged"] = "accountsChanged";
+  ClientWalletEvent2["ChainChanged"] = "chainChanged";
+  ClientWalletEvent2["Connect"] = "connect";
+  ClientWalletEvent2["Disconnect"] = "disconnect";
+})(ClientWalletEvent || (ClientWalletEvent = {}));
+var RpcWalletEvent;
+(function(RpcWalletEvent2) {
+  RpcWalletEvent2["Connected"] = "connected";
+  RpcWalletEvent2["Disconnected"] = "disconnected";
+})(RpcWalletEvent || (RpcWalletEvent = {}));
 
 // src/utils.ts
 var Web32 = Web3Lib();
@@ -1205,42 +1218,6 @@ function constructTypedMessageData(domain, customTypes, primaryType, message) {
   };
   return data;
 }
-function getMultiCallAddress(chainId) {
-  let address;
-  switch (chainId) {
-    case 1:
-      address = "0x8d035edd8e09c3283463dade67cc0d49d6868063";
-      break;
-    case 56:
-      address = "0x804708de7af615085203fa2b18eae59c5738e2a9";
-      break;
-    case 97:
-      address = "0xFe482bde67982C73D215032184312E4707B437C1";
-      break;
-    case 137:
-      address = "0x0196e8a9455a90d392b46df8560c867e7df40b34";
-      break;
-    case 250:
-      address = "0xA31bB36c5164B165f9c36955EA4CcBaB42B3B28E";
-      break;
-    case 43113:
-      address = "0x40784b92542649DDA13FF97580e8A021aC57b320";
-      break;
-    case 43114:
-      address = "0xC4A8B7e29E3C8ec560cd4945c1cF3461a85a148d";
-      break;
-    case 80001:
-      address = "0x7810eC500061f5469fF6e1485Ab130045B3af6b0";
-      break;
-    case 421613:
-      address = "0xee25cCcc02550DdBF4b90eb06b0D796eBE247E1B";
-      break;
-    case 42161:
-      address = "0x11DEE30E710B8d4a8630392781Cc3c0046365d4c";
-      break;
-  }
-  return address;
-}
 
 // src/contracts/erc20.ts
 var Abi = require_erc20().abi;
@@ -1353,6 +1330,45 @@ var Erc20 = class extends import_contract.Contract {
   }
 };
 
+// src/eventBus.ts
+var _EventBus = class {
+  constructor() {
+    this.subscribers = {};
+  }
+  static getInstance() {
+    if (this.instance === void 0) {
+      this.instance = new _EventBus();
+    }
+    return this.instance;
+  }
+  dispatch(event, arg) {
+    const subscriber = this.subscribers[event];
+    if (subscriber === void 0) {
+      return;
+    }
+    Object.keys(subscriber).forEach((key) => subscriber[key](arg));
+  }
+  register(sender, event, callback) {
+    const id = this.getNextId();
+    if (!this.subscribers[event])
+      this.subscribers[event] = {};
+    this.subscribers[event][id] = callback.bind(sender);
+    return {
+      unregister: () => {
+        delete this.subscribers[event][id];
+        if (Object.keys(this.subscribers[event]).length === 0)
+          delete this.subscribers[event];
+      }
+    };
+  }
+  getNextId() {
+    return _EventBus.nextId++;
+  }
+};
+var EventBus = _EventBus;
+EventBus.nextId = 0;
+EventBus.instance = void 0;
+
 // src/wallet.ts
 var Web33 = initWeb3Lib();
 var Web3Modal;
@@ -1429,6 +1445,7 @@ var EthereumProvider = class {
           };
         }
         this._isConnected = hasAccounts;
+        EventBus.getInstance().dispatch(ClientWalletEvent.AccountsChanged, accountAddress);
         if (self.onAccountChanged)
           self.onAccountChanged(accountAddress);
       });
@@ -1439,14 +1456,17 @@ var EthereumProvider = class {
             this.wallet.infuraId = this._options.infuraId;
           self.wallet.setDefaultProvider();
         }
+        EventBus.getInstance().dispatch(ClientWalletEvent.ChainChanged, chainId);
         if (self.onChainChanged)
           self.onChainChanged(chainId);
       });
       this.provider.on("connect", (connectInfo) => {
+        EventBus.getInstance().dispatch(ClientWalletEvent.Connect, connectInfo);
         if (self.onConnect)
           self.onConnect(connectInfo);
       });
       this.provider.on("disconnect", (error) => {
+        EventBus.getInstance().dispatch(ClientWalletEvent.Disconnect, error);
         if (self.onDisconnect)
           self.onDisconnect(error);
       });
@@ -1477,6 +1497,7 @@ var EthereumProvider = class {
             };
           }
           this._isConnected = hasAccounts;
+          EventBus.getInstance().dispatch(ClientWalletEvent.AccountsChanged, accountAddress);
           if (self.onAccountChanged)
             self.onAccountChanged(accountAddress);
         });
@@ -1648,6 +1669,7 @@ var Web3ModalProvider = class extends EthereumProvider {
           };
         }
         this._isConnected = hasAccounts;
+        EventBus.getInstance().dispatch(ClientWalletEvent.AccountsChanged, accountAddress);
         if (self.onAccountChanged)
           self.onAccountChanged(accountAddress);
       });
@@ -1674,6 +1696,7 @@ var _Wallet = class {
     this._sendTxEventHandler = {};
     this._contracts = {};
     this._networksMap = {};
+    this._multicallInfoMap = {};
     this._abiHashDict = {};
     this._abiContractDict = {};
     this._abiAddressDict = {};
@@ -1706,6 +1729,9 @@ var _Wallet = class {
   static getClientInstance() {
     return _Wallet.instance;
   }
+  static getRpcWalletInstance(instanceId) {
+    return _Wallet._rpcWalletPoolMap[instanceId];
+  }
   get isConnected() {
     return this.clientSideProvider ? this.clientSideProvider.isConnected() : false;
   }
@@ -1716,14 +1742,65 @@ var _Wallet = class {
     } else {
       this.chainId = chainId;
       this.setDefaultProvider();
-      onChainChanged("0x" + chainId.toString(16));
+      if (onChainChanged)
+        onChainChanged("0x" + chainId.toString(16));
     }
     return result;
   }
+  initClientWallet(config) {
+    const wallet = _Wallet.instance;
+    wallet.chainId = config.defaultChainId;
+    wallet._infuraId = config.infuraId;
+    wallet._networksMap = {};
+    wallet.setMultipleNetworksInfo(config.networks);
+    wallet.setDefaultProvider();
+    wallet._multicallInfoMap = {};
+    if (config.multicalls) {
+      for (let multicall of config.multicalls) {
+        wallet._multicallInfoMap[multicall.chainId] = multicall;
+      }
+    }
+  }
+  registerWalletEvent(sender, event, callback) {
+    return EventBus.getInstance().register(sender, event, callback);
+  }
+  unregisterWalletEvent(event) {
+    return event.unregister();
+  }
+  destoryRpcWalletInstance(instanceId) {
+    delete _Wallet._rpcWalletPoolMap[instanceId];
+  }
+  generateUUID() {
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
+      let r = Math.random() * 16 | 0, v = c == "x" ? r : r & 3 | 8;
+      return v.toString(16);
+    });
+  }
+  initRpcWallet(config) {
+    const wallet = new RpcWallet();
+    const defaultNetwork = config.networks[0];
+    wallet.chainId = defaultNetwork.chainId;
+    const rpc = defaultNetwork.rpcUrls[0];
+    wallet._web3.setProvider(rpc);
+    wallet._infuraId = config.infuraId;
+    wallet._networksMap = {};
+    wallet.setMultipleNetworksInfo(config.networks);
+    wallet._multicallInfoMap = {};
+    if (config.multicalls) {
+      for (let multicall of config.multicalls) {
+        wallet._multicallInfoMap[multicall.chainId] = multicall;
+      }
+    }
+    let instanceId = this.generateUUID();
+    while (_Wallet._rpcWalletPoolMap[instanceId]) {
+      instanceId = this.generateUUID();
+    }
+    wallet.instanceId = instanceId;
+    _Wallet._rpcWalletPoolMap[instanceId] = wallet;
+    return instanceId;
+  }
   setDefaultProvider() {
     var _a;
-    if (!this.chainId)
-      this.chainId = 56;
     if (this._networksMap[this.chainId] && this._networksMap[this.chainId].rpcUrls.length > 0) {
       let rpc = this._networksMap[this.chainId].rpcUrls[0];
       if (rpc.indexOf("{INFURA_ID}")) {
@@ -1747,6 +1824,8 @@ var _Wallet = class {
   async disconnect() {
     if (this.clientSideProvider) {
       await this.clientSideProvider.disconnect();
+      this.clientSideProvider = null;
+      EventBus.getInstance().dispatch(ClientWalletEvent.AccountsChanged, null);
     }
     this.setDefaultProvider();
   }
@@ -2779,13 +2858,13 @@ var _Wallet = class {
   }
   async multiCall(calls, gasBuffer) {
     const chainId = await this.getChainId();
-    const contractAddress = getMultiCallAddress(chainId);
-    if (!contractAddress)
+    const multicallInfo = this._multicallInfoMap[chainId];
+    if (!multicallInfo)
       return null;
-    const multiCall = new MultiCall(this, contractAddress);
+    const multiCall = new MultiCall(this, multicallInfo.contractAddress);
     const result = await multiCall.multicallWithGasLimitation.call({
       calls,
-      gasBuffer: new import_bignumber3.BigNumber(gasBuffer != null ? gasBuffer : "3000000")
+      gasBuffer: new import_bignumber3.BigNumber(gasBuffer != null ? gasBuffer : multicallInfo.gasBuffer)
     });
     return result;
   }
@@ -2798,7 +2877,49 @@ var _Wallet = class {
   }
 };
 var Wallet = _Wallet;
+Wallet._rpcWalletPoolMap = {};
 Wallet.instance = new _Wallet();
+var RpcWallet = class extends Wallet {
+  constructor() {
+    super(...arguments);
+    this._eventsMap = new WeakMap();
+  }
+  get isConnected() {
+    const clientWallet = Wallet.getClientInstance();
+    return clientWallet.isConnected && this.chainId === clientWallet.chainId;
+  }
+  async switchNetwork(chainId, onChainChanged) {
+    this.chainId = chainId;
+    const rpc = this.networksMap[chainId].rpcUrls[0];
+    this._web3.setProvider(rpc);
+    if (onChainChanged)
+      onChainChanged("0x" + chainId.toString(16));
+    return null;
+  }
+  registerWalletEvent(sender, event, callback) {
+    const eventId = `${this.instanceId}:${event}`;
+    const eventBus = EventBus.getInstance();
+    const registry = eventBus.register(sender, eventId, callback);
+    if (event == RpcWalletEvent.Connected) {
+      const accountsChangedRegistry = eventBus.register(sender, ClientWalletEvent.AccountsChanged, (account) => {
+        eventBus.dispatch(eventId, this.isConnected);
+      });
+      const chainChangedRegistry = eventBus.register(sender, ClientWalletEvent.ChainChanged, (chainIdHex) => {
+        eventBus.dispatch(eventId, this.isConnected);
+      });
+      this._eventsMap.set(registry, [accountsChangedRegistry, chainChangedRegistry]);
+    }
+    return registry;
+  }
+  unregisterWalletEvent(event) {
+    if (this._eventsMap.has(event)) {
+      const events = this._eventsMap.get(event);
+      events.forEach((e) => e.unregister());
+      this._eventsMap.delete(event);
+    }
+    return event.unregister();
+  }
+};
 
 // src/plugin.ts
 var import_contract2 = __toModule(require_contract());
