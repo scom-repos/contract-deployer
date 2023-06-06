@@ -1,17 +1,15 @@
 {
     "name": "@scom/contract-deployer",
-    "version": "0.1.10",
+    "version": "0.1.11",
     "engines": {
         "node": ">=18.0.0"
     },
     "main": "dist/scconfig.json",
-    "dependencies": {
-        "@ijstech/components": "^0.1.32",
-        "@ijstech/eth-contract": "^0.1.13",
-        "@ijstech/eth-wallet": "^0.1.52"
-    },
     "devDependencies": {
+        "@ijstech/components": "^0.1.32",
         "@ijstech/cli": "^0.1.28",
+        "@ijstech/eth-contract": "^0.1.13",
+        "@ijstech/eth-wallet": "^0.1.52",        
         "@ijstech/compiler": "^0.1.22",
         "@scom/dapp": "^0.1.17",
         "@scom/scom-network-list": "^0.1.0"
