@@ -58,6 +58,7 @@ define("@modules/module1", ["require", "exports", "@ijstech/components", "@ijste
                     if (this.codeEditorOptions.value)
                         options = JSON.parse(this.codeEditorOptions.value);
                     this.renderDeployResult('Contracts deployment start');
+                    await eth_wallet_1.Wallet.getClientInstance().init();
                     let result = await contract.deploy(eth_wallet_1.Wallet.getInstance(), options, (msg) => {
                         this.renderDeployResult(msg);
                     });

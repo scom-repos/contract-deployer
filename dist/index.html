@@ -12,8 +12,7 @@
   <script>
     async function init() {
       application.LibHost = "";
-      let config = await application.getContent('scconfig.json');
-      let module = await application.newModule("@scom/dapp", JSON.parse(config));
+      let module = await application.init('scconfig.json');
       document.body.append(module);
     };
     init();

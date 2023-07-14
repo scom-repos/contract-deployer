@@ -155,11 +155,23 @@ define("@ijstech/eth-contract", ["require", "exports", "bignumber.js"], function
         }
         async _send(methodName, params, options) {
             params = params || [];
-            if (!methodName)
-                params.unshift(this._bytecode);
             return await this.wallet._send(this.abiHash, this._address, methodName, params, options);
         }
         async __deploy(params, options) {
+            let bytecode = this._bytecode;
+            let libraries = options?.libraries;
+            let linkReferences = options?.linkReferences;
+            if (libraries && linkReferences) {
+                for (let file in libraries) {
+                    for (let contract in libraries[file]) {
+                        for (let offset of linkReferences[file][contract]) {
+                            bytecode = bytecode.substring(0, offset.start * 2 + 2) + libraries[file][contract].replace("0x", "") + bytecode.substring(offset.start * 2 + 2 + offset.length * 2);
+                        }
+                    }
+                }
+            }
+            params = params || [];
+            params.unshift(bytecode);
             let receipt = await this._send('', params, options);
             this.address = receipt.contractAddress;
             return this.address;
@@ -179,7 +191,7 @@ define("@ijstech/eth-contract", ["require", "exports", "bignumber.js"], function
             }
             else if (method.stateMutability == 'payable') {
                 let value = params.pop();
-                return await this.call(methodName, params, { value: value });
+                return await this.send(methodName, params, { value: value });
             }
             else {
                 return await this.send(methodName, params);
