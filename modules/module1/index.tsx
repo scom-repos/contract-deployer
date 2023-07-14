@@ -39,6 +39,7 @@ export default class Module1 extends Module {
                 if (this.codeEditorOptions.value)
                     options = JSON.parse(this.codeEditorOptions.value)
                 this.renderDeployResult('Contracts deployment start');
+                await Wallet.getClientInstance().init();
                 let result = await contract.deploy(Wallet.getInstance(), options, (msg: string)=>{
                     this.renderDeployResult(msg)
                 });
