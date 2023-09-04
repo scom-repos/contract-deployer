@@ -17290,7 +17290,7 @@ var Component = class extends HTMLElement {
       this.init();
     }
   }
-  disconnectCallback() {
+  disconnectedCallback() {
     this.connected = false;
   }
   parseDesignPropValue(value) {
@@ -18625,9 +18625,11 @@ var Control = class extends Component {
     if (!this.mediaQueries)
       this.setAttributeToProperty("mediaQueries");
   }
-  disconnectCallback() {
-    this.parent = void 0;
-    super.disconnectCallback();
+  disconnectedCallback() {
+    if (this._tooltip) {
+      this._tooltip.close();
+    }
+    super.disconnectedCallback();
   }
   getParentHeight() {
     if (!this._parent)
@@ -19999,7 +20001,7 @@ Link = __decorateClass([
 
 // packages/label/src/style/label.css.ts
 var Theme6 = theme_exports.ThemeVars;
-var captionStyle = style({
+cssRule("i-label", {
   display: "inline-block",
   color: Theme6.text.primary,
   fontFamily: Theme6.typography.fontFamily,
@@ -20069,7 +20071,6 @@ var Label = class extends Control {
         childNodes.push(this.childNodes[i]);
       }
       this.captionSpan = this.createElement("span", this);
-      this.classList.add(captionStyle);
       this.caption = this.getAttribute("caption", true) || "";
       if (childNodes && childNodes.length) {
         for (let i = 0; i < childNodes.length; i++) {
@@ -20112,16 +20113,34 @@ Label = __decorateClass([
 
 // packages/modal/src/style/modal.css.ts
 var Theme7 = theme_exports.ThemeVars;
+var overlayStyle = style({
+  backgroundColor: "rgba(12, 18, 52, 0.7)",
+  position: "fixed",
+  left: 0,
+  top: 0,
+  width: "100%",
+  height: "100%",
+  opacity: 0,
+  visibility: "hidden",
+  zIndex: 1e3,
+  transition: "visibility 0s linear .25s, opacity .25s",
+  $nest: {
+    "&.show": {
+      opacity: "1",
+      visibility: "visible",
+      transition: "visibility 0s linear, opacity .25s"
+    }
+  }
+});
 var wrapperStyle = style({
   position: "fixed",
   left: 0,
   top: 0,
   width: "100%",
   height: "100%",
-  backgroundColor: "rgba(12, 18, 52, 0.7)",
   opacity: 0,
   visibility: "hidden",
-  transform: "scale(1.1)",
+  transform: "scale(0.8)",
   transition: "visibility 0s linear .25s,opacity .25s 0s,transform .25s",
   zIndex: 1e3,
   overflow: "auto"
@@ -20132,7 +20151,7 @@ var noBackdropStyle = style({
   left: 0,
   opacity: 0,
   visibility: "hidden",
-  transform: "scale(1.1)",
+  transform: "scale(0.8)",
   transition: "visibility 0s linear .25s,opacity .25s 0s,transform .25s",
   zIndex: 1e3,
   overflow: "auto",
@@ -20201,6 +20220,7 @@ var Modal = class extends Container {
       this.wrapperDiv.classList.add(visibleStyle);
       this.dispatchEvent(showEvent);
       if (this.showBackdrop) {
+        this.overlayDiv.classList.add("show");
         document.body.style.overflow = "hidden";
         const parentModal = (_a = this.parentElement) == null ? void 0 : _a.closest("i-modal");
         if (parentModal) {
@@ -20213,6 +20233,7 @@ var Modal = class extends Container {
       document.addEventListener("mouseup", this.boundHandleModalMouseUp);
     } else {
       this.wrapperDiv.classList.remove(visibleStyle);
+      this.overlayDiv.classList.remove("show");
       if (this.showBackdrop) {
         const parentModal = (_b = this.parentElement) == null ? void 0 : _b.closest("i-modal");
         if (parentModal) {
@@ -20380,6 +20401,7 @@ var Modal = class extends Container {
     const parentCoords = parent.getBoundingClientRect();
     let left = 0;
     let top = 0;
+    let max;
     switch (placement) {
       case "center":
         left = (parentCoords.width - this.modalDiv.offsetWidth) / 2;
@@ -20387,37 +20409,58 @@ var Modal = class extends Container {
         break;
       case "top":
       case "topLeft":
-        top = this.getParentOccupiedTop();
-        left = this.getParentOccupiedLeft();
-        break;
       case "topRight":
-        top = this.getParentOccupiedTop();
-        left = parentCoords.width - this.getParentOccupiedRight() - this.modalDiv.offsetWidth;
+        if (parentCoords.top - this.modalDiv.offsetHeight >= 0) {
+          top = -this.modalDiv.offsetHeight;
+        } else {
+          if (window.innerHeight < this.modalDiv.offsetHeight + parentCoords.bottom) {
+            max = window.innerHeight - this.modalDiv.offsetHeight - parentCoords.y;
+            top = (parentCoords.height - this.modalDiv.offsetHeight) / 2;
+            top = top < -parentCoords.y ? -parentCoords.y : top > max ? max : top;
+          } else {
+            top = parentCoords.height;
+          }
+        }
         break;
       case "bottom":
       case "bottomLeft":
-        left = 0;
-        top = parentCoords.height;
-        break;
       case "bottomRight":
-        top = parentCoords.height;
-        left = parentCoords.width - this.modalDiv.offsetWidth;
+        if (window.innerHeight < this.modalDiv.offsetHeight + parentCoords.bottom) {
+          if (parentCoords.y - this.modalDiv.offsetHeight < 0) {
+            max = window.innerHeight - this.modalDiv.offsetHeight - parentCoords.y;
+            top = (parentCoords.height - this.modalDiv.offsetHeight) / 2;
+            top = top < -parentCoords.y ? -parentCoords.y : top > max ? max : top;
+          } else {
+            top = -this.modalDiv.offsetHeight;
+          }
+        } else {
+          top = parentCoords.height;
+        }
         break;
       case "rightTop":
         top = 0;
         left = parentCoords.width;
         break;
       case "left":
-        let max = window.innerHeight - this.modalDiv.offsetHeight - parentCoords.y;
+        max = window.innerHeight - this.modalDiv.offsetHeight - parentCoords.y;
         top = (parentCoords.height - this.modalDiv.offsetHeight) / 2;
         top = top < -parentCoords.y ? -parentCoords.y : top > max ? max : top;
         left = -this.modalDiv.offsetWidth - 8;
         break;
     }
-    if (placement !== "bottomRight" && placement !== "left")
-      left = left < 0 ? parentCoords.left : left;
-    if (placement !== "left")
-      top = top < 0 ? parentCoords.top : top;
+    if (placement === "topRight" || placement === "bottomRight") {
+      if (parentCoords.right - this.modalDiv.offsetWidth >= 0) {
+        left = parentCoords.width - this.modalDiv.offsetWidth;
+      } else {
+        left = -parentCoords.left;
+      }
+    } else if (["top", "topLeft", "bottom", "bottomLeft"].includes(placement)) {
+      if (window.innerWidth >= parentCoords.left + this.modalDiv.offsetWidth) {
+        left = 0;
+      } else {
+        left = Math.min(parentCoords.width - this.modalDiv.offsetWidth, window.innerWidth - parentCoords.left - this.modalDiv.offsetWidth);
+      }
+    }
     return { top, left };
   }
   _handleOnShow(event) {
@@ -20432,7 +20475,7 @@ var Modal = class extends Container {
     const target = event.target;
     this.insideClick = true;
     if (this.closeOnBackdropClick) {
-      this.insideClick = this.modalDiv.contains(target);
+      this.insideClick = this.showBackdrop ? target !== this.wrapperDiv : this.modalDiv.contains(target);
     } else if (!this.showBackdrop) {
       let parent = this._parent || this.linkTo || this.parentElement;
       this.insideClick = this.modalDiv.contains(target) || (parent == null ? void 0 : parent.contains(target));
@@ -20485,6 +20528,7 @@ var Modal = class extends Container {
       this.popupPlacement = this.getAttribute("popupPlacement", true);
       this.closeOnBackdropClick = this.getAttribute("closeOnBackdropClick", true);
       this.wrapperDiv = this.createElement("div", this);
+      this.wrapperDiv.classList.add("modal-wrapper");
       this.showBackdrop = this.getAttribute("showBackdrop", true);
       this.modalDiv = this.createElement("div", this.wrapperDiv);
       this.titleSpan = this.createElement("div", this.modalDiv);
@@ -20501,6 +20545,10 @@ var Modal = class extends Container {
       while (this.childNodes.length > 1) {
         this.modalDiv.appendChild(this.childNodes[0]);
       }
+      this.overlayDiv = this.createElement("div", this);
+      this.prepend(this.overlayDiv);
+      this.overlayDiv.classList.add(overlayStyle);
+      this.overlayDiv.classList.add("modal-overlay");
       this.modalDiv.classList.add(modalStyle);
       this.modalDiv.classList.add("modal");
       this.addEventListener("show", this._handleOnShow.bind(this));
@@ -21947,8 +21995,11 @@ cssRule("i-upload", {
     ".i-upload_preview-img": {
       maxHeight: "inherit",
       maxWidth: "100%",
-      display: "table",
-      margin: "auto"
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      height: "100%"
     },
     ".i-upload_preview-crop": {
       position: "absolute",
@@ -22308,6 +22359,7 @@ var Upload = class extends Control {
     }
     this.updateFileListUI(this._dt.files);
     this.previewFile(this._dt.files);
+    console.log(this._dt.files);
     if (this.onChanged)
       this.onChanged(this, this.fileList);
   }
@@ -22413,7 +22465,10 @@ var Upload = class extends Control {
       return;
     this.isPreviewing = true;
     this._wrapImgElm.innerHTML = "";
-    this._previewImgElm = new Image2();
+    this._previewImgElm = new Image2(void 0, {
+      width: "auto",
+      height: "100%"
+    });
     this._wrapImgElm.appendChild(this._previewImgElm);
     this._previewImgElm.url = uri;
     this._previewElm.style.display = "block";
@@ -22460,7 +22515,6 @@ var Upload = class extends Control {
       this.caption = this.getAttribute("caption", true);
       this.draggable = this.getAttribute("draggable", true, false);
       this._uploadDragElm = new UploadDrag(this, {
-        caption: this.caption,
         disabled: !this.enabled || !this.draggable,
         onBeforeDrop: (source) => {
           if (this.onBeforeDrop)
@@ -22477,11 +22531,25 @@ var Upload = class extends Control {
       this.accept = this.getAttribute("accept");
       if (!this.enabled)
         this._fileElm.setAttribute("disabled", "");
-      const btn = new Button(this, {
-        caption: "Choose an image"
+      const panel = new VStack(void 0, {
+        alignItems: "center"
       });
-      btn.className = `i-upload_btn ${!this.enabled && "disabled"}`;
-      this._wrapperFileElm.appendChild(btn);
+      const icon = new Icon(panel, {
+        name: "arrow-down",
+        height: 32,
+        width: 32,
+        margin: {
+          bottom: 20
+        },
+        fill: Theme12.divider
+      });
+      new Label(panel, {
+        caption: this.caption || (this.draggable ? "Drag a file or click to upload" : "Click to upload"),
+        font: {
+          size: "18px"
+        }
+      });
+      this._wrapperFileElm.appendChild(panel);
       const fileListAttr = this.getAttribute("showFileList", true);
       if (fileListAttr && !this._fileListElm) {
         this._fileListElm = this.createElement("div", this);
@@ -24355,8 +24423,9 @@ var ComboBox = class extends Control {
       window.addEventListener("resize", this.calculatePositon);
     }
   }
-  disconnectCallback() {
+  disconnectedCallback() {
     window.removeEventListener("resize", this.calculatePositon);
+    super.disconnectedCallback();
   }
   static async create(options, parent) {
     let self = new this(parent, options);
@@ -25030,7 +25099,7 @@ Range = __decorateClass([
 
 // packages/radio/src/radio.css.ts
 var Theme19 = theme_exports.ThemeVars;
-var captionStyle2 = style({
+var captionStyle = style({
   fontFamily: Theme19.typography.fontFamily,
   fontSize: Theme19.typography.fontSize,
   "$nest": {
@@ -25086,7 +25155,7 @@ var Radio = class extends Control {
   init() {
     if (!this.initialized) {
       super.init();
-      this.classList.add(captionStyle2);
+      this.classList.add(captionStyle);
       this.labelElm = this.createElement("label", this);
       this.labelElm.classList.add("i-radio");
       this.inputElm = this.createElement("input", this.labelElm);
@@ -25234,52 +25303,13 @@ function stringToArr(color, isRgb) {
   return rgba;
 }
 function hslaToHex(h, s, l, a) {
-  s /= 100;
-  l /= 100;
-  let c = (1 - Math.abs(2 * l - 1)) * s;
-  let x = c * (1 - Math.abs(h / 60 % 2 - 1));
-  let m = l - c / 2;
-  let r = 0;
-  let g = 0;
-  let b = 0;
-  if (0 <= h && h < 60) {
-    r = c;
-    g = x;
-    b = 0;
-  } else if (60 <= h && h < 120) {
-    r = x;
-    g = c;
-    b = 0;
-  } else if (120 <= h && h < 180) {
-    r = 0;
-    g = c;
-    b = x;
-  } else if (180 <= h && h < 240) {
-    r = 0;
-    g = x;
-    b = c;
-  } else if (240 <= h && h < 300) {
-    r = x;
-    g = 0;
-    b = c;
-  } else if (300 <= h && h < 360) {
-    r = c;
-    g = 0;
-    b = x;
-  }
-  r = Math.round((r + m) * 255).toString(16);
-  g = Math.round((g + m) * 255).toString(16);
-  b = Math.round((b + m) * 255).toString(16);
-  if (r.length == 1)
-    r = "0" + r;
-  if (g.length == 1)
-    g = "0" + g;
-  if (b.length == 1)
-    b = "0" + b;
-  let aValue = Math.round(255 * a).toString(16);
-  if (aValue.length === 1)
-    aValue = "0" + aValue;
-  return `#${r}${g}${b}${aValue}`;
+  const { r, g, b } = hslaToRgba(h, s, l);
+  return rgbToHex([
+    r.toString(),
+    g.toString(),
+    b.toString(),
+    a.toString()
+  ]);
 }
 function rgbToHex(rgba) {
   let r = (+rgba[0]).toString(16);
@@ -25473,15 +25503,6 @@ function isHValid(value) {
 function isPercentValid(value) {
   const regex = /^(\d\d?(\.\d+)?|\.\d+|100)%$/i;
   return regex.test(value);
-}
-function customRound(value, threshold) {
-  const roundedValue = Math.round(value);
-  const decimalPart = value % 1;
-  if (decimalPart > threshold) {
-    return roundedValue + 1;
-  } else {
-    return roundedValue;
-  }
 }
 function hsvToHsl(h, s, v) {
   const _h = h;
@@ -25698,15 +25719,6 @@ cssRule("i-color", {
 
 // packages/color/src/color.ts
 var Theme21 = theme_exports.ThemeVars;
-var palette = {
-  0: "rgb(255, 0, 0)",
-  17: "rgb(255, 255, 0)",
-  33: "rgb(0, 255, 0)",
-  50: "rgb(0, 255, 255)",
-  67: "rgb(0, 0, 255)",
-  83: "rgb(255, 0, 255)",
-  100: "rgb(255, 0, 0)"
-};
 var rgb = ["r", "g", "b", "a"];
 var hsl = ["h", "s", "l", "a"];
 var hex = ["hex"];
@@ -25730,7 +25742,7 @@ var ColorPicker = class extends Control {
       a: 1,
       hex: DEFAULT_COLOR
     };
-    this.currentPalette = "";
+    this.currentPalette = "rgb(255, 0, 0)";
   }
   get value() {
     var _a;
@@ -25843,7 +25855,7 @@ var ColorPicker = class extends Control {
       valueElm.addEventListener("click", () => {
         if (!this.enabled)
           return;
-        const child2 = this.mdColorPicker.firstChild;
+        const child2 = this.mdColorPicker.querySelector(".modal-wrapper");
         const isVisible = this.mdColorPicker.visible;
         if (child2) {
           child2.style.position = isVisible ? "unset" : "relative";
@@ -25891,7 +25903,7 @@ var ColorPicker = class extends Control {
       this.onClosed();
     if (this.inputSpanElm)
       this.inputSpanElm.style.background = this.value || DEFAULT_BG_COLOR;
-    const child2 = this.mdColorPicker.firstChild;
+    const child2 = this.mdColorPicker.querySelector(".modal-wrapper");
     if (child2) {
       child2.style.display = "none";
     }
@@ -25979,14 +25991,14 @@ var ColorPicker = class extends Control {
       height: "100%"
     });
     const { h, s, l, a, r = 0, g = 0, b = 0 } = this.currentColor;
-    let paletteValue = h ? customRound(h / 360 * 100, 0.5) : 0;
-    paletteValue = paletteValue > 100 ? 100 : paletteValue;
+    let paletteValue = h || 0;
+    paletteValue = paletteValue > 360 ? 360 : paletteValue;
     colorSelectedWrapper.appendChild(this.colorSelected);
     this.colorPalette = await Range.create({
       width: "100%",
       height: 10,
       min: 0,
-      max: 100,
+      max: 360,
       step: 1,
       value: paletteValue
     });
@@ -26003,7 +26015,7 @@ var ColorPicker = class extends Control {
       min: 0,
       max: 1,
       value: a != null ? a : 1,
-      step: 0.1
+      step: 0.01
     });
     this.colorSlider.onChanged = this.onSliderChanged.bind(this);
     this.colorSlider.classList.add("custom-range", "color-slider");
@@ -26064,7 +26076,7 @@ var ColorPicker = class extends Control {
       if (this.mdColorPicker)
         this.mdColorPicker.style.setProperty("--opacity-color", `linear-gradient(to right, rgba(${rgbArr[0]}, ${rgbArr[1]}, ${rgbArr[2]}, 0) 0%, ${this.currentPalette} 100%)`);
       const { s, l } = this.currentColor;
-      this.updateColor(Math.round(this.currentH / 100 * 360), s, l);
+      this.updateColor(this.currentH, s, l);
     }
   }
   onSliderChanged() {
@@ -26107,7 +26119,7 @@ var ColorPicker = class extends Control {
     }
     const paletteWidth = target.offsetWidth;
     const paletteHeight = target.offsetHeight;
-    const hue = Math.round(this.currentH / 100 * 360);
+    const hue = this.currentH;
     const saturation = x * 100 / paletteWidth | 0;
     const value = 100 - y * 100 / paletteHeight | 0;
     const hsl2 = hsvToHsl(hue, saturation, value);
@@ -26153,8 +26165,8 @@ var ColorPicker = class extends Control {
   }
   initUI() {
     const { h, a } = this.currentColor || {};
-    let paletteValue = h ? customRound(h / 360 * 100, 0.5) : 0;
-    paletteValue = paletteValue > 100 ? 100 : paletteValue;
+    let paletteValue = h || 0;
+    paletteValue = paletteValue > 360 ? 360 : paletteValue;
     this.setPalette(paletteValue);
     if (this.colorPalette)
       this.colorPalette.value = paletteValue;
@@ -26165,34 +26177,9 @@ var ColorPicker = class extends Control {
     }
   }
   setPalette(paletteValue) {
-    const keys = Object.keys(palette);
     this.currentH = paletteValue;
-    if (paletteValue === 100) {
-      this.currentPalette = palette[paletteValue];
-      return;
-    }
-    for (let i = 0; i < keys.length; i++) {
-      const value = +keys[i];
-      const nextValue = +keys[i + 1];
-      if (paletteValue >= value && paletteValue < nextValue) {
-        const colorArr = stringToArr(palette[value], true);
-        const nextColorArr = stringToArr(palette[nextValue], true);
-        const percent = (paletteValue - value) / (nextValue - value);
-        if (percent === 0 || percent === 1) {
-          this.currentPalette = palette[value];
-        } else {
-          const diffPos = colorArr.findIndex((val, index) => val !== nextColorArr[index]);
-          if (diffPos >= 0) {
-            const percent2 = (paletteValue - value) / (nextValue - value);
-            colorArr[diffPos] = `${percent2 * 255}`;
-            this.currentPalette = `rgb(${colorArr[0]}, ${colorArr[1]}, ${colorArr[2]})`;
-          } else {
-            this.currentPalette = palette[0];
-          }
-        }
-        break;
-      }
-    }
+    const { r, g, b } = hslaToRgba(paletteValue, 100, 50);
+    this.currentPalette = `rgb(${r}, ${g}, ${b})`;
   }
   onInputChanged(event, item) {
     const value = event.target.value;
@@ -26251,8 +26238,9 @@ var ColorPicker = class extends Control {
       const { r: r2, g: g2, b: b2 } = hslaToRgba(h, s, l);
       currentColor = { ...currentColor, r: r2, g: g2, b: b2 };
     }
+    this.currentColor = { ...currentColor };
     this.updateHex();
-    this.updateCurrentColor({ ...currentColor }, true);
+    this.updateCurrentColor(void 0, true);
     this.updateIconPointer();
   }
   static async create(options, parent) {
@@ -28393,6 +28381,15 @@ var Application = class {
     }
     ;
   }
+  calculateElementScconfigPath(packageName) {
+    let options = this._initOptions;
+    let rootDir = (options == null ? void 0 : options.rootDir) ? options == null ? void 0 : options.rootDir : "";
+    if (!rootDir.endsWith("/"))
+      rootDir = rootDir + "/";
+    let libDir = (options == null ? void 0 : options.libDir) ? (options == null ? void 0 : options.libDir) + "/" : "libs/";
+    let path = rootDir + libDir + packageName + "/scconfig.json";
+    return path;
+  }
   async createElement(name, lazyLoad, attributes, modulePath) {
     name = name.split("/").pop() || name;
     let elementName = `i-${name}`;
@@ -28401,7 +28398,42 @@ var Application = class {
       if (window.customElements.get(elementName)) {
         result = document.createElement(elementName);
       } else {
-        let loaded = await this.loadPackage(`@scom/${name}`, modulePath || "*");
+        let packageName = `@scom/${name}`;
+        let scconfigPath = this.calculateElementScconfigPath(packageName);
+        if (scconfigPath) {
+          let scconfigResponse = await fetch(scconfigPath);
+          if (scconfigResponse.status == 200) {
+            let scconfig = await scconfigResponse.json();
+            if (scconfig) {
+              let promisesMap = {};
+              let packageModulePathMap = {};
+              for (let dependency of scconfig.dependencies) {
+                if (dependency === "@ijstech/components" || this.packageNames.has(dependency))
+                  continue;
+                let packageModulePath = await this.calculatePackageModulePath(dependency, modulePath || "*");
+                if (!packageModulePath)
+                  continue;
+                packageModulePathMap[dependency] = packageModulePath;
+                promisesMap[dependency] = this.retrievePackageScript(dependency, packageModulePath);
+              }
+              ;
+              let dependenciesArr = Object.keys(promisesMap);
+              let scripts2 = await Promise.all(Object.values(promisesMap));
+              for (let i = 0; i < dependenciesArr.length; i++) {
+                let dependency = dependenciesArr[i];
+                let packageModulePath = packageModulePathMap[dependency];
+                let script = scripts2[i];
+                if (script) {
+                  await this.dynamicImportPackage(script, dependency, packageModulePath);
+                }
+                ;
+              }
+            }
+          }
+          ;
+        }
+        ;
+        let loaded = await this.loadPackage(packageName, modulePath || "*");
         if (loaded)
           result = document.createElement(elementName);
       }
@@ -28709,7 +28741,7 @@ var Application = class {
     ;
     return [];
   }
-  async loadPackage(packageName, modulePath) {
+  async calculatePackageModulePath(packageName, modulePath) {
     var _a, _b, _c;
     let options = this._initOptions;
     if (options && options.modules && options.modules[packageName]) {
@@ -28740,35 +28772,49 @@ var Application = class {
         libPath = libPath + "/";
       modulePath = modulePath.replace("{LIB}/", libPath);
     }
-    if (this.packages[modulePath])
-      return this.packages[modulePath];
+    return modulePath;
+  }
+  async retrievePackageScript(packageName, packageModulePath) {
+    if (this.packages[packageModulePath])
+      return this.packages[packageModulePath];
     let script = "";
     if (this.bundleLibs[packageName])
       script = this.bundleLibs[packageName];
     else
-      script = await this.getScript(modulePath);
+      script = await this.getScript(packageModulePath);
+    return script;
+  }
+  async loadPackage(packageName, modulePath) {
+    let packageModulePath = await this.calculatePackageModulePath(packageName, modulePath);
+    if (!packageModulePath)
+      return null;
+    let script = await this.retrievePackageScript(packageName, packageModulePath);
     if (script) {
-      _currentDefineModule = null;
-      this.currentModulePath = modulePath;
-      if (modulePath.indexOf("://") > 0)
-        this.currentModuleDir = modulePath.split("/").slice(0, -1).join("/");
-      else if (!modulePath.startsWith("/"))
-        this.currentModuleDir = this.LibHost + this.rootDir + modulePath.split("/").slice(0, -1).join("/");
-      else
-        this.currentModuleDir = this.LibHost + modulePath.split("/").slice(0, -1).join("/");
-      if (!this.packageNames.has(packageName)) {
-        await import(`data:text/javascript,${encodeURIComponent(script)}`);
-        this.packageNames.add(packageName);
-      }
-      this.currentModulePath = "";
-      this.currentModuleDir = "";
-      let m = window["require"](packageName);
-      if (m) {
-        this.packages[modulePath] = m.default || m;
-        return m.default || m;
-      }
+      return this.dynamicImportPackage(script, packageName, packageModulePath);
     }
     ;
+    return null;
+  }
+  async dynamicImportPackage(script, packageName, packageModulePath) {
+    _currentDefineModule = null;
+    this.currentModulePath = packageModulePath;
+    if (packageModulePath.indexOf("://") > 0)
+      this.currentModuleDir = packageModulePath.split("/").slice(0, -1).join("/");
+    else if (!packageModulePath.startsWith("/"))
+      this.currentModuleDir = this.LibHost + this.rootDir + packageModulePath.split("/").slice(0, -1).join("/");
+    else
+      this.currentModuleDir = this.LibHost + packageModulePath.split("/").slice(0, -1).join("/");
+    if (!this.packageNames.has(packageName)) {
+      await import(`data:text/javascript,${encodeURIComponent(script)}`);
+      this.packageNames.add(packageName);
+    }
+    this.currentModulePath = "";
+    this.currentModuleDir = "";
+    let m = window["require"](packageName);
+    if (m) {
+      this.packages[packageModulePath] = m.default || m;
+      return m.default || m;
+    }
     return null;
   }
   async loadModule(modulePath, options) {
@@ -28851,7 +28897,7 @@ var Application = class {
     ;
     return null;
   }
-  async init(scconfigPath) {
+  async init(scconfigPath, customData) {
     let scconfig = JSON.parse(await this.getContent(scconfigPath));
     if (!scconfig.rootDir) {
       if (scconfigPath.indexOf("/") > 0) {
@@ -28885,6 +28931,8 @@ var Application = class {
       scconfig.rootDir = rootDir;
     }
     ;
+    if (customData)
+      scconfig.customData = customData;
     return this.newModule(scconfig.main, scconfig);
   }
   async newModule(module2, options) {
@@ -29205,7 +29253,7 @@ cssRule("i-code-editor", {
       border: "1px solid #eee",
       borderRadius: "4px"
     },
-    "#toolbar button:hover, select:hover, button:focus, select:focus": {
+    "#toolbar button:hover, i-code-editor #toolbar select:hover, i-code-editor #toolbar button:focus, i-code-editor #toolbar select:focus": {
       backgroundColor: "darkslategrey"
     },
     "#execution-tray": {
@@ -30796,8 +30844,11 @@ var DataGrid = class extends Control {
   refresh() {
     super.refresh();
     this.highlightCurrCell();
-    this._scrollBox.style.height = this.heightValue + "px";
-    this._scrollBox.style.width = this.widthValue + "px";
+    if (this._scrollBox) {
+      this._scrollBox.style.height = this.heightValue + "px";
+      this._scrollBox.style.width = this.widthValue + "px";
+    }
+    ;
   }
   deleteRow(row) {
     if (this._dataBindingContext && this._dataBindingContext["readOnly"])
@@ -32712,224 +32763,33 @@ DataGrid = __decorateClass([
   customElements2("i-data-grid")
 ], DataGrid);
 
-// packages/markdown/src/style/markdown.css.ts
+// packages/markdown/src/styles/index.css.ts
 var Theme25 = theme_exports.ThemeVars;
 cssRule("i-markdown", {
-  display: "inline-block",
-  color: Theme25.text.primary,
   fontFamily: Theme25.typography.fontFamily,
-  fontSize: Theme25.typography.fontSize,
-  $nest: {
-    h1: {
-      fontSize: "48px",
-      fontWeight: "900",
-      marginBottom: "16px",
-      marginTop: "1.5em",
-      $nest: {
-        "@media (max-width: 700px)": {
-          fontSize: "24px"
-        }
-      }
-    },
-    h2: {
-      fontSize: "24px",
-      lineHeight: "1.5",
-      fontWeight: "600",
-      marginBottom: "16px",
-      marginTop: "1.5em",
-      $nest: {
-        "@media (max-width: 700px)": {
-          fontSize: "20px"
-        }
-      }
-    },
-    h3: {
-      fontSize: "20px",
-      lineHeight: "24px",
-      fontWeight: "600",
-      marginBottom: "16px",
-      marginTop: "1.5em",
-      $nest: {
-        "@media (max-width: 700px)": {
-          fontSize: "16px"
-        }
-      }
-    },
-    h4: {
-      fontSize: "16px",
-      fontWeight: "600",
-      marginBottom: "16px",
-      marginTop: "1.5em"
-    },
-    h5: {
-      fontSize: "14px",
-      fontWeight: "600",
-      marginBottom: "16px",
-      marginTop: "1.5em"
-    },
-    h6: {
-      fontSize: "13.6px",
-      fontWeight: "600",
-      marginBottom: "16px",
-      marginTop: "1.5em"
-    },
-    p: {
-      display: "block",
-      lineHeight: "150%",
-      marginBottom: "1em",
-      marginTop: "0",
-      fontSize: "15px"
-    },
-    "p:has(img)": {
-      display: "flex",
-      flexDirection: "row",
-      justifyContent: "center",
-      alignItems: "center",
-      gap: "16px",
-      $nest: {
-        "@media (max-width: 700px)": {
-          flexWrap: "wrap"
-        }
-      }
-    },
-    ".img-caption": {
-      display: "block",
-      textAlign: "center",
-      color: "rgba(136,153,168,1.00)",
-      fontSize: 14,
-      fontWeight: 400,
-      lineHeight: "18px",
-      paddingTop: "6px"
-    },
-    "p img": {
-      width: "100%",
-      borderRadius: "5px"
-    },
-    "p a": {
-      display: "contents"
-    },
-    "table": {
-      borderSpacing: "0",
-      border: "1px solid #393939",
-      width: "100%",
-      marginBottom: "20px",
-      $nest: {
-        "thead": {
-          background: "#FFF"
-        },
-        "th": {
-          padding: "10px"
-        },
-        "td": {
-          padding: "10px",
-          borderTop: "1px solid #393939"
-        },
-        "tbody": {
-          $nest: {
-            "tr:nth-child(odd)": {
-              backgroundColor: "#EEE"
-            },
-            "tr:nth-child(even)": {
-              backgroundColor: "#FFF"
-            }
-          }
-        }
-      }
-    },
-    strong: {
-      fontWeight: "600"
-    },
-    blockquote: {
-      background: "#e3e3ff",
-      borderLeft: "0.25em solid #55f",
-      display: "block",
-      padding: "15px 30px 15px 15px",
-      color: "#6a737d",
-      fontSize: "16px",
-      margin: "0 0 16px",
-      $nest: {
-        p: {
-          marginBottom: "0"
-        }
-      }
-    },
-    hr: {
-      border: "1px solid #dfe2e5",
-      boxSizing: "content-box",
-      margin: "1.5em 0",
-      overflow: "hidden",
-      padding: "0"
-    },
-    ol: {
-      marginBottom: "1em",
-      marginTop: "0",
-      paddingLeft: "2em",
-      $nest: {
-        li: {
-          fontSize: "16px"
-        },
-        "li+li": {
-          marginTop: "0.5em"
-        }
-      }
-    },
-    ul: {
-      marginBottom: "1em",
-      marginTop: "0",
-      paddingLeft: "2em",
-      $nest: {
-        li: {
-          fontSize: "16px"
-        },
-        "li+li": {
-          marginTop: "0.5em"
-        }
-      }
-    },
-    "ol ol, i-markdown ul ul, i-markdown ol ul, i-markdown ul ol": {
-      marginTop: "0.5em"
-    },
-    "code, i-markdown pre code": {
-      borderRadius: "3px",
-      background: "#ebeff3",
-      overflowX: "scroll",
-      border: "0",
-      display: "inline",
-      margin: "0",
-      overflow: "visible",
-      padding: "0",
-      whiteSpace: "pre",
-      wordBreak: "normal",
-      wordWrap: "normal"
-    },
-    "a, i-markdown a:hover": {
-      color: "#55f",
-      textDecoration: "none"
-    }
-  }
+  fontSize: Theme25.typography.fontSize
 });
 
 // packages/markdown/src/markdown.ts
 var libs = [`${LibPath}lib/marked/marked.umd.js`];
 var Markdown = class extends Control {
-  constructor() {
-    super();
+  constructor(parent, options) {
+    super(parent, options);
     this.gitbookProcess = true;
+    this._theme = "light";
+  }
+  get theme() {
+    return this._theme;
+  }
+  set theme(value) {
+    this._theme = value;
+    if (this._theme === "light")
+      this.classList.remove("toastui-editor-dark");
+    else
+      this.classList.add("toastui-editor-dark");
   }
   getRenderer() {
-    const renderer = {
-      image(href, title, text) {
-        if (href === null) {
-          return text;
-        }
-        var out = '<span><img style="width: 100%;" src="' + href + '" alt="' + text + '"';
-        if (title) {
-          out += ' title="' + title + '"';
-        }
-        out += '><span class="img-caption">' + text + "</span></span>";
-        return out;
-      }
-    };
+    const renderer = {};
     return renderer;
   }
   async load(text) {
@@ -32937,13 +32797,19 @@ var Markdown = class extends Control {
       this.marked = await this.loadLib();
     let renderer = this.getRenderer();
     this.marked.use({ renderer });
-    text = await this.marked.parse(text);
-    text = await this.processText(text);
-    this.innerHTML = text;
-    return this.innerHTML;
+    if (text) {
+      text = await this.marked.parse(text);
+      text = await this.processText(text);
+    } else {
+      text = "";
+    }
+    if (!this.elm)
+      this.elm = this.createElement("div", this);
+    this.elm.innerHTML = text;
+    return this.elm.innerHTML;
   }
   async beforeRender(text) {
-    this.innerHTML = text;
+    this.elm.innerHTML = text;
   }
   async processText(text) {
     if (this.gitbookProcess) {
@@ -32960,11 +32826,16 @@ var Markdown = class extends Control {
   }
   init() {
     super.init();
+    this.elm = this.createElement("div", this);
+    this.elm.classList.add("toastui-editor-contents");
   }
 };
 Markdown = __decorateClass([
   customElements2("i-markdown")
 ], Markdown);
+
+// packages/markdown-editor/src/styles/index.css.ts
+var Theme26 = theme_exports.ThemeVars;
 
 // packages/markdown-editor/src/markdown-editor.ts
 var TOOLBAR_ITEMS_DEFAULT = [
@@ -32979,21 +32850,21 @@ RequireJS.config({
     "tui-color-picker": `${LibPath}lib/tui-editor/tui-color-picker.min.js`
   }
 });
-var libs2 = [`${LibPath}lib/tui-editor/toastui-editor-all.min.js`];
 var libPlugins = [
-  { name: "colorSyntax", path: [`${LibPath}lib/tui-editor/toastui-editor-plugin-color-syntax.min.js`] },
-  { name: "codeSyntaxHighlight", path: [`${LibPath}lib/tui-editor/toastui-editor-plugin-code-syntax-highlight-all.min.js`] },
-  { name: "tableMergedCell", path: [`${LibPath}lib/tui-editor/toastui-editor-plugin-table-merged-cell.min.js`] },
-  { name: "uml", path: [`${LibPath}lib/tui-editor/toastui-editor-plugin-uml.min.js`] }
+  `${LibPath}lib/tui-editor/toastui-editor-all.min.js`,
+  `${LibPath}lib/tui-editor/toastui-editor-plugin-color-syntax.min.js`,
+  `${LibPath}lib/tui-editor/toastui-editor-plugin-code-syntax-highlight-all.min.js`,
+  `${LibPath}lib/tui-editor/toastui-editor-plugin-table-merged-cell.min.js`,
+  `${LibPath}lib/tui-editor/toastui-editor-plugin-uml.min.js`
 ];
 var editorCSS = [
-  { name: "toastui-editor", href: `${LibPath}lib/tui-editor/toastui-editor.min.css` },
+  { name: "toastui-editor", href: `${LibPath}lib/tui-editor/toastui-editor.css` },
   { name: "toastui-plugins", href: `${LibPath}lib/tui-editor/toastui-plugins.min.css` }
 ];
 var MarkdownEditor = class extends Control {
   constructor(parent, options) {
     super(parent, options);
-    this.editorPlugins = {};
+    this.editorPlugins = [];
     this._theme = "light";
     this._mode = "markdown";
     this._previewStyle = "vertical";
@@ -33003,6 +32874,7 @@ var MarkdownEditor = class extends Control {
     this._toolbarItems = TOOLBAR_ITEMS_DEFAULT;
     this._customPlugins = [];
     this._widgetRules = [];
+    this._hideModeSwitch = false;
   }
   get mode() {
     return this._mode;
@@ -33020,8 +32892,12 @@ var MarkdownEditor = class extends Control {
   }
   set theme(value) {
     this._theme = value;
-    if (!this.editor)
+    if (!this.editor) {
+      if (this.mdViewer) {
+        this.mdViewer.theme = value;
+      }
       return;
+    }
     this.renderEditor(true);
   }
   get previewStyle() {
@@ -33051,9 +32927,10 @@ var MarkdownEditor = class extends Control {
   }
   set value(value) {
     this._value = value;
-    const targetObj = this.viewer ? this.viewerObj : this.editorObj;
-    if (targetObj) {
-      targetObj.setMarkdown(value);
+    if (this.viewer) {
+      this.mdViewer.load(value);
+    } else if (!this.viewer && this.editorObj) {
+      this.editorObj.setMarkdown(value);
     }
   }
   get height() {
@@ -33094,29 +32971,28 @@ var MarkdownEditor = class extends Control {
       return;
     this.renderEditor(true);
   }
+  get hideModeSwitch() {
+    var _a;
+    return (_a = this._hideModeSwitch) != null ? _a : false;
+  }
+  set hideModeSwitch(value) {
+    this._hideModeSwitch = value != null ? value : false;
+  }
   static async create(options, parent) {
     let self = new this(parent, options);
     await self.ready();
     return self;
   }
-  async loadLib() {
-    return new Promise((resolve, reject) => {
-      RequireJS.require(libs2, async (marked) => {
-        resolve(marked);
-      });
-    });
-  }
   async loadPlugin(plugin) {
     return new Promise((resolve, reject) => {
-      RequireJS.require(plugin, async (marked) => {
-        resolve(marked);
+      RequireJS.require(plugin, async (editor, colorSyntax, codeSyntaxHighlight, tableMergedCell, uml) => {
+        this.editor = editor;
+        resolve([colorSyntax, codeSyntaxHighlight, tableMergedCell, uml]);
       });
     });
   }
   async loadPlugins() {
-    for (const _plugin of libPlugins) {
-      this.editorPlugins[_plugin.name] = await this.loadPlugin(_plugin.path);
-    }
+    this.editorPlugins = await this.loadPlugin(libPlugins);
   }
   addCSS(href, name) {
     const css = document.head.querySelector(`[name="${name}"]`);
@@ -33130,18 +33006,19 @@ var MarkdownEditor = class extends Control {
     document.head.append(link);
   }
   async initEditor() {
-    for (const item of editorCSS) {
-      this.addCSS(item.href, item.name);
+    if (!this.viewer) {
+      for (const item of editorCSS) {
+        this.addCSS(item.href, item.name);
+      }
+      await this.loadPlugins();
     }
-    this.editor = await this.loadLib();
-    await this.loadPlugins();
     try {
       this.renderEditor();
     } catch (e) {
     }
   }
   renderEditor(valueChanged) {
-    const editorPlugins = Object.values(this.editorPlugins);
+    const editorPlugins = [...this.editorPlugins].filter(Boolean);
     if (this.viewer) {
       if (this.editorObj) {
         this.editorObj.destroy();
@@ -33152,20 +33029,10 @@ var MarkdownEditor = class extends Control {
         this.elm.innerHTML = "";
         this.elm.style.height = "auto";
       }
-      this.viewerObj = this.editor.factory({
-        el: this.elm,
-        viewer: true,
-        initialValue: this.value,
-        theme: this.theme,
-        plugins: [...editorPlugins, ...this.plugins],
-        widgetRules: this.widgetRules
-      });
-      if (this.theme === "light")
-        this.elm.classList.remove("toastui-editor-dark");
+      this.mdViewer = new Markdown();
+      this.mdViewer.theme = this.theme;
+      this.elm.appendChild(this.mdViewer);
     } else {
-      if (this.viewerObj) {
-        this.viewerObj.destroy();
-      }
       if (!this.elm) {
         this.elm = this.createElement("div", this);
       } else {
@@ -33181,7 +33048,9 @@ var MarkdownEditor = class extends Control {
         theme: this.theme,
         toolbarItems: this.toolbarItems,
         plugins: [...editorPlugins, ...this.plugins],
-        widgetRules: this.widgetRules
+        widgetRules: this.widgetRules,
+        hideModeSwitch: this.hideModeSwitch,
+        minHeight: "0px"
       });
       if (this.theme === "light")
         this.elm.classList.remove("toastui-editor-dark");
@@ -33200,9 +33069,8 @@ var MarkdownEditor = class extends Control {
     return null;
   }
   getViewerElm() {
-    if (this.viewerObj && this.viewer) {
-      return this.viewerObj;
-    }
+    if (this.mdViewer)
+      return this.mdViewer;
     return null;
   }
   async init() {
@@ -33247,6 +33115,7 @@ var MarkdownEditor = class extends Control {
     if (widgetRules) {
       this._widgetRules = widgetRules;
     }
+    this._hideModeSwitch = this.getAttribute("hideModeSwitch", true, false);
     this.initEditor();
   }
 };
@@ -33255,7 +33124,7 @@ MarkdownEditor = __decorateClass([
 ], MarkdownEditor);
 
 // packages/menu/src/style/menu.css.ts
-var Theme26 = theme_exports.ThemeVars;
+var Theme27 = theme_exports.ThemeVars;
 cssRule("i-context-menu", {
   display: "none"
 });
@@ -33273,8 +33142,8 @@ var fadeInRight = keyframes({
   }
 });
 var menuStyle = style({
-  fontFamily: Theme26.typography.fontFamily,
-  fontSize: Theme26.typography.fontSize,
+  fontFamily: Theme27.typography.fontFamily,
+  fontSize: Theme27.typography.fontSize,
   position: "relative",
   overflow: "hidden",
   $nest: {
@@ -33304,7 +33173,7 @@ var menuStyle = style({
         ".menu-item-arrow-active": {
           transform: "rotate(180deg)",
           transition: "transform 0.25s",
-          fill: `${Theme26.text.primary} !important`
+          fill: `${Theme27.text.primary} !important`
         },
         "li": {
           position: "relative",
@@ -33312,7 +33181,7 @@ var menuStyle = style({
             "&:hover": {
               $nest: {
                 ".menu-item": {
-                  color: Theme26.colors.primary.main
+                  color: Theme27.colors.primary.main
                 },
                 ".menu-item-arrow-active": {
                   fill: "currentColor !important"
@@ -33328,7 +33197,7 @@ var menuStyle = style({
 var meunItemStyle = style({
   position: "relative",
   display: "block",
-  color: Theme26.text.secondary,
+  color: Theme27.text.secondary,
   $nest: {
     ".menu-item": {
       position: "relative",
@@ -33348,8 +33217,8 @@ var meunItemStyle = style({
       paddingRight: "2.25rem"
     },
     ".menu-item.menu-active, .menu-item.menu-selected, .menu-item:hover": {
-      background: Theme26.action.hover,
-      color: Theme26.text.primary
+      background: Theme27.action.hover,
+      color: Theme27.text.primary
     },
     ".menu-item.menu-active > .menu-item-arrow": {
       transform: "rotate(180deg)",
@@ -33573,6 +33442,7 @@ var Menu = class extends Control {
   }
   disconnectedCallback() {
     window.removeEventListener("resize", this.handleResize);
+    super.disconnectedCallback();
   }
   static async create(options, parent) {
     let self = new this(parent, options);
@@ -34113,13 +33983,13 @@ Module = __decorateClass([
 ], Module);
 
 // packages/tree-view/src/style/treeView.css.ts
-var Theme27 = theme_exports.ThemeVars;
+var Theme28 = theme_exports.ThemeVars;
 cssRule("i-tree-view", {
   display: "block",
   overflowY: "auto",
   overflowX: "hidden",
-  fontFamily: Theme27.typography.fontFamily,
-  fontSize: Theme27.typography.fontSize,
+  fontFamily: Theme28.typography.fontFamily,
+  fontSize: Theme28.typography.fontSize,
   $nest: {
     ".i-tree-node_content": {
       display: "flex",
@@ -34153,7 +34023,7 @@ cssRule("i-tree-view", {
     ".i-tree-node_label": {
       position: "relative",
       display: "inline-block",
-      color: Theme27.text.primary,
+      color: Theme28.text.primary,
       cursor: "pointer",
       fontSize: 14
     },
@@ -34187,7 +34057,7 @@ cssRule("i-tree-view", {
       position: "relative",
       $nest: {
         ".is-checked:before": {
-          borderLeft: `1px solid ${Theme27.divider}`,
+          borderLeft: `1px solid ${Theme28.divider}`,
           height: "calc(100% - 1em)",
           top: "1em"
         },
@@ -34196,12 +34066,12 @@ cssRule("i-tree-view", {
           top: 25
         },
         "i-tree-node.active > .i-tree-node_content": {
-          backgroundColor: Theme27.action.selected,
-          border: `1px solid ${Theme27.colors.info.dark}`,
-          color: Theme27.text.primary
+          backgroundColor: Theme28.action.selected,
+          border: `1px solid ${Theme28.colors.info.dark}`,
+          color: Theme28.text.primary
         },
         ".i-tree-node_content:hover": {
-          backgroundColor: Theme27.action.hover,
+          backgroundColor: Theme28.action.hover,
           $nest: {
             "> .is-right .button-group *": {
               display: "inline-flex"
@@ -34229,8 +34099,8 @@ cssRule("i-tree-view", {
           marginLeft: "1em"
         },
         "input ~ .i-tree-node_label:before": {
-          background: Theme27.colors.primary.main,
-          color: Theme27.colors.primary.contrastText,
+          background: Theme28.colors.primary.main,
+          color: Theme28.colors.primary.contrastText,
           position: "relative",
           zIndex: "1",
           float: "left",
@@ -34271,7 +34141,7 @@ cssRule("i-tree-view", {
           left: "-.1em",
           display: "block",
           width: "1px",
-          borderLeft: `1px solid ${Theme27.divider}`,
+          borderLeft: `1px solid ${Theme28.divider}`,
           content: "''"
         },
         ".i-tree-node_icon:not(.custom-icon)": {
@@ -34287,15 +34157,15 @@ cssRule("i-tree-view", {
           display: "block",
           height: "0.5em",
           width: "1em",
-          borderBottom: `1px solid ${Theme27.divider}`,
-          borderLeft: `1px solid ${Theme27.divider}`,
+          borderBottom: `1px solid ${Theme28.divider}`,
+          borderLeft: `1px solid ${Theme28.divider}`,
           borderRadius: " 0 0 0 0",
           content: "''"
         },
         "i-tree-node input:checked ~ .i-tree-node_label:after": {
           borderRadius: "0 .1em 0 0",
-          borderTop: `1px solid ${Theme27.divider}`,
-          borderRight: `0.5px solid ${Theme27.divider}`,
+          borderTop: `1px solid ${Theme28.divider}`,
+          borderRight: `0.5px solid ${Theme28.divider}`,
           borderBottom: "0",
           borderLeft: "0",
           bottom: "0",
@@ -34314,7 +34184,7 @@ cssRule("i-tree-view", {
       width: "100%",
       $nest: {
         "&:focus": {
-          borderBottom: `2px solid ${Theme27.colors.primary.main}`
+          borderBottom: `2px solid ${Theme28.colors.primary.main}`
         }
       }
     },
@@ -34341,11 +34211,11 @@ cssRule("i-tree-view", {
 });
 
 // packages/tree-view/src/treeView.ts
-var Theme28 = theme_exports.ThemeVars;
+var Theme29 = theme_exports.ThemeVars;
 var beforeExpandEvent = new Event("beforeExpand");
 var defaultIcon3 = {
   name: "caret-right",
-  fill: Theme28.text.secondary,
+  fill: Theme29.text.secondary,
   width: 12,
   height: 12
 };
@@ -34819,11 +34689,11 @@ TreeNode = __decorateClass([
 ], TreeNode);
 
 // packages/switch/src/style/switch.css.ts
-var Theme29 = theme_exports.ThemeVars;
+var Theme30 = theme_exports.ThemeVars;
 cssRule("i-switch", {
   display: "block",
-  fontFamily: Theme29.typography.fontFamily,
-  fontSize: Theme29.typography.fontSize,
+  fontFamily: Theme30.typography.fontFamily,
+  fontSize: Theme30.typography.fontSize,
   $nest: {
     ".wrapper": {
       width: "48px",
@@ -35334,16 +35204,16 @@ Iframe = __decorateClass([
 ], Iframe);
 
 // packages/pagination/src/style/pagination.css.ts
-var Theme30 = theme_exports.ThemeVars;
+var Theme31 = theme_exports.ThemeVars;
 cssRule("i-pagination", {
   display: "block",
   width: "100%",
   maxWidth: "100%",
   verticalAlign: "baseline",
-  fontFamily: Theme30.typography.fontFamily,
-  fontSize: Theme30.typography.fontSize,
+  fontFamily: Theme31.typography.fontFamily,
+  fontSize: Theme31.typography.fontSize,
   lineHeight: "25px",
-  color: Theme30.text.primary,
+  color: Theme31.text.primary,
   "$nest": {
     ".pagination": {
       display: "inline-flex",
@@ -35351,7 +35221,7 @@ cssRule("i-pagination", {
       justifyContent: "center"
     },
     ".pagination a": {
-      color: Theme30.text.primary,
+      color: Theme31.text.primary,
       float: "left",
       padding: "4px 8px",
       textAlign: "center",
@@ -35367,7 +35237,7 @@ cssRule("i-pagination", {
       cursor: "default"
     },
     ".pagination a.disabled": {
-      color: Theme30.text.disabled,
+      color: Theme31.text.disabled,
       pointerEvents: "none"
     }
   }
@@ -35614,7 +35484,7 @@ Pagination = __decorateClass([
 ], Pagination);
 
 // packages/progress/src/style/progress.css.ts
-var Theme31 = theme_exports.ThemeVars;
+var Theme32 = theme_exports.ThemeVars;
 var loading = keyframes({
   "0%": {
     left: "-100%"
@@ -35627,9 +35497,9 @@ cssRule("i-progress", {
   display: "block",
   maxWidth: "100%",
   verticalAlign: "baseline",
-  fontFamily: Theme31.typography.fontFamily,
-  fontSize: Theme31.typography.fontSize,
-  color: Theme31.text.primary,
+  fontFamily: Theme32.typography.fontFamily,
+  fontSize: Theme32.typography.fontSize,
+  color: Theme32.text.primary,
   position: "relative",
   $nest: {
     "&.is-loading .i-progress_overlay": {
@@ -35652,13 +35522,13 @@ cssRule("i-progress", {
     ".i-progress--exception": {
       $nest: {
         "> .i-progress_wrapbar > .i-progress_overlay": {
-          backgroundColor: Theme31.colors.error.light
+          backgroundColor: Theme32.colors.error.light
         },
         "> .i-progress_wrapbar > .i-progress_bar .i-progress_bar-item": {
-          backgroundColor: Theme31.colors.error.light
+          backgroundColor: Theme32.colors.error.light
         },
         ".i-progress_item.i-progress_item-start": {
-          borderColor: Theme31.colors.error.light
+          borderColor: Theme32.colors.error.light
         },
         ".i-progress_item.i-progress_item-end": {}
       }
@@ -35666,13 +35536,13 @@ cssRule("i-progress", {
     ".i-progress--success": {
       $nest: {
         "> .i-progress_wrapbar > .i-progress_overlay": {
-          backgroundColor: Theme31.colors.success.light
+          backgroundColor: Theme32.colors.success.light
         },
         "> .i-progress_wrapbar > .i-progress_bar .i-progress_bar-item": {
-          backgroundColor: Theme31.colors.success.light
+          backgroundColor: Theme32.colors.success.light
         },
         ".i-progress_item.i-progress_item-start": {
-          borderColor: Theme31.colors.success.light
+          borderColor: Theme32.colors.success.light
         },
         ".i-progress_item.i-progress_item-end": {}
       }
@@ -35680,13 +35550,13 @@ cssRule("i-progress", {
     ".i-progress--warning": {
       $nest: {
         "> .i-progress_wrapbar > .i-progress_overlay": {
-          backgroundColor: Theme31.colors.warning.light
+          backgroundColor: Theme32.colors.warning.light
         },
         "> .i-progress_wrapbar > .i-progress_bar .i-progress_bar-item": {
-          backgroundColor: Theme31.colors.warning.light
+          backgroundColor: Theme32.colors.warning.light
         },
         ".i-progress_item.i-progress_item-start": {
-          borderColor: Theme31.colors.warning.light
+          borderColor: Theme32.colors.warning.light
         },
         ".i-progress_item.i-progress_item-end": {}
       }
@@ -35694,14 +35564,14 @@ cssRule("i-progress", {
     ".i-progress--active": {
       $nest: {
         "> .i-progress_wrapbar > .i-progress_overlay": {
-          backgroundColor: Theme31.colors.primary.light
+          backgroundColor: Theme32.colors.primary.light
         },
         "> .i-progress_wrapbar > .i-progress_bar .i-progress_bar-item": {
-          backgroundColor: Theme31.colors.primary.light
+          backgroundColor: Theme32.colors.primary.light
         },
         ".i-progress_item.i-progress_item-start": {
           backgroundColor: "transparent",
-          borderColor: Theme31.colors.primary.light
+          borderColor: Theme32.colors.primary.light
         }
       }
     },
@@ -35723,11 +35593,11 @@ cssRule("i-progress", {
           gap: "1px",
           $nest: {
             "&.has-bg": {
-              backgroundColor: Theme31.divider
+              backgroundColor: Theme32.divider
             },
             ".i-progress_bar-item": {
               flex: "auto",
-              backgroundColor: Theme31.divider
+              backgroundColor: Theme32.divider
             }
           }
         },
@@ -35752,7 +35622,7 @@ cssRule("i-progress", {
           borderStyle: "solid",
           borderImage: "initial",
           borderRadius: 14,
-          borderColor: Theme31.divider,
+          borderColor: Theme32.divider,
           padding: "4px 12px",
           order: 1
         },
@@ -35808,7 +35678,7 @@ cssRule("i-progress", {
 });
 
 // packages/progress/src/progress.ts
-var Theme32 = theme_exports.ThemeVars;
+var Theme33 = theme_exports.ThemeVars;
 var defaultVals = {
   percent: 0,
   height: 20,
@@ -35852,7 +35722,7 @@ var Progress = class extends Control {
     }
   }
   get strokeColor() {
-    return this._strokeColor || Theme32.colors.primary.main;
+    return this._strokeColor || Theme33.colors.primary.main;
   }
   set strokeColor(value) {
     this._strokeColor = value;
@@ -35987,11 +35857,11 @@ var Progress = class extends Control {
   get stroke() {
     let ret = this.strokeColor;
     if (this.percent === 100)
-      ret = Theme32.colors.success.main;
+      ret = Theme33.colors.success.main;
     return ret;
   }
   get trackColor() {
-    return Theme32.divider;
+    return Theme33.divider;
   }
   get progressTextSize() {
     return this.type === "line" ? 12 + this.strokeWidth * 0.4 : +this.width * 0.111111 + 2;
@@ -36079,11 +35949,11 @@ Progress = __decorateClass([
 ], Progress);
 
 // packages/table/src/style/table.css.ts
-var Theme33 = theme_exports.ThemeVars;
+var Theme34 = theme_exports.ThemeVars;
 var tableStyle = style({
-  fontFamily: Theme33.typography.fontFamily,
-  fontSize: Theme33.typography.fontSize,
-  color: Theme33.text.primary,
+  fontFamily: Theme34.typography.fontFamily,
+  fontSize: Theme34.typography.fontSize,
+  color: Theme34.text.primary,
   display: "block",
   $nest: {
     "> .i-table-container": {
@@ -36105,26 +35975,26 @@ var tableStyle = style({
     ".i-table-header>tr>th": {
       fontWeight: 600,
       transition: "background .3s ease",
-      borderBottom: `1px solid ${Theme33.divider}`
+      borderBottom: `1px solid ${Theme34.divider}`
     },
     ".i-table-body>tr>td": {
-      borderBottom: `1px solid ${Theme33.divider}`,
+      borderBottom: `1px solid ${Theme34.divider}`,
       transition: "background .3s ease"
     },
     "tr:hover td": {
-      background: Theme33.background.paper,
-      color: Theme33.text.secondary
+      background: Theme34.background.paper,
+      color: Theme34.text.secondary
     },
     "&.i-table--bordered": {
       $nest: {
         "> .i-table-container > table": {
-          borderTop: `1px solid ${Theme33.divider}`,
-          borderLeft: `1px solid ${Theme33.divider}`,
+          borderTop: `1px solid ${Theme34.divider}`,
+          borderLeft: `1px solid ${Theme34.divider}`,
           borderRadius: "2px"
         },
         "> .i-table-container > table .i-table-cell": {
-          borderRight: `1px solid ${Theme33.divider} !important`,
-          borderBottom: `1px solid ${Theme33.divider}`
+          borderRight: `1px solid ${Theme34.divider} !important`,
+          borderBottom: `1px solid ${Theme34.divider}`
         }
       }
     },
@@ -36145,7 +36015,7 @@ var tableStyle = style({
           cursor: "pointer"
         },
         ".sort-icon.sort-icon--active > svg": {
-          fill: Theme33.colors.primary.main
+          fill: Theme34.colors.primary.main
         },
         ".sort-icon.sort-icon--desc": {
           marginTop: -5
@@ -36174,12 +36044,12 @@ var tableStyle = style({
           display: "inline-block"
         },
         "i-icon svg": {
-          fill: Theme33.text.primary
+          fill: Theme34.text.primary
         }
       }
     },
     ".i-table-row--child > td": {
-      borderRight: `1px solid ${Theme33.divider}`
+      borderRight: `1px solid ${Theme34.divider}`
     },
     "@media (max-width: 767px)": {
       $nest: {
@@ -36250,7 +36120,7 @@ var getTableMediaQueriesStyleClass = (columns, mediaQueries) => {
 };
 
 // packages/table/src/tableColumn.ts
-var Theme34 = theme_exports.ThemeVars;
+var Theme35 = theme_exports.ThemeVars;
 var TableColumn = class extends Control {
   constructor(parent, options) {
     super(parent, options);
@@ -36305,7 +36175,7 @@ var TableColumn = class extends Control {
         name: "caret-up",
         width: 14,
         height: 14,
-        fill: Theme34.text.primary
+        fill: Theme35.text.primary
       });
       this.ascElm.classList.add("sort-icon", "sort-icon--asc");
       this.ascElm.onClick = () => this.sortOrder = this.sortOrder === "asc" ? "none" : "asc";
@@ -36313,7 +36183,7 @@ var TableColumn = class extends Control {
         name: "caret-down",
         width: 14,
         height: 14,
-        fill: Theme34.text.primary
+        fill: Theme35.text.primary
       });
       this.descElm.classList.add("sort-icon", "sort-icon--desc");
       this.descElm.onClick = () => this.sortOrder = this.sortOrder === "desc" ? "none" : "desc";
@@ -36766,7 +36636,7 @@ Table = __decorateClass([
 ], Table);
 
 // packages/carousel/src/style/carousel.css.ts
-var Theme35 = theme_exports.ThemeVars;
+var Theme36 = theme_exports.ThemeVars;
 cssRule("i-carousel-slider", {
   display: "block",
   position: "relative",
@@ -36787,7 +36657,7 @@ cssRule("i-carousel-slider", {
     ".slider-arrow": {
       width: 28,
       height: 28,
-      fill: Theme35.colors.primary.main,
+      fill: Theme36.colors.primary.main,
       cursor: "pointer"
     },
     ".slider-arrow-hidden": {
@@ -36820,7 +36690,7 @@ cssRule("i-carousel-slider", {
           minWidth: "0.8rem",
           minHeight: "0.8rem",
           backgroundColor: "transparent",
-          border: `2px solid ${Theme35.colors.primary.main}`,
+          border: `2px solid ${Theme36.colors.primary.main}`,
           borderRadius: "50%",
           transition: "background-color 0.35s ease-in-out",
           textAlign: "center",
@@ -36831,7 +36701,7 @@ cssRule("i-carousel-slider", {
           textOverflow: "ellipsis"
         },
         ".--active > span": {
-          backgroundColor: Theme35.colors.primary.main
+          backgroundColor: Theme36.colors.primary.main
         }
       }
     }
@@ -36957,11 +36827,12 @@ var CarouselSlider = class extends Control {
   get isArrow() {
     return this.type === "arrow";
   }
-  disconnectCallback() {
+  disconnectedCallback() {
     this.sliderListElm.onmousedown = null;
     this.sliderListElm.removeEventListener("touchstart", this.dragStartHandler);
     this.sliderListElm.removeEventListener("touchend", this.dragEndHandler);
     this.sliderListElm.removeEventListener("touchmove", this.dragHandler);
+    super.disconnectedCallback();
   }
   updateArrows(prev, next) {
     if (this.arrowPrev && this.arrowNext) {
@@ -37337,7 +37208,7 @@ Video = __decorateClass([
 ], Video);
 
 // packages/schema-designer/src/uiSchema.ts
-var Theme36 = theme_exports.ThemeVars;
+var Theme37 = theme_exports.ThemeVars;
 var dataUITypes = [
   { label: "VerticalLayout", value: "VerticalLayout" },
   { label: "HorizontalLayout", value: "HorizontalLayout" },
@@ -37591,7 +37462,7 @@ var SchemaDesignerUI = class extends Container {
       name: "plus",
       width: "1em",
       height: "1em",
-      fill: Theme36.colors.primary.contrastText
+      fill: Theme37.colors.primary.contrastText
     }));
     btnAddElement.onClick = () => {
       this.createUISchema(pnlUIElements, currentLayout, true);
@@ -37680,7 +37551,7 @@ var SchemaDesignerUI = class extends Container {
           visible: false,
           width: 12,
           height: 12,
-          fill: Theme36.colors.secondary.main,
+          fill: Theme37.colors.secondary.main,
           tooltip: {
             content: "Remove this property",
             trigger: "hover"
@@ -37735,7 +37606,7 @@ var SchemaDesignerUI = class extends Container {
               visible: false,
               width: 12,
               height: 12,
-              fill: Theme36.colors.secondary.main,
+              fill: Theme37.colors.secondary.main,
               tooltip: {
                 content: "Remove this property",
                 trigger: "hover"
@@ -37837,13 +37708,13 @@ var SchemaDesignerUI = class extends Container {
                   display: "flex",
                   padding: { top: 8, bottom: 8, left: 16, right: 16 },
                   border: { radius: 8 },
-                  background: { color: Theme36.action.selected }
+                  background: { color: Theme37.action.selected }
                 });
                 const iconTimesEnum = new Icon(pnlEnum, {
                   name: "times",
                   width: 14,
                   height: 14,
-                  fill: Theme36.colors.secondary.main,
+                  fill: Theme37.colors.secondary.main,
                   position: "absolute",
                   right: 2,
                   top: 2
@@ -37875,7 +37746,7 @@ var SchemaDesignerUI = class extends Container {
               position: "absolute",
               top: 5,
               right: 5,
-              fill: Theme36.colors.secondary.main,
+              fill: Theme37.colors.secondary.main,
               tooltip: {
                 content: "Remove this property",
                 trigger: "hover"
@@ -38083,7 +37954,7 @@ var SchemaDesignerUI = class extends Container {
         name: "plus",
         width: "1em",
         height: "1em",
-        fill: Theme36.colors.primary.contrastText
+        fill: Theme37.colors.primary.contrastText
       }));
       const pnlFormDetail = new Panel(void 0, {
         padding: { top: 10, bottom: 10, left: 10, right: 10 }
@@ -38294,7 +38165,7 @@ var SchemaDesignerUI = class extends Container {
         name: "times-circle",
         width: 12,
         height: 12,
-        fill: Theme36.colors.secondary.main,
+        fill: Theme37.colors.secondary.main,
         visible: false
       });
       iconClear.onClick = () => {
@@ -38388,7 +38259,7 @@ var SchemaDesignerUI = class extends Container {
     if (isChildren) {
       btnDelete = new Button(void 0, {
         caption: "Delete",
-        background: { color: `${Theme36.colors.secondary.main} !important` },
+        background: { color: `${Theme37.colors.secondary.main} !important` },
         display: "flex",
         width: "100%",
         height: 28,
@@ -38398,7 +38269,7 @@ var SchemaDesignerUI = class extends Container {
         name: "trash",
         width: "1em",
         height: "1em",
-        fill: Theme36.colors.primary.contrastText
+        fill: Theme37.colors.primary.contrastText
       }));
       btnDelete.onClick = () => {
         deleteElement();
@@ -38412,7 +38283,7 @@ var SchemaDesignerUI = class extends Container {
         name: "angle-down",
         width: "1.125em",
         height: "1.125em",
-        fill: Theme36.colors.primary.contrastText
+        fill: Theme37.colors.primary.contrastText
       });
       btnExpand.prepend(iconExpand);
       btnExpand.onClick = onExpand;
@@ -38485,12 +38356,12 @@ SchemaDesignerUI = __decorateClass([
 ], SchemaDesignerUI);
 
 // packages/schema-designer/src/style/schema-designer.css.ts
-var Theme37 = theme_exports.ThemeVars;
+var Theme38 = theme_exports.ThemeVars;
 var scrollBar = {
   "&::-webkit-scrollbar-track": {
     borderRadius: "12px",
     border: "1px solid transparent",
-    background: Theme37.action.hover
+    background: Theme38.action.hover
   },
   "&::-webkit-scrollbar": {
     width: "8px",
@@ -38498,7 +38369,7 @@ var scrollBar = {
   },
   "&::-webkit-scrollbar-thumb": {
     borderRadius: "12px",
-    background: Theme37.action.active
+    background: Theme38.action.active
   }
 };
 cssRule("i-schema-designer", {
@@ -38524,12 +38395,12 @@ cssRule("i-schema-designer", {
           height: "30px !important",
           width: "100% !important",
           border: 0,
-          borderBottom: `0.5px solid ${Theme37.divider}`,
+          borderBottom: `0.5px solid ${Theme38.divider}`,
           background: "transparent"
         },
         "textarea": {
           height: "100% !important",
-          border: `0.5px solid ${Theme37.divider}`,
+          border: `0.5px solid ${Theme38.divider}`,
           borderRadius: "1em",
           background: "transparent",
           $nest: scrollBar
@@ -38547,7 +38418,7 @@ cssRule("i-schema-designer", {
           background: "transparent !important",
           height: "30px !important",
           border: "0 !important",
-          borderBottom: `0.5px solid ${Theme37.divider} !important`
+          borderBottom: `0.5px solid ${Theme38.divider} !important`
         },
         ".selection": {
           background: "transparent",
@@ -38556,7 +38427,7 @@ cssRule("i-schema-designer", {
         },
         "span.icon-btn": {
           border: "0",
-          borderBottom: `0.5px solid ${Theme37.divider}`,
+          borderBottom: `0.5px solid ${Theme38.divider}`,
           borderRadius: "0",
           height: "30px !important",
           width: "32px !important",
@@ -38583,8 +38454,8 @@ cssRule("i-schema-designer", {
       }
     },
     "i-button": {
-      background: Theme37.colors.primary.main,
-      color: Theme37.colors.primary.contrastText
+      background: Theme38.colors.primary.main,
+      color: Theme38.colors.primary.contrastText
     },
     ".cs-wrapper--header": {
       padding: "5px 10px",
@@ -38597,12 +38468,12 @@ cssRule("i-schema-designer", {
     ".cs-prefix--items": {
       $nest: {
         ".cs-box--shadow": {
-          boxShadow: Theme37.shadows[2]
+          boxShadow: Theme38.shadows[2]
         }
       }
     },
     ".cs-box--enum": {
-      boxShadow: Theme37.shadows[2],
+      boxShadow: Theme38.shadows[2],
       padding: "8px 16px",
       borderRadius: 8,
       minWidth: 100,
@@ -38637,7 +38508,7 @@ cssRule("i-schema-designer", {
 });
 
 // packages/schema-designer/src/schemaDesigner.ts
-var Theme38 = theme_exports.ThemeVars;
+var Theme39 = theme_exports.ThemeVars;
 var dataTypes = [
   { label: "string", value: "string" },
   { label: "number", value: "number" },
@@ -38882,7 +38753,7 @@ var SchemaDesigner = class extends Container {
       name: "plus",
       width: "1em",
       height: "1em",
-      fill: Theme38.colors.primary.contrastText
+      fill: Theme39.colors.primary.contrastText
     }));
     const hStackActions = new HStack(void 0, {
       verticalAlignment: "center",
@@ -38970,7 +38841,7 @@ var SchemaDesigner = class extends Container {
         name: "angle-down",
         width: "1.125em",
         height: "1.125em",
-        fill: Theme38.colors.primary.contrastText
+        fill: Theme39.colors.primary.contrastText
       });
       btnExpand.prepend(iconExpand);
       btnExpand.onClick = onExpand;
@@ -38985,7 +38856,7 @@ var SchemaDesigner = class extends Container {
         position: "absolute",
         top: 5,
         right: 5,
-        fill: Theme38.colors.secondary.main,
+        fill: Theme39.colors.secondary.main,
         tooltip: {
           content: "Remove this property",
           trigger: "hover"
@@ -39005,7 +38876,7 @@ var SchemaDesigner = class extends Container {
         name: "exclamation-circle",
         width: 12,
         height: 12,
-        fill: Theme38.colors.secondary.main,
+        fill: Theme39.colors.secondary.main,
         tooltip: {
           content: "Invalid field",
           trigger: "hover"
@@ -39014,7 +38885,7 @@ var SchemaDesigner = class extends Container {
       });
       btnDelete = new Button(void 0, {
         caption: "Delete",
-        background: { color: `${Theme38.colors.secondary.main} !important` },
+        background: { color: `${Theme39.colors.secondary.main} !important` },
         display: "flex",
         width: "100%",
         padding: { top: 6, bottom: 6, left: 12, right: 12 }
@@ -39023,7 +38894,7 @@ var SchemaDesigner = class extends Container {
         name: "trash",
         width: "1em",
         height: "1em",
-        fill: Theme38.colors.primary.contrastText
+        fill: Theme39.colors.primary.contrastText
       }));
       btnDelete.setAttribute("action", "delete");
       btnDelete.onClick = async () => {
@@ -39269,13 +39140,13 @@ var SchemaDesigner = class extends Container {
           display: "flex",
           padding: { top: 8, bottom: 8, left: 16, right: 16 },
           border: { radius: 8 },
-          background: { color: Theme38.action.selected }
+          background: { color: Theme39.action.selected }
         });
         const iconTimes = new Icon(pnlEnum, {
           name: "times",
           width: 14,
           height: 14,
-          fill: Theme38.colors.secondary.main,
+          fill: Theme39.colors.secondary.main,
           position: "absolute",
           right: 2,
           top: 2
@@ -39319,7 +39190,7 @@ var SchemaDesigner = class extends Container {
         position: "absolute",
         top: 5,
         right: 5,
-        fill: Theme38.colors.secondary.main,
+        fill: Theme39.colors.secondary.main,
         tooltip: {
           content: "Remove this property",
           trigger: "hover"
@@ -39408,13 +39279,13 @@ var SchemaDesigner = class extends Container {
           display: "flex",
           padding: { top: 8, bottom: 8, left: 16, right: 16 },
           border: { radius: 8 },
-          background: { color: Theme38.action.selected }
+          background: { color: Theme39.action.selected }
         });
         const iconTimes = new Icon(pnlEnum, {
           name: "times",
           width: 14,
           height: 14,
-          fill: Theme38.colors.secondary.main,
+          fill: Theme39.colors.secondary.main,
           position: "absolute",
           right: 2,
           top: 2
@@ -39453,7 +39324,7 @@ var SchemaDesigner = class extends Container {
         position: "absolute",
         top: 5,
         right: 5,
-        fill: Theme38.colors.secondary.main,
+        fill: Theme39.colors.secondary.main,
         tooltip: {
           content: "Remove this property",
           trigger: "hover"
@@ -39552,7 +39423,7 @@ var SchemaDesigner = class extends Container {
         name: "times",
         width: 14,
         height: 14,
-        fill: Theme38.colors.secondary.main,
+        fill: Theme39.colors.secondary.main,
         position: "absolute",
         right: 4,
         top: 4
@@ -39638,7 +39509,7 @@ var SchemaDesigner = class extends Container {
     if (parentFields.length) {
       new Label(vStack, {
         caption: "Advanced options",
-        font: { size: "16px", color: Theme38.colors.primary.main }
+        font: { size: "16px", color: Theme39.colors.primary.main }
       });
     }
     const gridLayout = new GridLayout(vStack, {
@@ -39683,7 +39554,7 @@ var SchemaDesigner = class extends Container {
         width: 12,
         height: 12,
         position: notCheckbox ? "absolute" : "relative",
-        fill: Theme38.colors.secondary.main,
+        fill: Theme39.colors.secondary.main,
         tooltip: {
           content: "Remove this property",
           trigger: "hover"
@@ -39914,9 +39785,9 @@ SchemaDesigner = __decorateClass([
 ], SchemaDesigner);
 
 // packages/navigator/src/style/navigator.css.ts
-var Theme39 = theme_exports.ThemeVars;
+var Theme40 = theme_exports.ThemeVars;
 cssRule("i-nav", {
-  border: `1px solid ${Theme39.divider}`,
+  border: `1px solid ${Theme40.divider}`,
   $nest: {
     "> i-vstack": {
       alignItems: "center",
@@ -39925,7 +39796,7 @@ cssRule("i-nav", {
         ".search-container": {
           width: "100%",
           padding: 10,
-          borderBottom: `1px solid ${Theme39.divider}`,
+          borderBottom: `1px solid ${Theme40.divider}`,
           alignItems: "center",
           gap: 5,
           $nest: {
@@ -39937,7 +39808,7 @@ cssRule("i-nav", {
                 "input": {
                   background: "transparent",
                   border: "0",
-                  borderBottom: `1px solid ${Theme39.divider}`
+                  borderBottom: `1px solid ${Theme40.divider}`
                 }
               }
             }
@@ -39952,9 +39823,9 @@ cssRule("i-nav", {
     },
     "i-nav-item": {
       cursor: "pointer",
-      background: Theme39.background.main,
+      background: Theme40.background.main,
       borderLeft: "3px solid transparent",
-      borderBottom: `1px solid ${Theme39.divider}`,
+      borderBottom: `1px solid ${Theme40.divider}`,
       $nest: {
         "> i-grid-layout": {
           height: 50,
@@ -39963,14 +39834,14 @@ cssRule("i-nav", {
           alignItems: "center"
         },
         "i-icon": {
-          height: Theme39.typography.fontSize,
-          width: Theme39.typography.fontSize,
-          fill: Theme39.colors.primary.main
+          height: Theme40.typography.fontSize,
+          width: Theme40.typography.fontSize,
+          fill: Theme40.colors.primary.main
         },
         "&.active": {
-          color: Theme39.colors.primary.contrastText,
-          background: Theme39.colors.primary.main,
-          borderLeft: `3px solid ${Theme39.colors.primary.main}`
+          color: Theme40.colors.primary.contrastText,
+          background: Theme40.colors.primary.main,
+          borderLeft: `3px solid ${Theme40.colors.primary.main}`
         }
       }
     }
@@ -40279,19 +40150,19 @@ NavItem = __decorateClass([
 ], NavItem);
 
 // packages/breadcrumb/src/style/breadcrumb.css.ts
-var Theme40 = theme_exports.ThemeVars;
+var Theme41 = theme_exports.ThemeVars;
 cssRule("i-breadcrumb", {
   $nest: {
     "i-label": {
       padding: 5,
       margin: "0 5px",
-      color: Theme40.colors.primary.main
+      color: Theme41.colors.primary.main
     },
     "i-icon": {
       margin: "0 5px",
-      height: Theme40.typography.fontSize,
-      width: Theme40.typography.fontSize,
-      fill: Theme40.colors.primary.main
+      height: Theme41.typography.fontSize,
+      width: Theme41.typography.fontSize,
+      fill: Theme41.colors.primary.main
     }
   }
 });
@@ -40359,7 +40230,7 @@ Breadcrumb = __decorateClass([
 ], Breadcrumb);
 
 // packages/form/src/styles/index.css.ts
-var Theme41 = theme_exports.ThemeVars;
+var Theme42 = theme_exports.ThemeVars;
 var formStyle = style({
   gap: 10
 });
@@ -40370,54 +40241,133 @@ var formGroupStyle = style({
   justifyContent: "center"
 });
 var groupStyle = style({
-  border: `1px solid ${Theme41.divider}`,
+  border: `1px solid ${Theme42.divider}`,
   borderRadius: 5,
-  width: "100%"
+  width: "100%",
+  marginBottom: 5
 });
 var groupHeaderStyle = style({
   padding: 10,
   display: "flex",
   alignItems: "center",
-  justifyContent: "space-between"
+  justifyContent: "space-between",
+  cursor: "pointer"
 });
 var groupBodyStyle = style({
   padding: 10
 });
 var collapseBtnStyle = style({
   cursor: "pointer",
-  height: Theme41.typography.fontSize,
-  width: Theme41.typography.fontSize
+  height: Theme42.typography.fontSize,
+  width: Theme42.typography.fontSize
 });
 var inputStyle = style({
-  width: "100%"
-});
-var datePickerStyle = style({
   width: "100% !important",
   $nest: {
-    "> input": {
-      width: "calc(100% - 24px) !important"
+    "& > input, & > textarea": {
+      width: "100% !important",
+      maxWidth: "100%",
+      padding: "0.5rem 1rem",
+      color: Theme42.input.fontColor,
+      backgroundColor: Theme42.input.background,
+      borderColor: Theme42.input.background,
+      borderRadius: "0.625rem",
+      outline: "none"
+    },
+    "i-color .input-span": {
+      borderRadius: "0.625rem",
+      $nest: {
+        "> span": {
+          borderRadius: "0.375rem"
+        }
+      }
     }
   }
 });
-var comboBoxStyle = style({});
+var datePickerStyle = style({
+  display: "inline-flex",
+  width: "100% !important",
+  borderRadius: "0.625rem",
+  $nest: {
+    "> input": {
+      width: "calc(100% - 24px) !important",
+      maxWidth: "calc(100% - 24px)",
+      padding: "0.5rem 1rem",
+      color: Theme42.input.fontColor,
+      backgroundColor: Theme42.input.background,
+      borderColor: Theme42.input.background,
+      outline: "none"
+    },
+    "> input:focus ~ .datepicker-toggle": {
+      borderColor: Theme42.colors.info.main
+    },
+    ".datepicker-toggle": {
+      backgroundColor: Theme42.input.background,
+      width: "42px"
+    }
+  }
+});
+var comboBoxStyle = style({
+  width: "100% !important",
+  $nest: {
+    ".selection": {
+      width: "100% !important",
+      maxWidth: "100%",
+      padding: "0.5rem 1rem",
+      color: Theme42.input.fontColor,
+      backgroundColor: Theme42.input.background,
+      borderColor: Theme42.input.background,
+      borderRadius: "0.625rem!important"
+    },
+    ".selection input": {
+      color: "inherit",
+      backgroundColor: "inherit",
+      padding: 0
+    },
+    "> .icon-btn": {
+      justifyContent: "center",
+      borderColor: Theme42.input.background,
+      borderRadius: "0.625rem",
+      width: "42px"
+    }
+  }
+});
 var buttonStyle = style({
   padding: 5
 });
 var iconButtonStyle = style({
   cursor: "pointer",
-  height: Theme41.typography.fontSize,
-  width: Theme41.typography.fontSize
+  height: Theme42.typography.fontSize,
+  width: Theme42.typography.fontSize
+});
+var checkboxStyle = style({
+  $nest: {
+    ".checkmark": {
+      width: "22px",
+      height: "22px",
+      borderRadius: "6px"
+    },
+    ".checkmark:after": {
+      width: "4px",
+      height: "8px",
+      top: "4px"
+    }
+  }
 });
 var listHeaderStyle = style({
   padding: "10px 0px",
-  borderBottom: `1px solid ${Theme41.divider}`,
-  marginBottom: 10
+  borderBottom: `1px solid ${Theme42.divider}`,
+  marginBottom: 10,
+  minHeight: "60px",
+  alignItems: "center",
+  fontWeight: 600
 });
 var listBtnAddStyle = style({
-  height: Theme41.typography.fontSize,
-  width: Theme41.typography.fontSize,
-  cursor: "pointer",
-  placeSelf: "center"
+  color: Theme42.colors.primary.contrastText,
+  backgroundColor: Theme42.colors.primary.main,
+  padding: "0.5rem 1rem",
+  borderRadius: 0,
+  cursor: "pointer"
 });
 var listColumnHeaderStyle = style({
   padding: "10px 0",
@@ -40469,7 +40419,7 @@ var listVerticalLayoutStyle = style({
       flexDirection: "row",
       flexWrap: "wrap",
       $nest: {
-        "i-hstack:first-child": {
+        "> i-hstack:first-child": {
           width: "25% !important"
         },
         "> :nth-child(2)": {
@@ -40498,19 +40448,60 @@ var listVerticalLayoutStyle = style({
 var listItemBtnDelete = style({
   cursor: "pointer",
   placeSelf: "center",
-  height: Theme41.typography.fontSize,
-  width: Theme41.typography.fontSize
+  height: Theme42.typography.fontSize,
+  width: Theme42.typography.fontSize
 });
 var tabsStyle = style({
-  marginBottom: 41
+  marginBottom: 41,
+  $nest: {
+    ".tabs-nav-wrap": {
+      $nest: {
+        ".tabs-nav": {
+          borderColor: "transparent",
+          height: "54px"
+        },
+        "i-tab": {
+          border: 0,
+          fontFamily: Theme42.typography.fontFamily,
+          fontSize: Theme42.typography.fontSize,
+          fontWeight: 600,
+          borderBottom: "1px solid transparent",
+          background: "transparent",
+          color: Theme42.text.secondary,
+          margin: "0 0.75rem",
+          padding: "0.5rem 0",
+          transition: "color .2s ease",
+          $nest: {
+            "&:first-of-type": {
+              marginLeft: 0
+            },
+            "&:not(.disabled):hover": {
+              color: Theme42.text.primary
+            },
+            "&:not(.disabled).active": {
+              background: "transparent",
+              color: Theme42.colors.info.main,
+              borderBottom: `1px solid ${Theme42.colors.info.main}`
+            },
+            ".tab-item": {
+              padding: 0
+            }
+          }
+        }
+      }
+    },
+    ".tabs-content": {
+      overflow: "visible"
+    }
+  }
 });
 var cardStyle = style({
-  background: Theme41.background.main,
-  border: `1px solid ${Theme41.divider}`
+  border: `1px solid ${Theme42.divider}`
 });
 var cardHeader = style({
   padding: 20,
-  borderBottom: `1px solid ${Theme41.divider}`
+  borderBottom: `1px solid ${Theme42.divider}`,
+  cursor: "pointer"
 });
 var cardBody = style({
   padding: 20
@@ -40519,9 +40510,39 @@ var uploadStyle = style({
   height: "auto",
   width: "100%",
   margin: 0,
+  fontFamily: Theme42.typography.fontFamily,
   $nest: {
     "> .i-upload-wrapper": {
-      marginBottom: 0
+      marginBottom: 0,
+      borderRadius: 5
+    }
+  }
+});
+var tokenInputStyle = style({
+  $nest: {
+    "#gridTokenInput": {
+      border: "1px solid var(--divider) !important",
+      borderRadius: "5px !important",
+      padding: "0.31rem !important",
+      background: "transparent",
+      $nest: {
+        "&:hover": {
+          borderColor: `${Theme42.colors.primary.main} !important`
+        }
+      }
+    },
+    "#btnToken": {
+      display: "flex",
+      justifyContent: "space-between",
+      $nest: {
+        "i-icon": {
+          width: "20px !important",
+          height: "20px !important"
+        }
+      }
+    },
+    "i-vstack.custom-border": {
+      marginBlock: "0 !important"
     }
   }
 });
@@ -40555,16 +40576,17 @@ var Form = class extends Control {
     super(parent, options);
     this._formRules = [];
     this._formControls = {};
-    this.validateOnValueChanged = async (parent, scope, caption) => {
+    this.validateOnValueChanged = async (currentControl, parent, scope, caption) => {
       var _a, _b;
-      const data = await this.getFormData();
-      const validationResult = this.validate(data, this.jsonSchema, { changing: false });
+      const data = (_a = this.validationData) != null ? _a : await this.getFormData();
+      const validationResult = (_b = this.validationResult) != null ? _b : this.validate(data, this.jsonSchema, { changing: false });
       let showErrMsg = false;
       let errMsg = "";
+      const isNonObject = parent.closest('[non-object="true"]');
       let _scope = scope;
-      const isArray = parent.getAttribute("role") === "list-item";
-      if (isArray) {
-        let parentIdx = [];
+      const parentListItem = parent.closest('[role="list-item"]');
+      if (parentListItem && !isNonObject) {
+        let parentFields = [];
         const getParentIdxs = async (_parent) => {
           if (!_parent)
             return;
@@ -40574,49 +40596,50 @@ var Form = class extends Control {
             const parentList = parentElm.querySelectorAll(':scope > i-vstack > [role="list-item"]');
             for (let i = 0; i < parentList.length; i++) {
               if (parentList[i] === _parent) {
-                parentIdx.push(i + 1);
+                parentFields.push({ key: arrayField, idx: i });
                 await getParentIdxs(parentElm.closest('[role="list-item"]'));
                 break;
               }
             }
           }
         };
-        await getParentIdxs(parent);
-        const fields = scope.split("/");
-        let scopes = [];
-        const idxLength = parentIdx.length;
-        const arrIdx = parentIdx.reverse();
-        for (let i = 0; i < fields.length; i++) {
-          const fld = fields[i];
-          if (fld === "items" && fields[i - 1] !== "properties")
-            continue;
-          const nextFld = fields[i + 1];
-          if (nextFld === "items") {
-            if (arrIdx.length !== idxLength) {
-              const idx = arrIdx.pop();
-              scopes.push(`${fld}_${idx}`);
-            } else {
-              arrIdx.pop();
-              scopes.push(fld);
+        await getParentIdxs(parentListItem);
+        if (scope.includes("/items/properties")) {
+          const replacePhrase = (str) => {
+            return str.replace(/([^\/]+)\/items\/properties/g, function(match, p1) {
+              if (p1 === "properties") {
+                return match;
+              }
+              return `${p1}/properties`;
+            });
+          };
+          _scope = replacePhrase(scope);
+        }
+        const scopeWithoutIdx = _scope.replace("#", "");
+        const getListFields = (property) => {
+          const regex = /\w+\[\d+\]/g;
+          const matches = property.match(regex);
+          return matches || [];
+        };
+        if (parentFields[0]) {
+          _scope = `${_scope}_${parentFields[0].idx + 1}`;
+        }
+        _scope = _scope.replace("#", "");
+        const parentControl = currentControl.parentElement;
+        const lbError = (parentControl == null ? void 0 : parentControl.querySelector('[role="error"]')) || parent.querySelector('[role="error"]');
+        const err = validationResult.errors.find((f) => {
+          const listFields = getListFields(f.property).reverse();
+          if (f.scope.endsWith(_scope) || f.scope.endsWith(scopeWithoutIdx)) {
+            for (let idx = 0; idx < listFields.length; idx++) {
+              const fld = listFields[idx];
+              const parentFld = parentFields[idx];
+              if (fld !== `${parentFld.key}[${parentFld.idx}]`)
+                return false;
             }
-          } else {
-            scopes.push(fld);
+            return true;
           }
-        }
-        _scope = scopes.join("/");
-        let currentElm = null;
-        let currentIdx = 0;
-        const arrElm = ((_a = parent.parentElement) == null ? void 0 : _a.querySelectorAll(`:scope > [role="list-item"]`)) || [];
-        for (let itemIdx = 0; itemIdx < arrElm.length; itemIdx++) {
-          const elm = arrElm[itemIdx];
-          if (elm === parent) {
-            currentIdx = itemIdx;
-            currentElm = elm.querySelector(`:scope > i-panel > i-vstack > [scope="${scope}"]`);
-            break;
-          }
-        }
-        const lbError = (_b = currentElm == null ? void 0 : currentElm.parentElement) == null ? void 0 : _b.querySelector(':scope > [role="error"]');
-        const err = validationResult.errors.find((f) => f.scope.includes(`${_scope}_${currentIdx + 1}`));
+          return false;
+        });
         if (!lbError)
           return;
         if (err) {
@@ -40628,22 +40651,37 @@ var Form = class extends Control {
         }
         return;
       }
+      let itemScope = scope;
+      let itemControl = {};
+      if (isNonObject) {
+        const parentItem = currentControl.closest("[non-object]");
+        const allItems = parentItem.querySelectorAll('[role="field"]');
+        for (let idx = 0; idx <= allItems.length; idx++) {
+          if (allItems[idx] === currentControl) {
+            itemScope = `${scope.replace(/\/items$/, "")}_${idx + 1}`;
+            break;
+          }
+        }
+        const parentControl = currentControl.parentElement;
+        const lbError = (parentControl == null ? void 0 : parentControl.querySelector('[role="error"]')) || parent.querySelector('[role="error"]');
+        itemControl = { error: lbError };
+      }
       if ((validationResult == null ? void 0 : validationResult.valid) == false) {
-        const err = validationResult.errors.find((f) => f.scope === scope);
+        const err = validationResult.errors.find((f) => f.scope === (isNonObject ? itemScope : scope));
         if (err) {
           showErrMsg = true;
           errMsg = err.message;
         }
       }
-      const control = this._formControls[_scope];
+      const control = isNonObject ? itemControl : this._formControls[_scope];
       if (control) {
         const { error, description } = control;
-        if (showErrMsg == true) {
+        if (showErrMsg) {
           if (description) {
             description.visible = false;
           }
           if (error) {
-            error.caption = `${caption || ""} ${errMsg}`;
+            error.caption = `${isNonObject ? "Item" : caption || ""} ${errMsg}`;
             error.visible = true;
           }
         } else {
@@ -40710,6 +40748,9 @@ var Form = class extends Control {
           case "I-VSTACK":
             input.clearInnerHTML();
             break;
+          case "I-UPLOAD":
+            input.clear();
+            break;
         }
       }
     }
@@ -40720,10 +40761,20 @@ var Form = class extends Control {
       const scope = `#/properties/${key2}`;
       this.setData(scope, value);
     }
+    this.validateAllRule();
+  }
+  setCustomData(scope, value, control) {
+    var _a;
+    if (this._formOptions.customControls && typeof ((_a = this._formOptions.customControls[scope]) == null ? void 0 : _a.setData) === "function") {
+      const _control = control || this._formControls[scope].input;
+      if (_control)
+        this._formOptions.customControls[scope].setData(_control, value);
+    }
   }
   setData(scope, value, parentElm) {
     var _a, _b, _c, _d;
     let _control;
+    this.setCustomData(scope, value);
     if (typeof value === "object") {
       if (value instanceof Array) {
         if (parentElm) {
@@ -40735,7 +40786,12 @@ var Form = class extends Control {
           grid.clearInnerHTML();
           for (const data of value) {
             const schema = (_c = this.getDataSchemaByScope(scope)[1]) == null ? void 0 : _c.items;
-            this.renderCard(grid, scope, schema, {});
+            this.renderCard({
+              parent: grid,
+              scope,
+              schema,
+              options: {}
+            });
           }
           const listItems = grid == null ? void 0 : grid.querySelectorAll(':scope > [role="list-item"]');
           if (listItems && listItems.length > 0) {
@@ -40743,7 +40799,7 @@ var Form = class extends Control {
               const listItem = listItems[i];
               const rowData = value[i];
               const fields = listItem.querySelectorAll('[role="field"]');
-              if (grid.getAttribute("single-item") === true) {
+              if (grid.getAttribute("non-object") === true) {
                 const field = fields[0];
                 if (field) {
                   if (field.tagName === "I-INPUT") {
@@ -40758,7 +40814,10 @@ var Form = class extends Control {
                   } else if (field.tagName === "I-RADIO-GROUP") {
                     field.selectedValue = rowData;
                   } else if (field.tagName === "I-DATEPICKER") {
-                    field.value = moment(rowData);
+                    let datepicker = field;
+                    datepicker.value = moment(rowData, datepicker.dateTimeFormat || datepicker.defaultDateTimeFormat);
+                  } else {
+                    this.setCustomData(scope, rowData, field);
                   }
                 }
               } else {
@@ -40778,9 +40837,13 @@ var Form = class extends Control {
                   } else if (field.tagName === "I-RADIO-GROUP") {
                     field.selectedValue = columnData;
                   } else if (field.tagName === "I-DATEPICKER") {
-                    field.value = moment(columnData);
+                    let datepicker = field;
+                    datepicker.value = moment(columnData, datepicker.dateTimeFormat || datepicker.defaultDateTimeFormat);
                   } else if (field.tagName === "I-UPLOAD") {
                     this.setDataUpload(columnData, field);
+                  } else {
+                    const customScope = `${scope}/properties/${fieldName}`;
+                    this.setCustomData(customScope, columnData, field);
                   }
                 }
                 const subArr = listItem.querySelectorAll('[role="array"]');
@@ -40841,7 +40904,8 @@ var Form = class extends Control {
             input.selectedItem = input.items.find((v) => v.value === value) || input.items[0];
             break;
           case "I-DATEPICKER":
-            input.value = moment(value);
+            let datepicker = input;
+            datepicker.value = moment(value, datepicker.dateTimeFormat || datepicker.defaultDateTimeFormat);
             break;
           case "I-UPLOAD":
             this.setDataUpload(value, input);
@@ -40850,30 +40914,68 @@ var Form = class extends Control {
       }
     }
   }
-  async getFormData() {
+  async getFormData(isErrorShown) {
     if (!this._jsonSchema)
       return void 0;
-    const data = await this.getDataBySchema(this._jsonSchema);
+    const data = await this.getDataBySchema(this._jsonSchema, "#", isErrorShown);
     return data;
   }
-  async getDataBySchema(schema, scope = "#", parentElm) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l;
+  async getDataBySchema(schema, scope = "#", isErrorShown, parentElm, listItem, parentScope) {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
     if (!schema)
       return void 0;
+    const customParentScope = parentScope ? `${parentScope}${scope.replace("#", "")}` : scope;
     let _control;
-    if (parentElm) {
-      _control = parentElm.querySelector(`[scope="${scope}"]`);
+    let control;
+    if (listItem) {
+      const fieldName = scope.split("/").pop();
+      control = listItem.querySelector(`[scope="${scope}"]`);
+      if (!control) {
+        const flds = listItem.querySelectorAll(`[field="${fieldName}"]`);
+        const currentScope = scope.replace("#", "");
+        for (const fld of flds) {
+          const _fldScope = fld.getAttribute("scope");
+          if (_fldScope && _fldScope.endsWith(currentScope)) {
+            control = fld;
+            break;
+          }
+        }
+      }
+      if (!control && this._formOptions.customControls) {
+        if (this._formOptions.customControls[customParentScope]) {
+          control = listItem.querySelector(`[custom-control="${customParentScope}"]`);
+        } else if (this._formOptions.customControls[scope] && ((_a = listItem.parentElement) == null ? void 0 : _a.hasAttribute("non-object"))) {
+          control = listItem.querySelector(`[custom-control="${scope}"]`);
+        }
+      }
+    } else {
+      control = _control || ((_b = this._formControls[scope]) == null ? void 0 : _b.input);
     }
-    const control = _control || ((_a = this._formControls[scope]) == null ? void 0 : _a.input);
+    const checkValidation = () => {
+      if (isErrorShown && control) {
+        const actControl = control;
+        if (actControl.querySelector("i-color") && typeof actControl.onClosed === "function") {
+          actControl.onClosed();
+        } else if (typeof actControl.onChanged === "function") {
+          actControl.onChanged();
+        }
+      }
+    };
+    if (this._formOptions.customControls && typeof ((_c = this._formOptions.customControls[customParentScope]) == null ? void 0 : _c.getData) === "function") {
+      checkValidation();
+      return this._formOptions.customControls[customParentScope].getData(control);
+    }
     if (schema.type === "string") {
       if (control) {
+        checkValidation();
         switch (control.tagName) {
           case "I-INPUT":
             return control.value;
           case "I-COMBO-BOX":
-            return (_b = control.value) == null ? void 0 : _b.value;
+            return (_d = control.value) == null ? void 0 : _d.value;
           case "I-DATEPICKER":
-            return control.value;
+            let datepicker = control;
+            return (_e = datepicker.value) == null ? void 0 : _e.format(datepicker.dateTimeFormat || datepicker.defaultDateTimeFormat);
           case "I-UPLOAD":
             const uploader = control;
             const file = uploader.fileList[0];
@@ -40882,7 +40984,7 @@ var Form = class extends Control {
                 const dataUrl = await uploader.toBase64(file);
                 return dataUrl;
               } else if (schema.format === "data-cid") {
-                let cid = (_c = file.cid) == null ? void 0 : _c.cid;
+                let cid = (_f = file.cid) == null ? void 0 : _f.cid;
                 if (!cid)
                   return void 0;
                 try {
@@ -40905,11 +41007,12 @@ var Form = class extends Control {
         return void 0;
     } else if (schema.type === "integer") {
       if (control) {
+        checkValidation();
         switch (control.tagName) {
           case "I-INPUT":
             return control.value ? parseInt(control.value) : void 0;
           case "I-COMBO-BOX":
-            return parseFloat((_d = control.value) == null ? void 0 : _d.value);
+            return parseFloat((_g = control.value) == null ? void 0 : _g.value);
           default:
             return void 0;
         }
@@ -40917,11 +41020,12 @@ var Form = class extends Control {
         return void 0;
     } else if (schema.type === "number") {
       if (control) {
+        checkValidation();
         switch (control.tagName) {
           case "I-INPUT":
             return control.value ? parseFloat(control.value) : void 0;
           case "I-COMBO-BOX":
-            return parseFloat((_e = control.value) == null ? void 0 : _e.value);
+            return parseFloat((_h = control.value) == null ? void 0 : _h.value);
           default:
             return void 0;
         }
@@ -40929,6 +41033,7 @@ var Form = class extends Control {
         return void 0;
     } else if (schema.type === "boolean") {
       if (control) {
+        checkValidation();
         switch (control.tagName) {
           case "I-CHECKBOX":
             return control.checked;
@@ -40944,93 +41049,29 @@ var Form = class extends Control {
       for (const propertyName in properties) {
         const currentSchema = properties[propertyName];
         const currentScope = `${scope}/properties/${propertyName}`;
-        obj[propertyName] = await this.getDataBySchema(currentSchema, currentScope, parentElm);
+        obj[propertyName] = await this.getDataBySchema(currentSchema, currentScope, isErrorShown, parentElm, listItem, parentScope);
       }
       return obj;
     } else if (schema.type === "array") {
       if (parentElm) {
-        _control = (_f = parentElm.querySelector('[role="list-item"]')) == null ? void 0 : _f.parentElement;
+        _control = (_i = parentElm.querySelector('[role="list-item"]')) == null ? void 0 : _i.parentElement;
+      } else if (listItem) {
+        _control = (_j = listItem.querySelector('[role="list-item"]')) == null ? void 0 : _j.parentElement;
       }
-      const grid = _control || ((_g = this._formControls[scope]) == null ? void 0 : _g.input);
+      const grid = _control || ((_k = this._formControls[scope]) == null ? void 0 : _k.input);
       const listItems = grid == null ? void 0 : grid.querySelectorAll(':scope > [role="list-item"]');
-      if (listItems && listItems.length > 0) {
-        const list = [];
-        for (let i = 0; i < listItems.length; i++) {
-          const listItem = listItems[i];
-          const data = {};
-          const fields = listItem.querySelectorAll('[role="field"]');
-          if ((grid == null ? void 0 : grid.getAttribute("single-item")) === true) {
-            const field = fields[0];
-            if (field) {
-              if (field.tagName === "I-INPUT") {
-                const value = field.value;
-                const dataType = field.getAttribute("dataType");
-                if (dataType === "string")
-                  list.push(value);
-                else if (dataType === "number")
-                  list.push(parseFloat(value));
-                else if (dataType === "boolean")
-                  list.push(!!value);
-              } else if (field.tagName === "I-DATEPICKER") {
-                list.push(field.value);
-              } else if (field.tagName === "I-COMBO-BOX") {
-                list.push((_h = field.value) == null ? void 0 : _h.value);
-              } else if (field.tagName === "I-CHECKBOX") {
-                list.push(field.checked);
-              } else if (field.tagName === "I-RADIO-GROUP") {
-                list.push(field.selectedValue);
-              }
-            }
-          } else {
-            const properties = ((_i = schema.items) == null ? void 0 : _i.properties) || {};
-            if (fields && fields.length > 0) {
-              for (const field of fields) {
-                if (field.closest('[role="list-item"]') !== listItem)
-                  continue;
-                const objectField = (_j = field.closest('[role="object"]')) == null ? void 0 : _j.getAttribute("object-field");
-                if (objectField && ((_k = properties[objectField]) == null ? void 0 : _k.type) === "object")
-                  continue;
-                const fieldName = field.getAttribute("field") || "";
-                if (field.tagName === "I-INPUT") {
-                  const value = field.value;
-                  const dataType = field.getAttribute("dataType");
-                  if (dataType === "string")
-                    data[fieldName] = value;
-                  else if (dataType === "number")
-                    data[fieldName] = parseFloat(value);
-                  else if (dataType === "boolean")
-                    data[fieldName] = !!value;
-                } else if (field.tagName === "I-DATEPICKER") {
-                  data[fieldName] = field.value;
-                } else if (field.tagName === "I-COMBO-BOX") {
-                  data[fieldName] = (_l = field.value) == null ? void 0 : _l.value;
-                } else if (field.tagName === "I-CHECKBOX") {
-                  data[fieldName] = field.checked;
-                } else if (field.tagName === "I-RADIO-GROUP") {
-                  data[fieldName] = field.selectedValue;
-                }
-              }
-            }
-            const subArr = listItem.querySelectorAll('[role="array"]');
-            for (const subItem of subArr) {
-              if (subItem.closest('[role="list-item"]') === listItem) {
-                const field = subItem.getAttribute("array-field") || "";
-                const subData = await this.getDataBySchema(properties[field], `${scope}/items/properties/${field}`, subItem);
-                data[field] = subData;
-              }
-            }
-            const subObj = listItem.querySelectorAll('[role="object"]');
-            for (const subItem of subObj) {
-              if (subItem.closest('[role="list-item"]') === listItem) {
-                const field = subItem.getAttribute("object-field") || "";
-                const subData = await this.getDataBySchema(properties[field], `${scope}/items/properties/${field}`, subItem);
-                data[field] = subData;
-              }
-            }
+      if (!(schema.items instanceof Array) && typeof schema.items === "object") {
+        const currentSchema = schema.items;
+        if (listItems && listItems.length > 0) {
+          const list = [];
+          const newScope = currentSchema.type === "string" ? scope + "/items" : "#";
+          for (let i = 0; i < listItems.length; i++) {
+            const listItem2 = listItems[i];
+            const data = await this.getDataBySchema(currentSchema, newScope, isErrorShown, parentElm, listItem2, scope);
             list.push(data);
           }
+          return list;
         }
-        return list;
       }
     }
   }
@@ -41067,7 +41108,9 @@ var Form = class extends Control {
         },
         background: {
           color: this._formOptions.clearButtonOptions.backgroundColor || DEFAULT_OPTIONS.clearButtonOptions.backgroundColor
-        }
+        },
+        padding: { top: "0.65rem", bottom: "0.65rem", left: "1rem", right: "1rem" },
+        border: { radius: "0px" }
       });
       btnClear.classList.add(buttonStyle);
       if ((_b = this._formOptions.clearButtonOptions) == null ? void 0 : _b.onClick)
@@ -41086,28 +41129,38 @@ var Form = class extends Control {
         },
         background: {
           color: this._formOptions.confirmButtonOptions.backgroundColor || DEFAULT_OPTIONS.confirmButtonOptions.backgroundColor
-        }
+        },
+        padding: { top: "0.65rem", bottom: "0.65rem", left: "1rem", right: "1rem" },
+        border: { radius: "0px" }
       });
       btnConfirm.classList.add(buttonStyle);
       btnConfirm.onClick = async () => {
-        var _a2;
-        const data = await this.getFormData();
-        const validationResult = this.validate(data, this._jsonSchema, { changing: false });
-        if (validationResult.valid && ((_a2 = this._formOptions.confirmButtonOptions) == null ? void 0 : _a2.onClick))
+        var _a2, _b2;
+        this.validationData = await this.getFormData();
+        this.validationResult = this.validate(this.validationData, this._jsonSchema, { changing: false });
+        await this.getFormData(true);
+        if (((_a2 = this.validationResult) == null ? void 0 : _a2.valid) && ((_b2 = this._formOptions.confirmButtonOptions) == null ? void 0 : _b2.onClick))
           this._formOptions.confirmButtonOptions.onClick();
+        this.validationData = null;
+        this.validationResult = null;
       };
       pnlButton.appendChild(btnConfirm);
     }
     this.appendChild(pnlButton);
   }
-  renderFormByJSONSchema(parent, schema, scope = "#", hideLabel = false, subLevel = false, idx, schemaOptions) {
+  renderFormByJSONSchema(parent, schema, scope = "#", hideLabel = false, subLevel = false, options = {}) {
     var _a, _b;
     if (!parent || !schema)
       return void 0;
+    const { idx, schemaOptions, elementLabelProp, parentProp } = options;
+    let labelProp = options.labelProp;
     const currentField = scope.substr(scope.lastIndexOf("/") + 1);
+    if (elementLabelProp && elementLabelProp != currentField)
+      labelProp = void 0;
     const labelName = schema.title || (scope != "#/" ? this.convertFieldNameToLabel(currentField) : "");
     const columnWidth = this._formOptions.columnWidth ? this._formOptions.columnWidth : "100px";
     const idxScope = idx !== void 0 ? `${scope}_${idx}` : scope;
+    const defaultValue = schema.default;
     let isRequired = false;
     let arrRequired = [];
     if (schema.required instanceof Array)
@@ -41122,6 +41175,39 @@ var Form = class extends Control {
       required: isRequired,
       hideLabel
     };
+    if (this._formOptions.customControls) {
+      const customControlScope = parentProp ? `${parentProp}${scope.replace("#", "")}` : scope;
+      if (this._formOptions.customControls[customControlScope]) {
+        const customRenderer = this._formOptions.customControls[customControlScope];
+        const wrapper = new Panel(parent, {
+          width: controlOptions.columnWidth
+        });
+        wrapper.classList.add(formGroupStyle);
+        const control = customRenderer.render();
+        control.setAttribute("custom-control", customControlScope);
+        control.setAttribute("field", scope.substr(scope.lastIndexOf("/") + 1));
+        control.setAttribute("role", "field");
+        if (control.tagName === "I-SCOM-TOKEN-INPUT") {
+          control.classList.add(tokenInputStyle);
+        }
+        control.onChanged = () => {
+          this.validateOnValueChanged(control, parent, customControlScope, labelName);
+        };
+        let label;
+        if (!hideLabel) {
+          label = this.renderLabel({ parent: wrapper, options: controlOptions, type: "caption" });
+        }
+        const vstack = new VStack(wrapper, { gap: 4 });
+        vstack.appendChild(control);
+        const error = this.renderLabel({ parent: vstack, options: controlOptions, type: "error" });
+        this._formControls[customControlScope] = {
+          input: control,
+          label,
+          error
+        };
+        return;
+      }
+    }
     if (schema.enum && schema.enum.length > 0 || schema.oneOf && schema.oneOf.length > 0) {
       let items = [];
       if (schema.oneOf && schema.oneOf.length > 0) {
@@ -41142,26 +41228,35 @@ var Form = class extends Control {
           value: item
         }));
       }
-      return this.renderComboBox(parent, scope, items, controlOptions);
+      if ((schemaOptions == null ? void 0 : schemaOptions.format) === "radio") {
+        items = items.map((v) => ({
+          caption: v.label,
+          value: v.value
+        }));
+        return this.renderRadioGroup({ parent, scope, items, options: controlOptions, labelProp, defaultValue });
+      }
+      return this.renderComboBox({ parent, scope, items, options: controlOptions, labelProp, defaultValue });
     } else if (schema.type === "string") {
       if (["date", "time", "date-time"].includes(schema.format || "")) {
         let datePickerType = schema.format;
         if (schema.format === "date-time")
           datePickerType = "dateTime";
-        return this.renderDatePicker(parent, scope, datePickerType || "", controlOptions);
+        return this.renderDatePicker({ parent, scope, type: datePickerType || "", options: controlOptions, defaultValue });
       } else if (schema.format === "data-url") {
-        return this.renderUploader(parent, scope, controlOptions);
+        return this.renderUploader({ parent, scope, options: controlOptions, defaultValue });
       } else if (schema.format === "data-cid") {
-        return this.renderUploader(parent, scope, controlOptions);
+        return this.renderUploader({ parent, scope, options: controlOptions, defaultValue });
       } else if (schema.format === "color") {
-        return this.renderColorPicker(parent, scope, controlOptions);
+        return this.renderColorPicker({ parent, scope, options: controlOptions, labelProp, defaultValue });
+      } else if ((schemaOptions == null ? void 0 : schemaOptions.multi) === true) {
+        return this.renderTextArea({ parent, scope, options: controlOptions, labelProp, defaultValue });
       } else {
-        return this.renderInput(parent, scope, controlOptions);
+        return this.renderInput({ parent, scope, options: controlOptions, labelProp, defaultValue });
       }
     } else if (["integer", "number"].includes(((_a = schema.type) == null ? void 0 : _a.toString()) || "")) {
-      return this.renderNumberInput(parent, scope, controlOptions);
+      return this.renderNumberInput({ parent, scope, options: controlOptions, labelProp, defaultValue });
     } else if (schema.type === "boolean") {
-      return this.renderCheckBox(parent, scope, controlOptions);
+      return this.renderCheckBox({ parent, scope, options: controlOptions, labelProp, defaultValue });
     } else if (schema.type === "object") {
       const properties = schema.properties;
       if (!properties)
@@ -41170,7 +41265,7 @@ var Form = class extends Control {
       let wrapper;
       let container;
       if (scope !== "#" && !subLevel) {
-        wrapperObj = this.renderGroup(parent, controlOptions);
+        wrapperObj = this.renderGroup({ parent, options: controlOptions });
         wrapper = wrapperObj.wrapper;
         container = wrapperObj.body;
       } else {
@@ -41188,7 +41283,7 @@ var Form = class extends Control {
         if (!(currentSchema == null ? void 0 : currentSchema.required) && arrRequired.includes(propertyName)) {
           currentSchema.required = true;
         }
-        this.renderFormByJSONSchema(form, currentSchema, `${idxScope}/properties/${propertyName}`, false, false, idx);
+        this.renderFormByJSONSchema(form, currentSchema, `${idxScope}/properties/${propertyName}`, false, false, { idx, elementLabelProp, labelProp });
       }
       this._formControls[scope] = {
         wrapper
@@ -41198,7 +41293,7 @@ var Form = class extends Control {
       if (!schema.items)
         return void 0;
       const isVertical = ((_b = schemaOptions == null ? void 0 : schemaOptions.detail) == null ? void 0 : _b.type) === "VerticalLayout";
-      const { body, btnAdd, columnHeader } = this.renderList(parent, scope, controlOptions, isVertical);
+      const { body, btnAdd, columnHeader } = this.renderList({ parent, scope, options: controlOptions, isVertical, defaultValue });
       if (typeof schema.items === "object" && !(schema.items instanceof Array)) {
         if (schema.items.type === "object") {
           const properties = schema.items.properties;
@@ -41219,24 +41314,26 @@ var Form = class extends Control {
             for (const fieldName in properties) {
               const property = properties[fieldName];
               const caption = property.title || this.convertFieldNameToLabel(fieldName);
-              this.renderLabel(header, { caption, required: !!property.required });
+              this.renderLabel({ parent: header, options: { caption, required: !!property.required } });
             }
           }
         } else {
-          body.setAttribute("single-item", "true");
+          body.setAttribute("non-object", "true");
         }
       }
       if (btnAdd) {
         btnAdd.onClick = () => {
-          if (schema.items instanceof Array) {
+          if (schemaOptions && schemaOptions.detail) {
+            this.renderCard({ parent: body, scope, schema: schema.items, options: controlOptions, uiSchema: schemaOptions.detail, elementLabelProp: schemaOptions.elementLabelProp });
+          } else if (schema.items instanceof Array) {
           } else if (typeof schema.items === "object") {
             if (schema.items.type === "object") {
               const properties = schema.items.properties;
               if (!properties || properties && Object.values(properties).length > 0) {
-                this.renderCard(body, scope, schema.items, controlOptions);
+                this.renderCard({ parent: body, scope, schema: schema.items, options: controlOptions });
               }
             } else {
-              this.renderCard(body, scope, schema.items, controlOptions);
+              this.renderCard({ parent: body, scope, schema: schema.items, options: controlOptions });
             }
           }
         };
@@ -41248,7 +41345,7 @@ var Form = class extends Control {
     } else
       return void 0;
   }
-  renderFormByUISchema(parent, uiSchema, carryData) {
+  renderFormByUISchema(parent, uiSchema, carryData, jsonSchema, elementLabelProp, labelProp, parentProp) {
     if (!parent || !uiSchema)
       return null;
     const { elements, type, scope, label, options, rule } = uiSchema;
@@ -41259,7 +41356,7 @@ var Form = class extends Control {
       });
       if (elements)
         elements.map((v) => {
-          this.renderFormByUISchema(elm, v);
+          this.renderFormByUISchema(elm, v, carryData, jsonSchema, elementLabelProp, labelProp, parentProp);
         });
       if (rule)
         this._formRules.push({ elm, rule });
@@ -41272,23 +41369,26 @@ var Form = class extends Control {
       });
       if (elements)
         elements.map((v) => {
-          this.renderFormByUISchema(elm, v);
+          this.renderFormByUISchema(elm, v, carryData, jsonSchema, elementLabelProp, labelProp, parentProp);
         });
       if (rule)
         this._formRules.push({ elm, rule });
       return elm;
     } else if (type === "Group") {
-      const groupObj = this.renderGroup(parent, {
-        required: false,
-        caption: typeof label === "string" ? label : "",
-        columnWidth: "100%",
-        description: "",
-        readOnly: false
+      const groupObj = this.renderGroup({
+        parent,
+        options: {
+          required: false,
+          caption: typeof label === "string" ? label : "",
+          columnWidth: "100%",
+          description: "",
+          readOnly: false
+        }
       });
       if (elements) {
         elements.map((v) => {
           if (groupObj.body)
-            this.renderFormByUISchema(groupObj.body, v);
+            this.renderFormByUISchema(groupObj.body, v, carryData, jsonSchema, elementLabelProp, labelProp, parentProp);
         });
       }
       if (rule)
@@ -41300,8 +41400,9 @@ var Form = class extends Control {
       if (elements) {
         for (let i = 0; i < elements.length; i++) {
           const element = elements[i];
-          this.renderFormByUISchema(elm, element, { tabs: elm, index: i });
+          this.renderFormByUISchema(elm, element, { tabs: elm, index: i }, jsonSchema, elementLabelProp, labelProp, parentProp);
         }
+        elm.activeTabIndex = 0;
       }
       if (rule)
         this._formRules.push({ elm, rule });
@@ -41322,7 +41423,7 @@ var Form = class extends Control {
         });
         if (elements) {
           for (const element of elements) {
-            let ui = this.renderFormByUISchema(children, element);
+            let ui = this.renderFormByUISchema(children, element, carryData, jsonSchema, elementLabelProp, labelProp, parentProp);
             if (ui)
               children.append(ui);
           }
@@ -41333,7 +41434,7 @@ var Form = class extends Control {
           this._formRules.push({ elm: tab, rule });
       }
     } else if (type === "Control" && scope) {
-      const [key2, dataSchema] = this.getDataSchemaByScope(scope);
+      const [key2, dataSchema] = this.getDataSchemaByScope(scope, jsonSchema);
       const stub = new Panel(parent, {
         padding: {
           left: 5,
@@ -41352,13 +41453,13 @@ var Form = class extends Control {
         if (!caption)
           caption = this.convertFieldNameToLabel(key2);
       }
-      const control = this.renderFormByJSONSchema(formControlElm, dataSchema, scope, false, false, void 0, options);
+      this.renderFormByJSONSchema(formControlElm, dataSchema, scope, false, false, { schemaOptions: options, elementLabelProp, labelProp, parentProp });
       if (formControlElm)
         stub.append(formControlElm);
       if (descriptionElm)
         stub.append(descriptionElm);
       if (rule)
-        this._formRules.push({ elm: stub, rule });
+        this._formRules.push({ elm: stub, rule, control: this._formControls[scope] });
       return stub;
     } else
       return null;
@@ -41368,7 +41469,7 @@ var Form = class extends Control {
     if (!this._formRules || this._formRules && this._formRules.length === 0)
       return;
     for (const ruleObj of this._formRules) {
-      const { elm, rule } = ruleObj;
+      const { elm, rule, control: inputControl } = ruleObj;
       if (!elm)
         continue;
       if (!rule)
@@ -41381,45 +41482,71 @@ var Form = class extends Control {
         const control = this._formControls[rule.condition.scope].input;
         if (!control)
           continue;
-        this.setupControlRule(elm, rule.effect, control, rule.condition.schema);
+        this.setupControlRule(elm, rule.effect, control, rule.condition.schema, inputControl);
       }
     }
+    this.validateAllRule();
   }
-  setupControlRule(elm, effect, control, schema) {
+  setupControlRule(elm, effect, control, schema, inputControl) {
     if (!elm || !effect || !control || !schema)
       return;
     if (control.tagName === "I-INPUT") {
+      let cachedOnChanged;
+      if (control.onChanged)
+        cachedOnChanged = control.onChanged;
       control.onChanged = () => {
+        if (cachedOnChanged)
+          cachedOnChanged();
         const value = control.value;
-        this.validateRule(elm, effect, value, schema);
+        this.validateRule(elm, effect, value, schema, inputControl);
       };
     } else if (control.tagName === "I-COMBO-BOX") {
+      let cachedOnChanged;
+      if (control.onChanged)
+        cachedOnChanged = control.onChanged;
       control.onChanged = () => {
         var _a;
+        if (cachedOnChanged)
+          cachedOnChanged();
         const value = (_a = control.value) == null ? void 0 : _a.value;
-        this.validateRule(elm, effect, value, schema);
+        this.validateRule(elm, effect, value, schema, inputControl);
       };
     } else if (control.tagName === "I-DATEPICKER") {
+      let cachedOnChanged;
+      if (control.onChanged)
+        cachedOnChanged = control.onChanged;
       control.onChanged = () => {
+        if (cachedOnChanged)
+          cachedOnChanged();
         const value = control.value;
-        this.validateRule(elm, effect, value, schema);
+        this.validateRule(elm, effect, value, schema, inputControl);
       };
     } else if (control.tagName === "I-CHECKBOX") {
+      let cachedOnChanged;
+      if (control.onChanged)
+        cachedOnChanged = control.onChanged;
       control.onChanged = () => {
+        if (cachedOnChanged)
+          cachedOnChanged();
         const value = control.checked;
-        this.validateRule(elm, effect, value, schema);
+        this.validateRule(elm, effect, value, schema, inputControl);
       };
     } else if (control.tagName === "I-RADIO-GROUP") {
+      let cachedOnChanged;
+      if (control.onChanged)
+        cachedOnChanged = control.onChanged;
       control.onChanged = () => {
+        if (cachedOnChanged)
+          cachedOnChanged();
         const value = control.selectedValue;
-        this.validateRule(elm, effect, value, schema);
+        this.validateRule(elm, effect, value, schema, inputControl);
       };
     }
   }
-  validateRule(elm, effect, value, schema) {
+  validateRule(elm, effect, value, schema, inputControl) {
     let isValid = false;
     if (schema.const) {
-      if (value === schema.const.toString())
+      if (value === schema.const)
         isValid = true;
     } else if (schema.enum) {
       const stringEnum = schema.enum.map((v) => v.toString());
@@ -41438,12 +41565,53 @@ var Form = class extends Control {
       elm.visible = !isValid;
     else if (effect === "SHOW")
       elm.visible = isValid;
-    else if (effect === "ENABLE")
-      elm.enabled = isValid;
-    else if (effect === "DISABLE")
-      elm.enabled = !isValid;
+    else if (effect === "ENABLE") {
+      if (inputControl && inputControl.input)
+        inputControl.input.enabled = isValid;
+      else
+        elm.enabled = isValid;
+    } else if (effect === "DISABLE") {
+      if (inputControl && inputControl.input)
+        inputControl.input.enabled = !isValid;
+      else
+        elm.enabled = !isValid;
+    }
   }
-  getDataSchemaByScope(scope) {
+  validateAllRule() {
+    var _a, _b;
+    if (!this._formRules || this._formRules && this._formRules.length === 0)
+      return;
+    for (const ruleObj of this._formRules) {
+      const { elm, rule, control: inputControl } = ruleObj;
+      if (!elm)
+        continue;
+      if (!rule)
+        continue;
+      if (rule && (!rule.condition || !rule.effect))
+        continue;
+      if (rule && rule.condition && (!rule.condition.scope || !rule.condition.schema))
+        continue;
+      if ((_a = rule.condition) == null ? void 0 : _a.scope) {
+        const control = this._formControls[rule.condition.scope].input;
+        if (!control)
+          continue;
+        let value;
+        if (control.tagName === "I-INPUT") {
+          value = control.value;
+        } else if (control.tagName === "I-COMBO-BOX") {
+          value = (_b = control.value) == null ? void 0 : _b.value;
+        } else if (control.tagName === "I-DATEPICKER") {
+          value = control.value;
+        } else if (control.tagName === "I-CHECKBOX") {
+          value = control.checked;
+        } else if (control.tagName === "I-RADIO-GROUP") {
+          value = control.selectedValue;
+        }
+        this.validateRule(elm, rule.effect, value, rule.condition.schema, inputControl);
+      }
+    }
+  }
+  getDataSchemaByScope(scope, jsonSchema) {
     const segments = scope.split("/");
     let obj = {};
     let preObj = {};
@@ -41452,7 +41620,7 @@ var Form = class extends Control {
       parentObj = preObj;
       preObj = obj;
       if (segment === "#")
-        obj = this._jsonSchema;
+        obj = jsonSchema || this._jsonSchema;
       else
         obj = obj[segment];
     }
@@ -41467,7 +41635,8 @@ var Form = class extends Control {
     }
     return [segments[segments.length - 1], obj];
   }
-  renderGroup(parent, options) {
+  renderGroup(groupOption) {
+    const { parent, options } = groupOption;
     const wrapper = new Panel(parent);
     wrapper.classList.add(groupStyle);
     const header = new Panel(wrapper);
@@ -41485,14 +41654,18 @@ var Form = class extends Control {
     });
     const body = new Panel(wrapper);
     body.classList.add(groupBodyStyle);
-    icon.onClick = () => {
+    icon.onClick = header.onClick = () => {
       body.visible = !body.visible;
       icon.name = `chevron-${body.visible ? "up" : "down"}`;
     };
     icon.classList.add(collapseBtnStyle);
     return { wrapper, body };
   }
-  renderLabel(parent, options, type = "caption") {
+  renderLabel(labelOption) {
+    const { parent, options } = labelOption;
+    let { type } = labelOption;
+    if (!type)
+      type = "caption";
     let label;
     if (type === "caption") {
       const hstack = new HStack(parent, {
@@ -41524,7 +41697,8 @@ var Form = class extends Control {
     }
     return label;
   }
-  renderInput(parent, scope, options) {
+  renderInput(inputOption) {
+    const { parent, scope, options, labelProp, defaultValue } = inputOption;
     const field = scope.substr(scope.lastIndexOf("/") + 1);
     const wrapper = new Panel(parent, {
       width: options.columnWidth
@@ -41532,14 +41706,22 @@ var Form = class extends Control {
     wrapper.classList.add(formGroupStyle);
     let label;
     if (!options.hideLabel) {
-      label = this.renderLabel(wrapper, options, "caption");
+      label = this.renderLabel({ parent: wrapper, options, type: "caption" });
     }
     const vstack = new VStack(wrapper, { gap: 4 });
     const input = new Input(vstack, {
       inputType: "text",
+      height: "42px",
       width: "100%"
     });
-    input.onChanged = () => this.validateOnValueChanged(parent, scope, options == null ? void 0 : options.caption);
+    input.onChanged = () => {
+      if (labelProp)
+        labelProp.caption = input.value;
+      this.validateOnValueChanged(input, parent, scope, options == null ? void 0 : options.caption);
+      if (this._formOptions.onChange) {
+        this._formOptions.onChange(input, input.value);
+      }
+    };
     input.setAttribute("role", "field");
     input.setAttribute("scope", scope);
     input.setAttribute("field", field);
@@ -41547,8 +41729,9 @@ var Form = class extends Control {
     if (options.readOnly !== void 0) {
       input.setAttribute("readOnly", options.readOnly.toString());
     }
-    const description = this.renderLabel(vstack, options, "description");
-    const error = this.renderLabel(vstack, options, "error");
+    input.classList.add(inputStyle);
+    const description = this.renderLabel({ parent: vstack, options, type: "description" });
+    const error = this.renderLabel({ parent: vstack, options, type: "error" });
     this._formControls[scope] = {
       wrapper,
       label,
@@ -41556,22 +41739,34 @@ var Form = class extends Control {
       description,
       error
     };
+    if (defaultValue) {
+      input.setAttribute("value", defaultValue.toString());
+    }
     return wrapper;
   }
-  renderNumberInput(parent, scope, options) {
+  renderNumberInput(numberInputOption) {
+    const { parent, scope, options, labelProp, defaultValue } = numberInputOption;
     const field = scope.substr(scope.lastIndexOf("/") + 1);
     const wrapper = new Panel(parent, { width: options.columnWidth });
     wrapper.classList.add(formGroupStyle);
     let label;
     if (!options.hideLabel) {
-      label = this.renderLabel(wrapper, options, "caption");
+      label = this.renderLabel({ parent: wrapper, options, type: "caption" });
     }
     const vstack = new VStack(wrapper, { gap: 4 });
     const input = new Input(vstack, {
       inputType: "number",
+      height: "42px",
       width: "100%"
     });
-    input.onChanged = () => this.validateOnValueChanged(parent, scope, options == null ? void 0 : options.caption);
+    input.onChanged = () => {
+      if (labelProp)
+        labelProp.caption = input.value;
+      this.validateOnValueChanged(input, parent, scope, options == null ? void 0 : options.caption);
+      if (this._formOptions.onChange) {
+        this._formOptions.onChange(input, input.value);
+      }
+    };
     input.setAttribute("role", "field");
     input.setAttribute("scope", scope);
     input.setAttribute("field", field);
@@ -41580,8 +41775,8 @@ var Form = class extends Control {
       input.setAttribute("readOnly", options.readOnly.toString());
     }
     input.classList.add(inputStyle);
-    const description = this.renderLabel(vstack, options, "description");
-    const error = this.renderLabel(vstack, options, "error");
+    const description = this.renderLabel({ parent: vstack, options, type: "description" });
+    const error = this.renderLabel({ parent: vstack, options, type: "error" });
     this._formControls[scope] = {
       wrapper,
       label,
@@ -41589,15 +41784,21 @@ var Form = class extends Control {
       description,
       error
     };
+    if (defaultValue) {
+      const numDefaultValue = parseFloat(defaultValue);
+      if (!isNaN(numDefaultValue))
+        input.setAttribute("value", numDefaultValue.toString());
+    }
     return wrapper;
   }
-  renderTextArea(parent, scope, options) {
+  renderTextArea(textAreaOption) {
+    const { parent, scope, options, labelProp, defaultValue } = textAreaOption;
     const field = scope.substr(scope.lastIndexOf("/") + 1);
     const wrapper = new Panel(parent);
     wrapper.classList.add(formGroupStyle);
     let label;
     if (!options.hideLabel) {
-      label = this.renderLabel(wrapper, options, "caption");
+      label = this.renderLabel({ parent: wrapper, options, type: "caption" });
     }
     const vstack = new VStack(wrapper);
     const input = new Input(vstack, {
@@ -41605,7 +41806,14 @@ var Form = class extends Control {
       height: "unset",
       rows: 5
     });
-    input.onChanged = () => this.validateOnValueChanged(parent, scope, options == null ? void 0 : options.caption);
+    input.onChanged = () => {
+      if (labelProp)
+        labelProp.caption = input.value;
+      this.validateOnValueChanged(input, parent, scope, options == null ? void 0 : options.caption);
+      if (this._formOptions.onChange) {
+        this._formOptions.onChange(input, input.value);
+      }
+    };
     input.setAttribute("role", "field");
     input.setAttribute("scope", scope);
     input.setAttribute("field", field);
@@ -41614,8 +41822,8 @@ var Form = class extends Control {
       input.setAttribute("readOnly", options.readOnly.toString());
     }
     input.classList.add(inputStyle);
-    const description = this.renderLabel(vstack, options, "description");
-    const error = this.renderLabel(vstack, options, "error");
+    const description = this.renderLabel({ parent: vstack, options, type: "description" });
+    const error = this.renderLabel({ parent: vstack, options, type: "error" });
     this._formControls[scope] = {
       wrapper,
       label,
@@ -41623,21 +41831,33 @@ var Form = class extends Control {
       description,
       error
     };
+    if (defaultValue)
+      input.setAttribute("value", defaultValue.toString());
     return wrapper;
   }
-  renderColorPicker(parent, scope, options) {
+  renderColorPicker(colorPickerOption) {
+    const { parent, scope, options, labelProp, defaultValue } = colorPickerOption;
     const field = scope.substr(scope.lastIndexOf("/") + 1);
     const wrapper = new Panel(parent);
     wrapper.classList.add(formGroupStyle);
     let label;
     if (!options.hideLabel) {
-      label = this.renderLabel(wrapper, options, "caption");
+      label = this.renderLabel({ parent: wrapper, options, type: "caption" });
     }
     const vstack = new VStack(wrapper, { gap: 4 });
     const input = new Input(vstack, {
-      inputType: "color"
+      inputType: "color",
+      height: "42px",
+      width: "100%"
     });
-    input.onClosed = () => this.validateOnValueChanged(parent, scope, options == null ? void 0 : options.caption);
+    input.onClosed = () => {
+      if (labelProp)
+        labelProp.caption = input.value;
+      this.validateOnValueChanged(input, parent, scope, options == null ? void 0 : options.caption);
+      if (this._formOptions.onChange) {
+        this._formOptions.onChange(input, input.value);
+      }
+    };
     input.setAttribute("role", "field");
     input.setAttribute("scope", scope);
     input.setAttribute("field", field);
@@ -41646,8 +41866,8 @@ var Form = class extends Control {
       input.setAttribute("readOnly", options.readOnly.toString());
     }
     input.classList.add(inputStyle);
-    const description = this.renderLabel(vstack, options, "description");
-    const error = this.renderLabel(vstack, options, "error");
+    const description = this.renderLabel({ parent: vstack, options, type: "description" });
+    const error = this.renderLabel({ parent: vstack, options, type: "error" });
     this._formControls[scope] = {
       wrapper,
       label,
@@ -41655,26 +41875,37 @@ var Form = class extends Control {
       description,
       error
     };
+    if (defaultValue) {
+      input.setAttribute("value", defaultValue.toString());
+    }
     return wrapper;
   }
-  renderUploader(parent, scope, options) {
+  renderUploader(uploaderOption) {
+    const { parent, scope, options, defaultValue } = uploaderOption;
     const field = scope.substr(scope.lastIndexOf("/") + 1);
     const wrapper = new Panel(parent);
     wrapper.classList.add(formGroupStyle);
     let label;
     if (!options.hideLabel) {
-      label = this.renderLabel(wrapper, options, "caption");
+      label = this.renderLabel({ parent: wrapper, options, type: "caption" });
     }
     const vstack = new VStack(wrapper, { gap: 4 });
-    const uploader = new Upload(vstack);
+    const uploader = new Upload(vstack, {
+      draggable: true
+    });
     uploader.classList.add(uploadStyle);
     uploader.setAttribute("role", "field");
     uploader.setAttribute("scope", scope);
     uploader.setAttribute("field", field);
     uploader.setAttribute("dataType", "string");
-    uploader.onChanged = () => this.validateOnValueChanged(parent, scope, options == null ? void 0 : options.caption);
-    const description = this.renderLabel(vstack, options, "description");
-    const error = this.renderLabel(vstack, options, "error");
+    uploader.onChanged = () => {
+      this.validateOnValueChanged(uploader, parent, scope, options == null ? void 0 : options.caption);
+      if (this._formOptions.onChange) {
+        this._formOptions.onChange(uploader);
+      }
+    };
+    const description = this.renderLabel({ parent: vstack, options, type: "description" });
+    const error = this.renderLabel({ parent: vstack, options, type: "error" });
     this._formControls[scope] = {
       wrapper,
       label,
@@ -41684,33 +41915,49 @@ var Form = class extends Control {
     };
     return wrapper;
   }
-  renderDatePicker(parent, scope, type, options) {
-    var _a;
+  renderDatePicker(datePickerOption) {
+    var _a, _b, _c;
+    const { parent, scope, type, options, defaultValue } = datePickerOption;
     const field = scope.substr(scope.lastIndexOf("/") + 1);
     if (type != "date" && type != "time" && type != "dateTime")
-      return this.renderInput(parent, scope, options);
+      return this.renderInput({ parent, scope, options, defaultValue });
     const wrapper = new Panel(parent);
     wrapper.classList.add(formGroupStyle);
     let label;
     if (!options.hideLabel) {
-      label = this.renderLabel(wrapper, options, "caption");
+      label = this.renderLabel({ parent: wrapper, options, type: "caption" });
     }
     const vstack = new VStack(wrapper, { gap: 4 });
     let dateTimeFormat = "";
     if (type === "date")
       dateTimeFormat = ((_a = this._formOptions.dateTimeFormat) == null ? void 0 : _a.date) || DEFAULT_OPTIONS.dateTimeFormat.date;
+    else if (type === "dateTime")
+      dateTimeFormat = ((_b = this._formOptions.dateTimeFormat) == null ? void 0 : _b.dateTime) || DEFAULT_OPTIONS.dateTimeFormat.dateTime;
+    else if (type === "time")
+      dateTimeFormat = ((_c = this._formOptions.dateTimeFormat) == null ? void 0 : _c.time) || DEFAULT_OPTIONS.dateTimeFormat.time;
+    let defaultDate;
+    if (defaultValue) {
+      defaultDate = moment(defaultValue, dateTimeFormat);
+    }
     const input = new Datepicker(vstack, {
       type,
-      dateTimeFormat
+      height: "42px",
+      dateTimeFormat,
+      value: defaultDate || null
     });
-    input.onChanged = () => this.validateOnValueChanged(parent, scope, options == null ? void 0 : options.caption);
+    input.onChanged = () => {
+      this.validateOnValueChanged(input, parent, scope, options == null ? void 0 : options.caption);
+      if (this._formOptions.onChange) {
+        this._formOptions.onChange(input, input.value);
+      }
+    };
     input.setAttribute("role", "field");
     input.setAttribute("scope", scope);
     input.setAttribute("field", field);
     input.setAttribute("dataType", "string");
     input.classList.add(datePickerStyle);
-    const description = this.renderLabel(vstack, options, "description");
-    const error = this.renderLabel(vstack, options, "error");
+    const description = this.renderLabel({ parent: vstack, options, type: "description" });
+    const error = this.renderLabel({ parent: vstack, options, type: "error" });
     this._formControls[scope] = {
       wrapper,
       label,
@@ -41720,22 +41967,37 @@ var Form = class extends Control {
     };
     return wrapper;
   }
-  renderComboBox(parent, scope, items, options) {
+  renderComboBox(comboBoxOption) {
+    const { parent, scope, items, options, labelProp, defaultValue } = comboBoxOption;
     const field = scope.substr(scope.lastIndexOf("/") + 1);
     const wrapper = new Panel(parent);
     wrapper.classList.add(formGroupStyle);
     let label;
     if (!options.hideLabel) {
-      label = this.renderLabel(wrapper, options, "caption");
+      label = this.renderLabel({ parent: wrapper, options, type: "caption" });
     }
     const vstack = new VStack(wrapper, { gap: 4 });
+    let matchItem;
+    if (defaultValue) {
+      matchItem = items.find((item) => item.value.toString() === defaultValue.toString());
+    }
     const input = new ComboBox(vstack, {
       items,
+      height: "42px",
       icon: {
         name: "caret-down"
-      }
+      },
+      selectedItem: matchItem || null
     });
-    input.onChanged = () => this.validateOnValueChanged(parent, scope, options == null ? void 0 : options.caption);
+    input.onChanged = () => {
+      var _a;
+      if (labelProp) {
+      }
+      this.validateOnValueChanged(input, parent, scope, options == null ? void 0 : options.caption);
+      if (this._formOptions.onChange) {
+        this._formOptions.onChange(input, (_a = input.value) == null ? void 0 : _a.value);
+      }
+    };
     input.setAttribute("role", "field");
     input.setAttribute("scope", scope);
     input.setAttribute("field", field);
@@ -41744,8 +42006,8 @@ var Form = class extends Control {
       input.setAttribute("readOnly", options.readOnly.toString());
     }
     input.classList.add(comboBoxStyle);
-    const description = this.renderLabel(vstack, options, "description");
-    const error = this.renderLabel(vstack, options, "error");
+    const description = this.renderLabel({ parent: vstack, options, type: "description" });
+    const error = this.renderLabel({ parent: vstack, options, type: "error" });
     this._formControls[scope] = {
       wrapper,
       label,
@@ -41755,25 +42017,33 @@ var Form = class extends Control {
     };
     return wrapper;
   }
-  renderRadioGroup(parent, scope, items, options) {
+  renderRadioGroup(radioGroupOption) {
+    const { parent, scope, items, options, labelProp, defaultValue } = radioGroupOption;
     const field = scope.substr(scope.lastIndexOf("/") + 1);
     const wrapper = new Panel(parent);
     wrapper.classList.add(formGroupStyle);
     let label;
     if (!options.hideLabel) {
-      label = this.renderLabel(wrapper, options, "caption");
+      label = this.renderLabel({ parent: wrapper, options, type: "caption" });
     }
     const vstack = new VStack(wrapper, { gap: 4 });
     const input = new RadioGroup(vstack, {
       radioItems: items
     });
-    input.onChanged = () => this.validateOnValueChanged(parent, scope, options == null ? void 0 : options.caption);
+    input.onChanged = () => {
+      if (labelProp) {
+      }
+      this.validateOnValueChanged(input, parent, scope, options == null ? void 0 : options.caption);
+      if (this._formOptions.onChange) {
+        this._formOptions.onChange(input, input.selectedValue);
+      }
+    };
     input.setAttribute("role", "field");
     input.setAttribute("scope", scope);
     input.setAttribute("field", field);
     input.setAttribute("dataType", "string");
-    const description = this.renderLabel(vstack, options, "description");
-    const error = this.renderLabel(vstack, options, "error");
+    const description = this.renderLabel({ parent: vstack, options, type: "description" });
+    const error = this.renderLabel({ parent: vstack, options, type: "error" });
     this._formControls[scope] = {
       wrapper,
       label,
@@ -41781,17 +42051,28 @@ var Form = class extends Control {
       description,
       error
     };
+    if (defaultValue) {
+      input.setAttribute("selectedValue", defaultValue.toString());
+    }
     return wrapper;
   }
-  renderCheckBox(parent, scope, options) {
+  renderCheckBox(checkBoxOption) {
+    const { parent, scope, options, labelProp, defaultValue } = checkBoxOption;
     const field = scope.substr(scope.lastIndexOf("/") + 1);
     const wrapper = new Panel(parent);
     wrapper.classList.add(formGroupStyle);
-    const vstack = new VStack(wrapper, { gap: 4 });
+    const vstack = new VStack(wrapper, { gap: 4, width: "100%" });
     const input = new Checkbox(vstack, {
       caption: options.caption
     });
-    input.onChanged = () => this.validateOnValueChanged(parent, scope, options == null ? void 0 : options.caption);
+    input.onChanged = () => {
+      if (labelProp)
+        labelProp.caption = input.checked.toString();
+      this.validateOnValueChanged(input, parent, scope, options == null ? void 0 : options.caption);
+      if (this._formOptions.onChange) {
+        this._formOptions.onChange(input, input.checked);
+      }
+    };
     input.setAttribute("role", "field");
     input.setAttribute("scope", scope);
     input.setAttribute("field", field);
@@ -41799,22 +42080,27 @@ var Form = class extends Control {
     if (options.readOnly !== void 0) {
       input.setAttribute("readOnly", options.readOnly.toString());
     }
-    const description = this.renderLabel(vstack, options, "description");
-    const error = this.renderLabel(vstack, options, "error");
+    input.classList.add(checkboxStyle);
+    const description = this.renderLabel({ parent: vstack, options, type: "description" });
+    const error = this.renderLabel({ parent: vstack, options, type: "error" });
     this._formControls[scope] = {
       wrapper,
       input,
       description,
       error
     };
+    if (defaultValue && typeof defaultValue === "boolean") {
+      input.setAttribute("checked", defaultValue.toString());
+    }
     return wrapper;
   }
-  renderList(parent, scope, options, isVertical) {
+  renderList(listOption) {
+    const { parent, scope, options, isVertical } = listOption;
     const wrapper = new Panel(parent);
     const field = scope.split("/").pop() || "";
     wrapper.setAttribute("array-field", field);
     wrapper.setAttribute("role", "array");
-    const header = new GridLayout(wrapper, { templateColumns: ["1fr", "50px"] });
+    const header = new GridLayout(wrapper, { templateColumns: ["1fr", "80px"] });
     header.classList.add(listHeaderStyle);
     const hstack = new HStack(header, { gap: 2 });
     new Label(hstack, { caption: options.caption });
@@ -41824,7 +42110,13 @@ var Form = class extends Control {
         font: { color: "#ff0000" }
       });
     }
-    const btnAdd = new Icon(header, { name: "plus" });
+    const btnAdd = new Button(header, { caption: "Add" });
+    btnAdd.prepend(new Icon(void 0, {
+      name: "plus",
+      width: "1em",
+      height: "1em",
+      fill: theme.colors.primary.contrastText
+    }));
     btnAdd.classList.add(listBtnAddStyle);
     const columnHeader = new VStack(wrapper);
     const body = new VStack(wrapper, {
@@ -41845,7 +42137,8 @@ var Form = class extends Control {
       btnAdd
     };
   }
-  renderCard(parent, scope, schema, options) {
+  renderCard(cardOption) {
+    const { parent, scope, schema, options, uiSchema, elementLabelProp } = cardOption;
     if (!schema.type)
       return;
     const isVertical = parent.getAttribute("layout") === "Vertical";
@@ -41882,12 +42175,12 @@ var Form = class extends Control {
           };
           for (const fieldName in schema.properties) {
             const property = schema.properties[fieldName];
-            this.renderFormByJSONSchema(row, property, `${scope}/items/properties/${fieldName}`, false);
+            this.renderFormByJSONSchema(row, property, `#/properties/${fieldName}`, false, false, { parentProp: scope });
           }
         } else {
           for (const fieldName in schema.properties) {
             const property = schema.properties[fieldName];
-            this.renderFormByJSONSchema(row, property, `${scope}/items/properties/${fieldName}`, !hasSubLevel);
+            this.renderFormByJSONSchema(row, property, `#/properties/${fieldName}`, !hasSubLevel, false, { parentProp: scope });
           }
           const btnDelete = new Icon(row, {
             name: "trash"
@@ -41905,9 +42198,11 @@ var Form = class extends Control {
         headerStack.classList.add(cardHeader);
         const bodyStack = new VStack(card);
         bodyStack.classList.add(cardBody);
+        const pnlElmLabel = new Panel(headerStack);
+        const labelProp = new Label(pnlElmLabel);
         const btnDelete = new Icon(headerStack, { name: "trash" });
         const btnCollapse = new Icon(headerStack, { name: "chevron-down" });
-        btnCollapse.onClick = () => {
+        btnCollapse.onClick = headerStack.onClick = () => {
           bodyStack.visible = !bodyStack.visible;
           btnCollapse.name = `chevron-${bodyStack.visible ? "up" : "down"}`;
         };
@@ -41916,7 +42211,11 @@ var Form = class extends Control {
           card.remove();
         };
         btnCollapse.classList.add(listItemBtnDelete);
-        this.renderFormByJSONSchema(bodyStack, schema, `${scope}/items`, true, hasSubLevel);
+        if (uiSchema) {
+          this.renderFormByUISchema(bodyStack, uiSchema, null, schema, elementLabelProp, labelProp);
+        } else {
+          this.renderFormByJSONSchema(bodyStack, schema, `${scope}/items`, true, hasSubLevel, { elementLabelProp, parentProp: scope });
+        }
       }
     } else {
       const templateColumns = ["1fr", "50px"];
@@ -41961,6 +42260,7 @@ var Form = class extends Control {
     }
     var errors = [];
     function checkProp(value, schema2, path, scope, i, isNonObjArrayItem) {
+      var _a;
       if (isNonObjArrayItem && typeof i === "number") {
         if (typeof value === "object") {
           value = value[Object.keys(value)[0]];
@@ -42011,6 +42311,8 @@ var Form = class extends Control {
       }
       function checkType(type, value2, scope2) {
         if (type) {
+          if (type == "string" && value2 instanceof moment)
+            return [];
           if (type != "any" && (type == "null" ? value2 !== null : typeof value2 != type) && !(value2 instanceof Array && type == "array") && typeof type == "string" && !(type == "integer" && value2 % 1 === 0)) {
             return [{
               property: path,
@@ -42039,7 +42341,8 @@ var Form = class extends Control {
         }
         return [];
       }
-      if (value === void 0 || value === "" || value instanceof Array && !value.length) {
+      const isEmptyValue = value === void 0 || value === "" || value instanceof Array && (!value.length || value.findIndex((v) => v === void 0 || v === "") !== -1) && ((_a = schema2.items) == null ? void 0 : _a.type) === "object";
+      if (isEmptyValue) {
         if (schema2.required && typeof schema2.required === "boolean") {
           addError("is missing and it is required", scope);
         }
@@ -42082,8 +42385,9 @@ var Form = class extends Control {
             errors.concat(checkObj(value, schema2.properties, path, schema2.additionalProperties, scope));
           }
           if (schema2.items && schema2.items.type != "object") {
+            const itemSchema = { required: schema2.required, ...schema2.items };
             for (let i2 = 0; i2 < value.length; i2++) {
-              checkProp(value[i2], schema2.items, path, scope, i2, true);
+              checkProp(value[i2], itemSchema, path, scope, i2, true);
             }
           }
           if (schema2.pattern && typeof value == "string" && !value.match(schema2.pattern)) {
@@ -42276,6 +42580,8 @@ Form = __decorateClass([
 * Released under dual AGPLv3/commercial license
 * https://ijs.network
 *-----------------------------------------------------------*/
+//  * @license MIT*/.toastui-editor-md-container .toastui-editor-md-preview .toastui-editor-contents{padding-top:8px}.toastui-editor-ww-container .toastui-editor-contents{box-sizing:border-box;height:inherit;margin:0;overflow:auto;padding:16px 25px 0}.toastui-editor-ww-container .toastui-editor-contents p{margin:0}.toastui-editor-contents{font-family:Open Sans,Helvetica Neue,Helvetica,Arial,나눔바른고딕,Nanum Barun Gothic,맑은고딕,Malgun Gothic,sans-serif;font-size:13px;margin:0;padding:0;z-index:20}.toastui-editor-contents :not(table){box-sizing:content-box;line-height:160%}.toastui-editor-contents address,.toastui-editor-contents cite,.toastui-editor-contents dfn,.toastui-editor-contents em,.toastui-editor-contents i,.toastui-editor-contents var{font-style:italic}.toastui-editor-contents strong{font-weight:700}.toastui-editor-contents p{color:#222;margin:10px 0}.toastui-editor-contents>div>div:first-of-type h1,.toastui-editor-contents>h1:first-of-type{margin-top:14px}.toastui-editor-contents h1,.toastui-editor-contents h2,.toastui-editor-contents h3,.toastui-editor-contents h4,.toastui-editor-contents h5,.toastui-editor-contents h6{color:#222;font-weight:700}i-markdown.toastui-editor-contents h1{border-bottom:0;font-size:24px;line-height:28px;margin:52px 0 15px;padding-bottom:7px}i-markdown.toastui-editor-contents h2{border-bottom:0;font-size:22px;line-height:23px;margin:20px 0 13px;padding-bottom:7px}.toastui-editor-contents h3{font-size:20px;margin:18px 0 2px}.toastui-editor-contents h4{font-size:18px;margin:10px 0 2px}.toastui-editor-contents h3,.toastui-editor-contents h4{line-height:18px}.toastui-editor-contents h5{font-size:16px}.toastui-editor-contents h6{font-size:14px}.toastui-editor-contents h5,.toastui-editor-contents h6{line-height:17px;margin:9px 0 -4px}.toastui-editor-contents del{color:#999}.toastui-editor-contents blockquote{border-left:4px solid #e5e5e5;color:#999;margin:14px 0;padding:0 16px}.toastui-editor-contents blockquote ol,.toastui-editor-contents blockquote p,.toastui-editor-contents blockquote ul{color:#999}.toastui-editor-contents blockquote>:first-child{margin-top:0}.toastui-editor-contents blockquote>:last-child{margin-bottom:0}.toastui-editor-contents code,.toastui-editor-contents pre{border:0;border-radius:0;font-family:Consolas,Courier,Apple SD 산돌고딕 Neo,-apple-system,Lucida Grande,Apple SD Gothic Neo,맑은 고딕,Malgun Gothic,Segoe UI,돋움,dotum,sans-serif}.toastui-editor-contents pre{background-color:#f4f7f8;margin:2px 0 8px;padding:18px}.toastui-editor-contents code{background-color:#f9f2f4;border-radius:2px;color:#c1798b;letter-spacing:-.3px;padding:2px 3px}.toastui-editor-contents pre code{background-color:transparent;color:inherit;padding:0;white-space:pre-wrap}.toastui-editor-contents img{box-sizing:border-box;margin:4px 0 10px;max-width:100%;vertical-align:top}.toastui-editor-contents table{border:1px solid rgba(0,0,0,.1);border-collapse:collapse;box-sizing:border-box;color:#222;margin:12px 0 14px;width:auto}.toastui-editor-contents table td,.toastui-editor-contents table th{border:1px solid rgba(0,0,0,.1);height:32px;padding:5px 14px 5px 12px}.toastui-editor-contents table th{background-color:#555;color:#fff;font-weight:300;padding-top:6px}.toastui-editor-contents th p{color:#fff;margin:0}.toastui-editor-contents td p{margin:0;padding:0 2px}.toastui-editor-contents td.toastui-editor-cell-selected{background-color:#d8dfec}.toastui-editor-contents th.toastui-editor-cell-selected{background-color:#908f8f}.toastui-editor-contents dir,.toastui-editor-contents menu,.toastui-editor-contents ol,.toastui-editor-contents ul{color:#222;display:block;list-style-type:none;margin:6px 0 10px;padding-left:24px}.toastui-editor-contents ol{counter-reset:li;list-style-type:none}.toastui-editor-contents ol>li{counter-increment:li}.toastui-editor-contents ol>li:before,.toastui-editor-contents ul>li:before{display:inline-block;position:absolute}.toastui-editor-contents ul>li:before{background-color:#ccc;border-radius:50%;content:"";height:5px;margin-left:-17px;margin-top:6px;width:5px}.toastui-editor-contents ol>li:before{color:#aaa;content:"." counter(li);direction:rtl;margin-left:-28px;text-align:right;width:24px}.toastui-editor-contents ol ol,.toastui-editor-contents ol ul,.toastui-editor-contents ul ol,.toastui-editor-contents ul ul{margin-bottom:0!important;margin-top:0!important}.toastui-editor-contents ol li,.toastui-editor-contents ul li{position:relative}.toastui-editor-contents ol p,.toastui-editor-contents ul p{margin:0}.toastui-editor-contents hr{border-top:1px solid #eee;margin:16px 0}.toastui-editor-contents a{color:#4b96e6;text-decoration:underline}.toastui-editor-contents a:hover{color:#1f70de}.toastui-editor-contents .image-link{position:relative}.toastui-editor-contents .image-link:hover:before{background:#fff url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PGcgc3Ryb2tlPSIjNTU1IiBzdHJva2Utd2lkdGg9IjEuNSIgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIiBzdHJva2UtbGluZWNhcD0icm91bmQiPjxwYXRoIGQ9Im01LjY4NyAxMC4yOTQtMS4yODUgMS4yODhjLTEuMDUgMS4wNS0xLjAzNSAyLjc3Mi4wMzcgMy44NDRsLjEzNS4xMzVjMS4wNzIgMS4wNzIgMi43OTQgMS4wODggMy44NDQuMDM3bDIuNzItMi43MmMxLjA1MS0xLjA1IDEuMDM0LTIuNzcyLS4wMzctMy44NDNsLS4xMzYtLjEzNiIvPjxwYXRoIGQ9Im0xNC4zMDUgOS43MTMgMS4yODctMS4yOWMxLjA1Mi0xLjA1MSAxLjAzNi0yLjc3My0uMDM2LTMuODQ0bC0uMTM1LS4xMzZjLTEuMDcyLTEuMDcyLTIuNzk0LTEuMDg4LTMuODQ1LS4wMzZMOC44NTcgNy4xMjZjLTEuMDUxIDEuMDUxLTEuMDM0IDIuNzcyLjAzNyAzLjg0M2wuMTM2LjEzNiIvPjwvZz48L3N2Zz4=) no-repeat;background-position:50%;border:1px solid #c9ccd5;border-radius:50%;box-shadow:0 2px 4px 0 rgba(0,0,0,.08);content:"";cursor:pointer;height:30px;position:absolute;right:0;width:30px}.toastui-editor-contents .task-list-item{border:0;list-style:none;margin-left:-24px;padding-left:24px}.toastui-editor-contents .task-list-item:before{background-position:50%;background-repeat:no-repeat;background-size:18px 18px;background:transparent url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCI+PHJlY3Qgd2lkdGg9IjE3IiBoZWlnaHQ9IjE3IiB4PSIuNSIgeT0iLjUiIHJ4PSIyIiBmaWxsPSIjRkZGIiBzdHJva2U9IiNDQ0MiIGZpbGwtcnVsZT0iZXZlbm9kZCIvPjwvc3ZnPg==);border-radius:2px;content:"";cursor:pointer;height:18px;left:0;margin-left:0;margin-top:0;position:absolute;top:1px;width:18px}.toastui-editor-contents .task-list-item.checked:before{background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCI+PHBhdGggZD0iTTE2IDBhMiAyIDAgMCAxIDIgMnYxNGEyIDIgMCAwIDEtMiAySDJhMiAyIDAgMCAxLTItMlYyYTIgMiAwIDAgMSAyLTJoMTR6bS0xLjc5MyA1LjI5M2ExIDEgMCAwIDAtMS40MTQgMEw3LjUgMTAuNTg1IDUuMjA3IDguMjkzbC0uMDk0LS4wODNhMSAxIDAgMCAwLTEuMzIgMS40OTdsMyAzIC4wOTQuMDgzYTEgMSAwIDAgMCAxLjMyLS4wODNsNi02IC4wODMtLjA5NGExIDEgMCAwIDAtLjA4My0xLjMyeiIgZmlsbD0iIzRCOTZFNiIgZmlsbC1ydWxlPSJldmVub2RkIi8+PC9zdmc+)}.toastui-editor-contents .toastui-editor-ww-code-block{position:relative}.toastui-editor-contents .toastui-editor-ww-code-block:after{background:#e5e9ea url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMCAzMCIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgMzAgMzAiIHhtbDpzcGFjZT0icHJlc2VydmUiPjxwYXRoIGQ9Im0xNS41IDEyLjUgMiAyTDEyIDIwaC0ydi0ybDUuNS01LjV6TTE4IDEwbDIgMi0xLjUgMS41LTItMkwxOCAxMHoiIHN0eWxlPSJmaWxsLXJ1bGU6ZXZlbm9kZDtjbGlwLXJ1bGU6ZXZlbm9kZDtmaWxsOiM1NTUiLz48L3N2Zz4=) no-repeat;background-position:100%;background-size:30px 30px;border-radius:2px;color:#333;content:attr(data-language);cursor:pointer;display:inline-block;font-size:13px;font-weight:700;height:24px;padding:3px 35px 0 10px;position:absolute;right:10px;top:10px}.toastui-editor-contents-placeholder:before{color:grey;content:attr(data-placeholder);line-height:160%;position:absolute}.toastui-editor-md-preview .toastui-editor-contents h1{min-height:28px}.toastui-editor-md-preview .toastui-editor-contents h2{min-height:23px}.toastui-editor-md-preview .toastui-editor-contents blockquote{min-height:20px}.toastui-editor-md-preview .toastui-editor-contents li{min-height:22px}.toastui-editor-contents .toastui-editor-md-preview-highlight{position:relative;z-index:0}.toastui-editor-contents .toastui-editor-md-preview-highlight:after{background-color:rgba(255,245,131,.5);border-radius:4px;bottom:-4px;content:"";left:-4px;position:absolute;right:-4px;top:-4px;z-index:-1}.toastui-editor-contents h1.toastui-editor-md-preview-highlight:after,.toastui-editor-contents h2.toastui-editor-md-preview-highlight:after{bottom:0}.toastui-editor-contents td.toastui-editor-md-preview-highlight:after,.toastui-editor-contents th.toastui-editor-md-preview-highlight:after{display:none}.toastui-editor-contents td.toastui-editor-md-preview-highlight,.toastui-editor-contents th.toastui-editor-md-preview-highlight{background-color:rgba(255,245,131,.5)}.toastui-editor-contents th.toastui-editor-md-preview-highlight{color:#222}`)
+//  * @license MIT*/pre[class*="language-"]{overflow:visible}code[class*=language-],pre[class*=language-]{color:#000;background:0 0;text-shadow:0 1px #fff;font-family:Consolas,Monaco,'Andale Mono','Ubuntu Mono',monospace;font-size:1em;text-align:left;white-space:pre;word-spacing:normal;word-break:normal;word-wrap:normal;line-height:1.5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;hyphens:none}code[class*=language-] ::-moz-selection,code[class*=language-]::-moz-selection,pre[class*=language-] ::-moz-selection,pre[class*=language-]::-moz-selection{text-shadow:none;background:#b3d4fc}code[class*=language-] ::selection,code[class*=language-]::selection,pre[class*=language-] ::selection,pre[class*=language-]::selection{text-shadow:none;background:#b3d4fc}@media print{code[class*=language-],pre[class*=language-]{text-shadow:none}}pre[class*=language-]{padding:1em;margin:.5em 0;overflow:auto}:not(pre)>code[class*=language-],pre[class*=language-]{background:#f5f2f0}:not(pre)>code[class*=language-]{padding:.1em;border-radius:.3em;white-space:normal}.token.cdata,.token.comment,.token.doctype,.token.prolog{color:#708090}.token.punctuation{color:#999}.token.namespace{opacity:.7}.token.boolean,.token.constant,.token.deleted,.token.number,.token.property,.token.symbol,.token.tag{color:#905}.token.attr-name,.token.builtin,.token.char,.token.inserted,.token.selector,.token.string{color:#690}.language-css .token.string,.style .token.string,.token.entity,.token.operator,.token.url{color:#9a6e3a;background:hsla(0,0%,100%,.5)}.token.atrule,.token.attr-value,.token.keyword{color:#07a}.token.class-name,.token.function{color:#dd4a68}.token.important,.token.regex,.token.variable{color:#e90}.token.bold,.token.important{font-weight:700}.token.italic{font-style:italic}.token.entity{cursor:help}.toastui-editor-dark .ProseMirror,.toastui-editor-dark .toastui-editor-contents p,.toastui-editor-dark .toastui-editor-contents h1,.toastui-editor-dark .toastui-editor-contents h2,.toastui-editor-dark .toastui-editor-contents h3,.toastui-editor-dark .toastui-editor-contents h4,.toastui-editor-dark .toastui-editor-contents h5,.toastui-editor-dark .toastui-editor-contents h6{color:#fff}.toastui-editor-dark .toastui-editor-contents h1,.toastui-editor-dark .toastui-editor-contents h2{border-color:#fff}.toastui-editor-dark .toastui-editor-contents del{color:#777980}.toastui-editor-dark .toastui-editor-contents blockquote{border-color:#303135}.toastui-editor-dark .toastui-editor-contents blockquote p,.toastui-editor-dark .toastui-editor-contents blockquote ul,.toastui-editor-dark .toastui-editor-contents blockquote ol{color:#777980}.toastui-editor-dark .toastui-editor-contents pre{background-color:#232428}.toastui-editor-dark .toastui-editor-contents pre code{background-color:transparent;color:#fff}.toastui-editor-dark .toastui-editor-contents code{color:#c1798b;background-color:#35262a}.toastui-editor-dark .toastui-editor-contents div{color:#fff}.toastui-editor-dark .toastui-editor-contents .toastui-editor-ww-code-block:after{background-color:#232428;border:1px solid #393b42;color:#eee;background-image:url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCEtLSBHZW5lcmF0b3I6IEFkb2JlIElsbHVzdHJhdG9yIDI1LjIuMCwgU1ZHIEV4cG9ydCBQbHVnLUluIC4gU1ZHIFZlcnNpb246IDYuMDAgQnVpbGQgMCkgIC0tPgo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IuugiOydtOyWtF8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiCgkgeT0iMHB4IiB2aWV3Qm94PSIwIDAgMzAgMzAiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDMwIDMwOyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+CjxzdHlsZSB0eXBlPSJ0ZXh0L2NzcyI+Cgkuc3Qwe2ZpbGwtcnVsZTpldmVub2RkO2NsaXAtcnVsZTpldmVub2RkO2ZpbGw6I2ZmZjt9Cjwvc3R5bGU+CjxnPgoJPGc+CgkJPGc+CgkJCTxnPgoJCQkJPGc+CgkJCQkJPHBhdGggY2xhc3M9InN0MCIgZD0iTTE1LjUsMTIuNWwyLDJMMTIsMjBoLTJ2LTJMMTUuNSwxMi41eiBNMTgsMTBsMiwybC0xLjUsMS41bC0yLTJMMTgsMTB6Ii8+CgkJCQk8L2c+CgkJCTwvZz4KCQk8L2c+Cgk8L2c+CjwvZz4KPC9zdmc+Cg==)}.toastui-editor-dark .toastui-editor-contents .toastui-editor-custom-block-editor{background:#392d31;color:#fff;border-color:#327491}.toastui-editor-dark .toastui-editor-contents table{border-color:#303238}.toastui-editor-dark .toastui-editor-contents table th,.toastui-editor-dark .toastui-editor-contents table td{border-color:#303238}.toastui-editor-dark .toastui-editor-contents table th{background-color:#3a3c42}.toastui-editor-dark .toastui-editor-contents table td,.toastui-editor-dark .toastui-editor-contents table td p{color:#fff}.toastui-editor-dark .toastui-editor-contents td.toastui-editor-cell-selected{background-color:rgba(103,204,255,0.5)}.toastui-editor-dark .toastui-editor-contents th.toastui-editor-cell-selected{background-color:rgba(103,204,255,0.3)}.toastui-editor-dark .toastui-editor-contents ul,.toastui-editor-dark .toastui-editor-contents menu,.toastui-editor-dark .toastui-editor-contents ol,.toastui-editor-dark .toastui-editor-contents dir{color:#fff}.toastui-editor-dark .toastui-editor-contents ul > li::before{background-color:#fff}.toastui-editor-dark .toastui-editor-contents hr{border-color:#fff}.toastui-editor-dark .toastui-editor-contents a{color:#4b96e6}.toastui-editor-dark .toastui-editor-contents a:hover{color:#1f70de}.toastui-editor-dark .toastui-editor-contents .image-link:hover::before{border-color:#393b42;background-color:#232428;background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDIwIDIwIj4KICAgIDxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIj4KICAgICAgICA8ZyBzdHJva2U9IiNFRUUiIHN0cm9rZS13aWR0aD0iMS41Ij4KICAgICAgICAgICAgPGc+CiAgICAgICAgICAgICAgICA8Zz4KICAgICAgICAgICAgICAgICAgICA8cGF0aCBkPSJNNy42NjUgMTUuMDdsLTEuODE5LS4wMDJjLTEuNDg2IDAtMi42OTItMS4yMjgtMi42OTItMi43NDR2LS4xOTJjMC0xLjUxNSAxLjIwNi0yLjc0NCAyLjY5Mi0yLjc0NGgzLjg0NmMxLjQ4NyAwIDIuNjkyIDEuMjI5IDIuNjkyIDIuNzQ0di4xOTIiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0xMDQ1IC0xNzQzKSB0cmFuc2xhdGUoMTA0MCAxNzM4KSB0cmFuc2xhdGUoNSA1KSBzY2FsZSgxIC0xKSByb3RhdGUoNDUgMzcuMjkzIDApIi8+CiAgICAgICAgICAgICAgICAgICAgPHBhdGggZD0iTTEyLjMyNiA0LjkzNGwxLjgyMi4wMDJjMS40ODcgMCAyLjY5MyAxLjIyOCAyLjY5MyAyLjc0NHYuMTkyYzAgMS41MTUtMS4yMDYgMi43NDQtMi42OTMgMi43NDRoLTMuODQ1Yy0xLjQ4NyAwLTIuNjkyLTEuMjI5LTIuNjkyLTIuNzQ0VjcuNjgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0xMDQ1IC0xNzQzKSB0cmFuc2xhdGUoMTA0MCAxNzM4KSB0cmFuc2xhdGUoNSA1KSBzY2FsZSgxIC0xKSByb3RhdGUoNDUgMzAuOTk2IDApIi8+CiAgICAgICAgICAgICAgICA8L2c+CiAgICAgICAgICAgIDwvZz4KICAgICAgICA8L2c+CiAgICA8L2c+Cjwvc3ZnPgo=);box-shadow:0 2px 4px 0 rgba(0,0,0,0.08)}.toastui-editor-dark .toastui-editor-contents .task-list-item::before{background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDE4IDE4Ij4KICAgIDxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCI+CiAgICAgICAgPGcgc3Ryb2tlPSIjNTU1NzVGIj4KICAgICAgICAgICAgPGc+CiAgICAgICAgICAgICAgICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMTAzMCAtMzE2KSB0cmFuc2xhdGUoNzg4IDE5MikgdHJhbnNsYXRlKDI0MiAxMjQpIj4KICAgICAgICAgICAgICAgICAgICA8cmVjdCB3aWR0aD0iMTciIGhlaWdodD0iMTciIHg9Ii41IiB5PSIuNSIgcng9IjIiLz4KICAgICAgICAgICAgICAgIDwvZz4KICAgICAgICAgICAgPC9nPgogICAgICAgIDwvZz4KICAgIDwvZz4KPC9zdmc+Cg==);background-color:transparent}.toastui-editor-dark .toastui-editor-contents .task-list-item.checked::before{background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDE4IDE4Ij4KICAgIDxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCI+CiAgICAgICAgPGcgZmlsbD0iIzRCOTZFNiI+CiAgICAgICAgICAgIDxnPgogICAgICAgICAgICAgICAgPGc+CiAgICAgICAgICAgICAgICAgICAgPHBhdGggZD0iTTE2IDBjMS4xMDUgMCAyIC44OTUgMiAydjE0YzAgMS4xMDUtLjg5NSAyLTIgMkgyYy0xLjEwNSAwLTItLjg5NS0yLTJWMkMwIC44OTUuODk1IDAgMiAwaDE0em0tMS43OTMgNS4yOTNjLS4zOS0uMzktMS4wMjQtLjM5LTEuNDE0IDBMNy41IDEwLjU4NSA1LjIwNyA4LjI5M2wtLjA5NC0uMDgzYy0uMzkyLS4zMDUtLjk2LS4yNzgtMS4zMi4wODMtLjM5LjM5LS4zOSAxLjAyNCAwIDEuNDE0bDMgMyAuMDk0LjA4M2MuMzkyLjMwNS45Ni4yNzggMS4zMi0uMDgzbDYtNiAuMDgzLS4wOTRjLjMwNS0uMzkyLjI3OC0uOTYtLjA4My0xLjMyeiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTEwNTAgLTI5NikgdHJhbnNsYXRlKDc4OCAxOTIpIHRyYW5zbGF0ZSgyNjIgMTA0KSIvPgogICAgICAgICAgICAgICAgPC9nPgogICAgICAgICAgICA8L2c+CiAgICAgICAgPC9nPgogICAgPC9nPgo8L3N2Zz4K)}.toastui-editor-dark .toastui-editor-contents .toastui-editor-md-preview-highlight::after{background-color:rgba(255,250,193,0.5)}.toastui-editor-dark .toastui-editor-contents th.toastui-editor-md-preview-highlight,.toastui-editor-dark .toastui-editor-contents td.toastui-editor-md-preview-highlight{background-color:rgba(255,250,193,0.5)}.toastui-editor-dark .toastui-editor-contents th.toastui-editor-md-preview-highlight{color:#fff}.toastui-editor-dark .toastui-editor-contents th.toastui-editor-md-preview-highlight,.toastui-editor-dark .toastui-editor-contents td.toastui-editor-md-preview-highlight{background-color:rgba(255,250,193,0.25)}.toastui-editor-dark .toastui-editor-contents .toastui-editor-md-preview-highlight::after{background-color:rgba(255,250,193,0.25)}`);
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
 //! license : MIT
 //! moment.js

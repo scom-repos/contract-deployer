@@ -3817,6 +3817,7 @@ var require_lib = __commonJS({
             }
           }
         }
+        params = params || [];
         params.unshift(bytecode);
         let receipt = await this._send("", params, options);
         this.address = receipt.contractAddress;
@@ -4009,17 +4010,19 @@ var require_erc20 = __commonJS({
 
 // src/plugin.ts
 __export(exports, {
-  BigNumber: () => import_bignumber4.BigNumber,
+  BigNumber: () => import_bignumber5.BigNumber,
   Constants: () => constants_exports,
   Contract: () => import_contract2.Contract,
   Contracts: () => contracts_exports,
+  ERC20ApprovalModel: () => ERC20ApprovalModel,
   Erc20: () => Erc20,
   EthereumProvider: () => EthereumProvider,
   MetaMaskProvider: () => MetaMaskProvider,
   Types: () => types_exports,
   Utils: () => utils_exports,
   Wallet: () => Wallet,
-  Web3ModalProvider: () => Web3ModalProvider
+  Web3ModalProvider: () => Web3ModalProvider,
+  getERC20Allowance: () => getERC20Allowance
 });
 
 // src/wallet.ts
@@ -4617,9 +4620,12 @@ __export(utils_exports, {
   numberToBytes32: () => numberToBytes32,
   padLeft: () => padLeft,
   padRight: () => padRight,
+  registerSendTxEvents: () => registerSendTxEvents,
   sleep: () => sleep,
+  soliditySha3: () => soliditySha3,
   stringToBytes: () => stringToBytes,
   stringToBytes32: () => stringToBytes32,
+  toChecksumAddress: () => toChecksumAddress,
   toDecimals: () => toDecimals,
   toNumber: () => toNumber,
   toString: () => toString
@@ -4674,6 +4680,7 @@ var RpcWalletEvent;
 (function(RpcWalletEvent2) {
   RpcWalletEvent2["Connected"] = "connected";
   RpcWalletEvent2["Disconnected"] = "disconnected";
+  RpcWalletEvent2["ChainChanged"] = "chainChanged";
 })(RpcWalletEvent || (RpcWalletEvent = {}));
 
 // src/utils.ts
@@ -4778,12 +4785,15 @@ function addressToBytes32Right(value, prefix) {
   return v;
 }
 function toNumber(value) {
-  if (typeof value == "number")
+  if (typeof value === "number") {
     return value;
-  else if (typeof value == "string")
+  } else if (typeof value === "string") {
     return new import_bignumber.BigNumber(value).toNumber();
-  else
+  } else if (typeof value === "bigint") {
+    return Number(value);
+  } else {
     return value.toNumber();
+  }
 }
 function toDecimals(value, decimals) {
   decimals = decimals || 18;
@@ -4818,6 +4828,27 @@ function constructTypedMessageData(domain, customTypes, primaryType, message) {
     message
   };
   return data;
+}
+function soliditySha3(...val) {
+  return Web32.utils.soliditySha3(...val);
+}
+function toChecksumAddress(address) {
+  return Web32.utils.toChecksumAddress(address);
+}
+function registerSendTxEvents(sendTxEventHandlers) {
+  const wallet = Wallet.getClientInstance();
+  wallet.registerSendTxEvents({
+    transactionHash: (error, receipt) => {
+      if (sendTxEventHandlers.transactionHash) {
+        sendTxEventHandlers.transactionHash(error, receipt);
+      }
+    },
+    confirmation: (receipt) => {
+      if (sendTxEventHandlers.confirmation) {
+        sendTxEventHandlers.confirmation(receipt);
+      }
+    }
+  });
 }
 
 // src/contracts/erc20.ts
@@ -4934,6 +4965,7 @@ var Erc20 = class extends import_contract.Contract {
 // src/eventBus.ts
 var _EventBus = class {
   constructor() {
+    this.idEventMap = {};
     this.subscribers = {};
   }
   static getInstance() {
@@ -4954,13 +4986,19 @@ var _EventBus = class {
     if (!this.subscribers[event])
       this.subscribers[event] = {};
     this.subscribers[event][id] = callback.bind(sender);
+    this.idEventMap[id] = event;
     return {
-      unregister: () => {
-        delete this.subscribers[event][id];
-        if (Object.keys(this.subscribers[event]).length === 0)
-          delete this.subscribers[event];
-      }
+      id,
+      event,
+      unregister: () => this.unregister(id)
     };
+  }
+  unregister(id) {
+    const event = this.idEventMap[id];
+    delete this.subscribers[event][id];
+    if (Object.keys(this.subscribers[event]).length === 0)
+      delete this.subscribers[event];
+    delete this.idEventMap[id];
   }
   getNextId() {
     return _EventBus.nextId++;
@@ -5081,29 +5119,32 @@ var EthereumProvider = class {
       this.provider.removeListener("disconnect", this.handleDisconnect);
     }
   }
+  _handleAccountsChanged(accounts, eventPayload) {
+    let accountAddress;
+    let hasAccounts = accounts && accounts.length > 0;
+    if (hasAccounts) {
+      this._selectedAddress = this.toChecksumAddress(accounts[0]);
+      accountAddress = this._selectedAddress;
+      if (this.wallet.web3) {
+        this.wallet.web3.selectedAddress = this._selectedAddress;
+      }
+      this.wallet.account = {
+        address: accountAddress
+      };
+    }
+    this._isConnected = hasAccounts;
+    EventBus.getInstance().dispatch(ClientWalletEvent.AccountsChanged, __spreadProps(__spreadValues({}, eventPayload), {
+      account: accountAddress
+    }));
+    if (this.onAccountChanged)
+      this.onAccountChanged(accountAddress);
+  }
   initEvents() {
     let self = this;
     if (this.installed()) {
       this.removeListeners();
       this.handleAccountsChanged = (accounts) => {
-        let accountAddress;
-        let hasAccounts = accounts && accounts.length > 0;
-        if (hasAccounts) {
-          this._selectedAddress = self.toChecksumAddress(accounts[0]);
-          accountAddress = this._selectedAddress;
-          if (self.wallet.web3) {
-            self.wallet.web3.selectedAddress = this._selectedAddress;
-          }
-          self.wallet.account = {
-            address: accountAddress
-          };
-        }
-        this._isConnected = hasAccounts;
-        EventBus.getInstance().dispatch(ClientWalletEvent.AccountsChanged, {
-          account: accountAddress
-        });
-        if (self.onAccountChanged)
-          self.onAccountChanged(accountAddress);
+        self._handleAccountsChanged(accounts);
       };
       this.handleChainChanged = (chainId) => {
         self.wallet.chainId = parseInt(chainId);
@@ -5146,26 +5187,15 @@ var EthereumProvider = class {
     let self = this;
     try {
       if (this.installed()) {
-        await this.provider.request({ method: "eth_requestAccounts" }).then((accounts) => {
-          let accountAddress;
-          let hasAccounts = accounts && accounts.length > 0;
-          if (hasAccounts) {
-            this._selectedAddress = self.toChecksumAddress(accounts[0]);
-            accountAddress = this._selectedAddress;
-            if (self.wallet.web3) {
-              self.wallet.web3.selectedAddress = this._selectedAddress;
-            }
-            self.wallet.account = {
-              address: accountAddress
-            };
+        if (eventPayload == null ? void 0 : eventPayload.userTriggeredConnect) {
+          await this.provider.request({ method: "eth_requestAccounts" }).then((accounts) => {
+            self._handleAccountsChanged(accounts, eventPayload);
+          });
+        } else {
+          if (this.provider.selectedAddress) {
+            self._handleAccountsChanged([this.provider.selectedAddress], eventPayload);
           }
-          this._isConnected = hasAccounts;
-          EventBus.getInstance().dispatch(ClientWalletEvent.AccountsChanged, __spreadProps(__spreadValues({}, eventPayload), {
-            account: accountAddress
-          }));
-          if (self.onAccountChanged)
-            self.onAccountChanged(accountAddress);
-        });
+        }
       }
     } catch (error) {
       console.error(error);
@@ -5201,11 +5231,8 @@ var EthereumProvider = class {
       }
     });
   }
-  switchNetwork(chainId, onChainChanged) {
+  switchNetwork(chainId) {
     let self = this;
-    if (onChainChanged) {
-      this.onChainChanged = onChainChanged;
-    }
     return new Promise(async function(resolve, reject) {
       try {
         let chainIdHex = "0x" + chainId.toString(16);
@@ -5365,6 +5392,7 @@ var _Wallet = class {
     this._contracts = {};
     this._networksMap = {};
     this._multicallInfoMap = {};
+    this._walletEventIds = new Set();
     this._abiHashDict = {};
     this._abiContractDict = {};
     this._abiAddressDict = {};
@@ -5406,6 +5434,7 @@ var _Wallet = class {
       }
       ;
       this._web3 = new Web33(this._provider);
+      this._web3.eth.transactionConfirmationBlocks = 1;
       this._utils = {
         fromDecimals,
         fromWei: this._web3.utils.fromWei,
@@ -5426,15 +5455,13 @@ var _Wallet = class {
   get isConnected() {
     return this.clientSideProvider ? this.clientSideProvider.isConnected() : false;
   }
-  async switchNetwork(chainId, onChainChanged) {
+  async switchNetwork(chainId) {
     let result;
     if (this.clientSideProvider) {
-      result = await this.clientSideProvider.switchNetwork(chainId, onChainChanged);
+      result = await this.clientSideProvider.switchNetwork(chainId);
     } else {
       this.chainId = chainId;
       this.setDefaultProvider();
-      if (onChainChanged)
-        onChainChanged("0x" + chainId.toString(16));
     }
     return result;
   }
@@ -5453,10 +5480,20 @@ var _Wallet = class {
     }
   }
   registerWalletEvent(sender, event, callback) {
-    return EventBus.getInstance().register(sender, event, callback);
+    const registry = EventBus.getInstance().register(sender, event, callback);
+    this._walletEventIds.add(registry.id);
+    return registry;
   }
-  unregisterWalletEvent(event) {
-    return event.unregister();
+  unregisterWalletEvent(registry) {
+    registry.unregister();
+    this._walletEventIds.delete(registry.id);
+  }
+  unregisterAllWalletEvents() {
+    const eventBus = EventBus.getInstance();
+    this._walletEventIds.forEach((id) => {
+      eventBus.unregister(id);
+    });
+    this._walletEventIds.clear();
   }
   destoryRpcWalletInstance(instanceId) {
     delete _Wallet._rpcWalletPoolMap[instanceId];
@@ -5488,6 +5525,7 @@ var _Wallet = class {
     }
     wallet.instanceId = instanceId;
     _Wallet._rpcWalletPoolMap[instanceId] = wallet;
+    wallet.initWalletEvents();
     return instanceId;
   }
   setDefaultProvider() {
@@ -6434,12 +6472,9 @@ var _Wallet = class {
           result = await _web3.eth.accounts.sign(msg, self._account.privateKey);
           resolve(result.signature);
         } else if (typeof window !== "undefined" && self.clientSideProvider) {
-          const encoder = new TextEncoder();
-          const msgUint8Array = encoder.encode(msg);
-          const msgHex = "0x" + Array.from(msgUint8Array).map((b) => b.toString(16).padStart(2, "0")).join("");
           result = await self.clientSideProvider.provider.request({
             method: "personal_sign",
-            params: [msgHex, address]
+            params: [msg, address]
           });
           resolve(result);
         } else {
@@ -6677,10 +6712,6 @@ var Wallet = _Wallet;
 Wallet._rpcWalletPoolMap = {};
 Wallet.instance = new _Wallet();
 var RpcWallet = class extends Wallet {
-  constructor() {
-    super(...arguments);
-    this._eventsMap = new WeakMap();
-  }
   get address() {
     return this._address;
   }
@@ -6697,44 +6728,40 @@ var RpcWallet = class extends Wallet {
     const clientWallet = Wallet.getClientInstance();
     return clientWallet.isConnected && this.chainId === clientWallet.chainId;
   }
-  async switchNetwork(chainId, onChainChanged) {
+  async switchNetwork(chainId) {
     await this.init();
     this.chainId = chainId;
     const rpc = this.networksMap[chainId].rpcUrls[0];
     this._web3.setProvider(rpc);
-    if (onChainChanged)
-      onChainChanged("0x" + chainId.toString(16));
+    const eventId = `${this.instanceId}:${RpcWalletEvent.ChainChanged}`;
+    EventBus.getInstance().dispatch(eventId, chainId);
     return null;
+  }
+  initWalletEvents() {
+    const eventId = `${this.instanceId}:${RpcWalletEvent.Connected}`;
+    const eventBus = EventBus.getInstance();
+    const accountsChangedRegistry = eventBus.register(this, ClientWalletEvent.AccountsChanged, (payload) => {
+      this.address = payload.account;
+      eventBus.dispatch(eventId, this.isConnected);
+    });
+    const chainChangedRegistry = eventBus.register(this, ClientWalletEvent.ChainChanged, (chainIdHex) => {
+      eventBus.dispatch(eventId, this.isConnected);
+    });
+    this._walletEventIds.add(accountsChangedRegistry.id);
+    this._walletEventIds.add(chainChangedRegistry.id);
   }
   registerWalletEvent(sender, event, callback) {
     const eventId = `${this.instanceId}:${event}`;
     const eventBus = EventBus.getInstance();
     const registry = eventBus.register(sender, eventId, callback);
-    if (event == RpcWalletEvent.Connected) {
-      const accountsChangedRegistry = eventBus.register(sender, ClientWalletEvent.AccountsChanged, (payload) => {
-        this.address = payload.account;
-        eventBus.dispatch(eventId, this.isConnected);
-      });
-      const chainChangedRegistry = eventBus.register(sender, ClientWalletEvent.ChainChanged, (chainIdHex) => {
-        eventBus.dispatch(eventId, this.isConnected);
-      });
-      this._eventsMap.set(registry, [accountsChangedRegistry, chainChangedRegistry]);
-    }
+    this._walletEventIds.add(registry.id);
     return registry;
-  }
-  unregisterWalletEvent(event) {
-    if (this._eventsMap.has(event)) {
-      const events = this._eventsMap.get(event);
-      events.forEach((e) => e.unregister());
-      this._eventsMap.delete(event);
-    }
-    return event.unregister();
   }
 };
 
 // src/plugin.ts
 var import_contract2 = __toModule(require_contract());
-var import_bignumber4 = __toModule(require("bignumber.js"));
+var import_bignumber5 = __toModule(require("bignumber.js"));
 
 // src/types.ts
 var types_exports = {};
@@ -6747,6 +6774,112 @@ var SignTypedDataVersion;
   SignTypedDataVersion2["V3"] = "V3";
   SignTypedDataVersion2["V4"] = "V4";
 })(SignTypedDataVersion || (SignTypedDataVersion = {}));
+
+// src/approvalModel/ERC20ApprovalModel.ts
+var import_bignumber4 = __toModule(require("bignumber.js"));
+var approveERC20Max = async (token, spenderAddress, callback, confirmationCallback) => {
+  let wallet = Wallet.getInstance();
+  let amount = new import_bignumber4.BigNumber(2).pow(256).minus(1);
+  let erc20 = new ERC20(wallet, token.address);
+  registerSendTxEvents({
+    transactionHash: callback,
+    confirmation: confirmationCallback
+  });
+  let receipt = await erc20.approve({
+    spender: spenderAddress,
+    amount
+  });
+  return receipt;
+};
+var getERC20Allowance = async (wallet, token, spenderAddress) => {
+  if (!(token == null ? void 0 : token.address))
+    return null;
+  let erc20 = new ERC20(wallet, token.address);
+  let allowance = await erc20.allowance({
+    owner: wallet.account.address,
+    spender: spenderAddress
+  });
+  return fromDecimals(allowance, token.decimals || 18);
+};
+var ERC20ApprovalModel = class {
+  constructor(wallet, options) {
+    this.options = {
+      sender: null,
+      spenderAddress: "",
+      payAction: async () => {
+      },
+      onToBeApproved: async (token, data) => {
+      },
+      onToBePaid: async (token, data) => {
+      },
+      onApproving: async (token, receipt, data) => {
+      },
+      onApproved: async (token, data) => {
+      },
+      onPaying: async (receipt, data) => {
+      },
+      onPaid: async (data) => {
+      },
+      onApprovingError: async (token, err) => {
+      },
+      onPayingError: async (err) => {
+      }
+    };
+    this.checkAllowance = async (token, inputAmount, data) => {
+      let allowance = await getERC20Allowance(this.wallet, token, this.options.spenderAddress);
+      if (!allowance) {
+        await this.options.onToBePaid.bind(this.options.sender)(token, data);
+      } else if (new import_bignumber4.BigNumber(inputAmount).gt(allowance)) {
+        await this.options.onToBeApproved.bind(this.options.sender)(token, data);
+      } else {
+        await this.options.onToBePaid.bind(this.options.sender)(token, data);
+      }
+    };
+    this.doApproveAction = async (token, inputAmount, data) => {
+      const txHashCallback = async (err, receipt) => {
+        if (err) {
+          await this.options.onApprovingError.bind(this.options.sender)(token, err);
+        } else {
+          await this.options.onApproving.bind(this.options.sender)(token, receipt, data);
+        }
+      };
+      const confirmationCallback = async (receipt) => {
+        await this.options.onApproved.bind(this.options.sender)(token, data);
+        await this.checkAllowance(token, inputAmount, data);
+      };
+      approveERC20Max(token, this.options.spenderAddress, txHashCallback, confirmationCallback);
+    };
+    this.doPayAction = async (data) => {
+      const txHashCallback = async (err, receipt) => {
+        if (err) {
+          await this.options.onPayingError.bind(this.options.sender)(err);
+        } else {
+          await this.options.onPaying.bind(this.options.sender)(receipt, data);
+        }
+      };
+      const confirmationCallback = async (receipt) => {
+        await this.options.onPaid.bind(this.options.sender)(data);
+      };
+      registerSendTxEvents({
+        transactionHash: txHashCallback,
+        confirmation: confirmationCallback
+      });
+      await this.options.payAction.bind(this.options.sender)();
+    };
+    this.getAction = () => {
+      return {
+        doApproveAction: this.doApproveAction,
+        doPayAction: this.doPayAction,
+        checkAllowance: this.checkAllowance
+      };
+    };
+    this.wallet = wallet;
+    this.options = options;
+  }
+  set spenderAddress(value) {
+    this.options.spenderAddress = value;
+  }
+};
 /*!-----------------------------------------------------------
 * Copyright (c) IJS Technologies. All rights reserved.
 * Released under dual AGPLv3/commercial license
