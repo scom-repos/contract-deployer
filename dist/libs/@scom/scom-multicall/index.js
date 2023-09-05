@@ -78,8 +78,8 @@ define("@scom/scom-multicall/contracts/MultiCall.ts", ["require", "exports", "@i
             });
         }
     }
-    exports.MultiCall = MultiCall;
     MultiCall._abi = MultiCall_json_1.default.abi;
+    exports.MultiCall = MultiCall;
 });
 define("@scom/scom-multicall/contracts/index.ts", ["require", "exports", "@scom/scom-multicall/contracts/MultiCall.ts"], function (require, exports, MultiCall_1) {
     "use strict";

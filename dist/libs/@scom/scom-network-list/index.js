@@ -48,7 +48,7 @@ define("@scom/scom-network-list", ["require", "exports", "@ijstech/components"],
             {
                 chainId: 137,
                 chainName: "Polygon",
-                rpcUrls: ['https://polygon-rpc.com'],
+                rpcUrls: ['https://rpc.ankr.com/polygon'],
                 blockExplorerUrls: ['https://polygonscan.com/'],
                 nativeCurrency: {
                     decimals: 18,
@@ -187,6 +187,54 @@ define("@scom/scom-network-list", ["require", "exports", "@ijstech/components"],
                     symbol: 'ETH'
                 },
                 image: fullPath('img/arbitrum.svg')
+            },
+            {
+                chainId: 10,
+                chainName: "Optimism",
+                rpcUrls: ['https://mainnet.optimism.io'],
+                blockExplorerUrls: ['https://optimistic.etherscan.io/tx/'],
+                nativeCurrency: {
+                    decimals: 18,
+                    name: 'ETH',
+                    symbol: 'ETH'
+                },
+                image: fullPath('img/optimism.svg')
+            },
+            {
+                chainId: 420,
+                chainName: "Optimism Goerli",
+                rpcUrls: ['https://goerli.optimism.io'],
+                blockExplorerUrls: ['https://goerli-explorer.optimism.io/tx/'],
+                nativeCurrency: {
+                    decimals: 18,
+                    name: 'ETH',
+                    symbol: 'ETH'
+                },
+                image: fullPath('img/optimism.svg')
+            },
+            {
+                chainId: 324,
+                chainName: "zkSync Era",
+                rpcUrls: ['https://mainnet.era.zksync.io'],
+                blockExplorerUrls: ['https://explorer.zksync.io/tx/'],
+                nativeCurrency: {
+                    decimals: 18,
+                    name: 'ETH',
+                    symbol: 'ETH'
+                },
+                image: fullPath('img/zkSyncEra.svg')
+            },
+            {
+                chainId: 280,
+                chainName: "zkSync Era Testnet",
+                rpcUrls: ['https://testnet.era.zksync.dev'],
+                blockExplorerUrls: ['https://goerli.explorer.zksync.io/tx/'],
+                nativeCurrency: {
+                    decimals: 18,
+                    name: 'ETH',
+                    symbol: 'ETH'
+                },
+                image: fullPath('img/zkSyncEra.svg')
             }
         ];
     }
