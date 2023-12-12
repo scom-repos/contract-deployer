@@ -11778,9 +11778,9 @@ var __decorateClass = (decorators, target, key2, kind) => {
   return result;
 };
 
-// ../../node_modules/moment/moment.js
+// node_modules/moment/moment.js
 var require_moment = __commonJS({
-  "../../node_modules/moment/moment.js"(exports, module2) {
+  "node_modules/moment/moment.js"(exports, module2) {
     (function(global, factory) {
       typeof exports === "object" && typeof module2 !== "undefined" ? module2.exports = factory() : typeof define === "function" && define.amd ? define(factory) : global.moment = factory();
     })(exports, function() {
@@ -15501,10 +15501,12 @@ __export(exports, {
   Datepicker: () => Datepicker,
   EventBus: () => EventBus,
   Form: () => Form,
+  FormatUtils: () => FormatUtils,
   GridLayout: () => GridLayout,
   HStack: () => HStack,
   IPFS: () => src_exports2,
   Icon: () => Icon,
+  IdUtils: () => IdUtils,
   Iframe: () => Iframe,
   Image: () => Image2,
   Input: () => Input,
@@ -15912,15 +15914,19 @@ var Colors = {
 var defaultTheme = {
   action: {
     active: "rgba(0, 0, 0, 0.54)",
+    activeBackground: "rgba(0, 0, 0, 0.12)",
     activeOpacity: 0.12,
     disabled: "rgba(0, 0, 0, 0.26)",
     disabledBackground: "rgba(0, 0, 0, 0.12)",
     disabledOpacity: 0.38,
-    focus: "rgba(0, 0, 0, 0.12)",
+    focus: "rgba(0, 0, 0, 0.26)",
+    focusBackground: "rgba(0, 0, 0, 0.12)",
     focusOpacity: 0.12,
-    hover: "rgba(0, 0, 0, 0.04)",
+    hover: "rgba(0, 0, 0, 0.12)",
+    hoverBackground: "rgba(0, 0, 0, 0.04)",
     hoverOpacity: 0.04,
-    selected: "rgba(0, 0, 0, 0.08)",
+    selected: "rgba(0, 0, 0, 0.14)",
+    selectedBackground: "rgba(0, 0, 0, 0.08)",
     selectedOpacity: 0.08
   },
   background: {
@@ -15930,7 +15936,7 @@ var defaultTheme = {
     modal: "#ffffff",
     gradient: "linear-gradient(90deg, #a8327f 0%, #d4626a 100%)"
   },
-  breakboints: {
+  breakpoints: {
     xs: 0,
     sm: 600,
     md: 900,
@@ -16014,25 +16020,25 @@ var defaultTheme = {
   combobox: {
     background: "#fff",
     fontColor: "#000"
-  },
-  editor: {
-    background: "#fff",
-    fontColor: "#000"
   }
 };
 var darkTheme = {
   action: {
     active: "#fff",
+    activeBackground: "rgba(0, 0, 0, 0.5)",
     activeOpacity: 0.12,
     disabled: "rgba(255,255,255,0.3)",
     disabledBackground: "rgba(255,255,255, 0.12)",
     disabledOpacity: 0.38,
-    focus: "rgba(255,255,255, 0.12)",
+    focus: "rgba(255,255,255, 0.3)",
+    focusBackground: "rgba(255,255,255,0.12)",
     focusOpacity: 0.12,
-    hover: "rgba(255,255,255,0.08)",
+    hover: "rgba(255,255,255,0.3)",
+    hoverBackground: "rgba(255,255,255,0.08)",
     hoverOpacity: 0.08,
-    selected: "rgba(255,255,255, 0.16)",
-    selectedOpacity: 0.16
+    selected: "rgba(255,255,255, 0.6)",
+    selectedOpacity: 0.16,
+    selectedBackground: "rgba(255,255,255, 0.16)"
   },
   background: {
     default: "#303030",
@@ -16041,7 +16047,7 @@ var darkTheme = {
     modal: "#192046",
     gradient: "linear-gradient(90deg, #a8327f 0%, #d4626a 100%)"
   },
-  breakboints: {
+  breakpoints: {
     xs: 0,
     sm: 600,
     md: 900,
@@ -16123,10 +16129,6 @@ var darkTheme = {
     fontColor: "#000"
   },
   combobox: {
-    background: "#fff",
-    fontColor: "#000"
-  },
-  editor: {
     background: "#fff",
     fontColor: "#000"
   }
@@ -17334,6 +17336,7 @@ var Component = class extends HTMLElement {
     super();
     this._readyCallback = [];
     this.attrs = {};
+    this._uuid = IdUtils.generateUUID();
     this.options = options || {};
     this.defaults = defaults || {};
     initObservables(this);
@@ -17445,6 +17448,9 @@ var Component = class extends HTMLElement {
     if (removeAfter && result)
       this.style[name] = result;
     return result;
+  }
+  get uuid() {
+    return this._uuid;
   }
   get id() {
     return this.getAttribute("id");
@@ -17699,20 +17705,24 @@ var getOverflowStyleClass = (value) => {
   }
   return style(styleObj);
 };
-var getBackgroundStyleClass = (value) => {
-  let styleObj = {};
+var getBackground = (value) => {
+  let styleObj = { background: "" };
   let bg = "";
   value.image && (bg += `url(${value.image})`);
   value.color && (bg += `${value.color}`);
   styleObj.background = bg;
-  return style(styleObj);
+  return styleObj;
+};
+var getBackgroundStyleClass = (value) => {
+  return style(getBackground(value));
 };
 var getSpacingValue = (value) => {
   if (typeof value === "number")
     return value + "px";
   return value;
 };
-var getControlMediaQueriesStyle = (mediaQueries) => {
+var getControlMediaQueriesStyle = (mediaQueries, props) => {
+  var _a;
   let styleObj = {
     $nest: {}
   };
@@ -17728,9 +17738,14 @@ var getControlMediaQueriesStyle = (mediaQueries) => {
       }
       if (mediaQueryRule) {
         styleObj["$nest"][mediaQueryRule] = {};
+        if (mediaQuery.properties.display) {
+          styleObj["$nest"][mediaQueryRule]["display"] = `${mediaQuery.properties.display} !important`;
+        }
         if (typeof mediaQuery.properties.visible === "boolean") {
           const visible = mediaQuery.properties.visible;
-          styleObj["$nest"][mediaQueryRule]["display"] = visible ? "flex !important" : "none !important";
+          const display = mediaQuery.properties.display;
+          const currentDisplay = (_a = display != null ? display : props == null ? void 0 : props.display) != null ? _a : "flex";
+          styleObj["$nest"][mediaQueryRule]["display"] = visible ? `${currentDisplay} !important` : "none !important";
         }
         if (mediaQuery.properties.padding) {
           const { top = 0, right = 0, bottom = 0, left = 0 } = mediaQuery.properties.padding;
@@ -17756,11 +17771,9 @@ var getControlMediaQueriesStyle = (mediaQueries) => {
             styleObj["$nest"][mediaQueryRule]["borderRight"] = `${getSpacingValue(right.width || "")} ${right.style || ""} ${right.color || ""}!important`;
         }
         if (mediaQuery.properties.background) {
-          const { color, image } = mediaQuery.properties.background;
-          let bgString = "";
-          image && (bgString += `url(${image})`);
-          color && (bgString += `${color}`);
-          styleObj["$nest"][mediaQueryRule]["background"] = bgString + "!important";
+          const bgProp = mediaQuery.properties.background;
+          const value = getBackground(bgProp);
+          styleObj["$nest"][mediaQueryRule]["background"] = value.background + "!important";
         }
         if (mediaQuery.properties.grid) {
           const {
@@ -17791,14 +17804,59 @@ var getControlMediaQueriesStyle = (mediaQueries) => {
           if (verticalAlignment)
             styleObj["$nest"][mediaQueryRule]["alignItems"] = `${verticalAlignment}!important`;
         }
+        if (mediaQuery.properties.position) {
+          styleObj["$nest"][mediaQueryRule]["position"] = `${mediaQuery.properties.position} !important`;
+        }
+        if (mediaQuery.properties.zIndex !== void 0 && mediaQuery.properties.zIndex !== null) {
+          styleObj["$nest"][mediaQueryRule]["zIndex"] = `${mediaQuery.properties.zIndex} !important`;
+        }
+        if (mediaQuery.properties.top !== void 0 && mediaQuery.properties.top !== null) {
+          styleObj["$nest"][mediaQueryRule]["top"] = `${getSpacingValue(mediaQuery.properties.top)} !important`;
+        }
+        if (mediaQuery.properties.left !== void 0 && mediaQuery.properties.left !== null) {
+          styleObj["$nest"][mediaQueryRule]["left"] = `${getSpacingValue(mediaQuery.properties.left)} !important`;
+        }
+        if (mediaQuery.properties.right !== void 0 && mediaQuery.properties.right !== null) {
+          styleObj["$nest"][mediaQueryRule]["right"] = `${getSpacingValue(mediaQuery.properties.right)} !important`;
+        }
+        if (mediaQuery.properties.bottom !== void 0 && mediaQuery.properties.bottom !== null) {
+          styleObj["$nest"][mediaQueryRule]["bottom"] = `${getSpacingValue(mediaQuery.properties.bottom)} !important`;
+        }
+        if (mediaQuery.properties.maxHeight !== void 0 && mediaQuery.properties.maxHeight !== null) {
+          styleObj["$nest"][mediaQueryRule]["maxHeight"] = `${getSpacingValue(mediaQuery.properties.maxHeight)} !important`;
+        }
+        if (mediaQuery.properties.maxWidth !== void 0 && mediaQuery.properties.maxWidth !== null) {
+          styleObj["$nest"][mediaQueryRule]["maxWidth"] = `${getSpacingValue(mediaQuery.properties.maxWidth)} !important`;
+        }
+        if (mediaQuery.properties.overflow) {
+          const overflow = mediaQuery.properties.overflow;
+          if (typeof overflow === "string") {
+            styleObj["$nest"][mediaQueryRule]["overflow"] = `${overflow} !important`;
+          } else {
+            const { x, y } = overflow || {};
+            if (x === y) {
+              styleObj["$nest"][mediaQueryRule]["overflow"] = `${x} !important`;
+            } else {
+              if (x)
+                styleObj["$nest"][mediaQueryRule]["overflowX"] = `${x} !important`;
+              if (y)
+                styleObj["$nest"][mediaQueryRule]["overflowY"] = `${y} !important`;
+            }
+          }
+        }
       }
     }
   }
   return styleObj;
 };
-var getControlMediaQueriesStyleClass = (mediaQueries) => {
-  let styleObj = getControlMediaQueriesStyle(mediaQueries);
+var getControlMediaQueriesStyleClass = (mediaQueries, props) => {
+  let styleObj = getControlMediaQueriesStyle(mediaQueries, props);
   return style(styleObj);
+};
+var getOpacityStyleClass = (opacity2) => {
+  return style({
+    opacity: opacity2
+  });
 };
 
 // packages/tooltip/src/style/tooltip.css.ts
@@ -18201,6 +18259,7 @@ var SpaceValue = class {
     this._owner = owner;
     this._value = value;
     this._prop = prop;
+    this.update();
   }
   get left() {
     return this._value.left;
@@ -18230,20 +18289,27 @@ var SpaceValue = class {
     this._value.bottom = value;
     this.update();
   }
+  getSpacingValue(value) {
+    if (typeof value === "number")
+      return value + "px";
+    if (value === "auto")
+      return value;
+    const unit = value.replace(/^-?\d+(\.\d+)?/g, "");
+    const number = value.replace(unit, "");
+    const isValidUnit = ["px", "em", "rem", "%"].includes(unit);
+    return isValidUnit ? value : `${number}px`;
+  }
   update(value) {
     if (value)
       this._value = value;
-    else {
-      switch (this._prop) {
-        case "margin":
-          this._owner.margin = this._value;
-          break;
-        case "padding":
-          if (this._owner instanceof Container)
-            this._owner.padding = this._value;
-          break;
-      }
-      ;
+    const { top = 0, right = 0, bottom = 0, left = 0 } = this._value;
+    switch (this._prop) {
+      case "margin":
+        this._owner.style.margin = `${this.getSpacingValue(top)} ${this.getSpacingValue(right)} ${this.getSpacingValue(bottom)} ${this.getSpacingValue(left)}`;
+        break;
+      case "padding":
+        this._owner.style.padding = `${this.getSpacingValue(top)} ${this.getSpacingValue(right)} ${this.getSpacingValue(bottom)} ${this.getSpacingValue(left)}`;
+        break;
     }
     ;
   }
@@ -18481,7 +18547,8 @@ var Background = class {
     this.setBackgroundStyle();
   }
   get image() {
-    return this._value.image || "";
+    var _a;
+    return ((_a = this._value) == null ? void 0 : _a.image) || "";
   }
   set image(value) {
     if (!this._value) {
@@ -18530,6 +18597,7 @@ var Control = class extends Component {
     this._controls = [];
     this._enabled = true;
     this._visible = true;
+    this.propertyClassMap = {};
     this.parent = parent;
   }
   static async create(options, parent, defaults) {
@@ -18615,8 +18683,6 @@ var Control = class extends Component {
       this._margin = new SpaceValue(this, value, "margin");
     else
       this._margin.update(value);
-    const { top = 0, right = 0, bottom = 0, left = 0 } = value;
-    this.style.margin = `${this.getSpacingValue(top)} ${this.getSpacingValue(right)} ${this.getSpacingValue(bottom)} ${this.getSpacingValue(left)}`;
   }
   get marginStyle() {
     return (side) => this.getMarginStyle()[side];
@@ -18629,8 +18695,6 @@ var Control = class extends Component {
       this._padding = new SpaceValue(this, value, "padding");
     else
       this._padding.update(value);
-    const { top = 0, right = 0, bottom = 0, left = 0 } = value;
-    this.style.padding = `${this.getSpacingValue(top)} ${this.getSpacingValue(right)} ${this.getSpacingValue(bottom)} ${this.getSpacingValue(left)}`;
   }
   get paddingStyle() {
     return (side) => this.getPaddingStyle()[side];
@@ -18665,16 +18729,6 @@ var Control = class extends Component {
           this._parent.refresh();
       }
     }
-  }
-  getSpacingValue(value) {
-    if (typeof value === "number")
-      return value + "px";
-    if (value === "auto")
-      return value;
-    const unit = value.replace(/^-?\d+(\.\d+)?/g, "");
-    const number = value.replace(unit, "");
-    const isValidUnit = ["px", "em", "rem", "%"].includes(unit);
-    return isValidUnit ? value : `${number}px`;
   }
   connectedCallback() {
     super.connectedCallback();
@@ -18986,7 +19040,8 @@ var Control = class extends Component {
   }
   refresh() {
     if (this._dock != null) {
-      this.style.position = "absolute";
+      if (!this.position)
+        this.style.position = "absolute";
       switch (this.dock) {
         case "none": {
           if (this.anchor.top === false)
@@ -19076,7 +19131,9 @@ var Control = class extends Component {
     this.setAttributeToProperty("minWidth");
     this.setAttributeToProperty("stack");
     this.setAttributeToProperty("grid");
-    if (this._left != null || this._top != null)
+    this.setAttributeToProperty("display");
+    this.setAttributeToProperty("position");
+    if ((this._left != null || this._top != null) && !this.position)
       this.style.position = "absolute";
     if (this.getAttribute("enabled") !== false)
       this.classList.add("enabled");
@@ -19084,7 +19141,6 @@ var Control = class extends Component {
       this.enabled = false;
     if (this.getAttribute("visible") == false)
       this.visible = false;
-    this.setAttributeToProperty("position");
     this.setAttributeToProperty("background");
     this.setAttributeToProperty("zIndex");
     this.setAttributeToProperty("lineHeight");
@@ -19101,7 +19157,9 @@ var Control = class extends Component {
       this.border = new Border(this, border);
     }
     this.setAttributeToProperty("overflow");
-    this.setAttributeToProperty("display");
+    this.setAttributeToProperty("cursor");
+    this.setAttributeToProperty("letterSpacing");
+    this.setAttributeToProperty("boxShadow");
   }
   setElementPosition(elm, prop, value) {
     if (value != null && !isNaN(value)) {
@@ -19233,10 +19291,11 @@ var Control = class extends Component {
     }
   }
   get zIndex() {
-    return this.style.zIndex;
+    return this._zIndex;
   }
   set zIndex(value) {
-    this.style.zIndex = "" + value;
+    this.style.zIndex = value + "";
+    this._zIndex = value + "";
   }
   get lineHeight() {
     return this._lineHeight;
@@ -19329,7 +19388,7 @@ var Control = class extends Component {
   }
   set display(value) {
     this._display = value;
-    this.style.display = value;
+    this.style.display = this.visible === false ? "none" : value;
   }
   get anchor() {
     return this._anchor || DefaultAnchor;
@@ -19339,20 +19398,60 @@ var Control = class extends Component {
     this._anchor = data;
   }
   get opacity() {
-    return this.style.opacity;
+    return this._opacity;
   }
   set opacity(value) {
-    this.style.opacity = typeof value === "string" ? value : `${value}`;
+    this._opacity = typeof value === "string" ? value : `${value}`;
+    if (this._opacity) {
+      const style2 = getOpacityStyleClass(value);
+      this.setStyle("opacity", style2);
+    } else {
+      this.removeStyle("opacity");
+    }
+  }
+  get cursor() {
+    return this.style.cursor;
+  }
+  set cursor(value) {
+    this.style.cursor = value;
+  }
+  get letterSpacing() {
+    return this.style.letterSpacing;
+  }
+  set letterSpacing(value) {
+    if (!isNaN(Number(value))) {
+      this.style.letterSpacing = value + "px";
+    } else {
+      this.style.letterSpacing = value + "";
+    }
+  }
+  get boxShadow() {
+    return this.style.boxShadow;
+  }
+  set boxShadow(value) {
+    this.style.boxShadow = value;
   }
   get mediaQueries() {
     return this._cmediaQueries;
   }
   set mediaQueries(value) {
     this._cmediaQueries = value;
-    let style2 = getControlMediaQueriesStyleClass(this._cmediaQueries);
+    let style2 = getControlMediaQueriesStyleClass(this._cmediaQueries, { display: this.display });
     this._mediaStyle && this.classList.remove(this._mediaStyle);
     this._mediaStyle = style2;
     this.classList.add(style2);
+  }
+  removeStyle(propertyName) {
+    let style2 = this.propertyClassMap[propertyName];
+    if (style2)
+      this.classList.remove(style2);
+  }
+  setStyle(propertyName, value) {
+    this.removeStyle(propertyName);
+    if (value) {
+      this.propertyClassMap[propertyName] = value;
+      this.classList.add(value);
+    }
   }
 };
 var ContainerResizer = class {
@@ -19527,2064 +19626,11 @@ function customElements2(tagName, properties) {
 function customModule(target) {
   _currentDefineModule = target;
 }
-
-// packages/image/src/style/image.css.ts
-var Theme2 = theme_exports.ThemeVars;
-cssRule("i-image", {
-  position: "relative",
-  $nest: {
-    "&.i-image-crop": {
-      position: "relative",
-      display: "table",
-      verticalAlign: "middle",
-      width: "100%",
-      overflow: "hidden"
-    },
-    ".i-image-crop_box": {
-      width: "45%",
-      height: 200,
-      cursor: "move",
-      touchAction: "none",
-      position: "absolute",
-      top: 0,
-      left: 0,
-      border: `1px dashed ${Theme2.background.paper}`,
-      zIndex: "100",
-      maxWidth: "100%"
-    },
-    ".i-image-crop_mask": {
-      backgroundColor: ThemeVars.text.secondary,
-      cursor: "crosshair",
-      width: "100%",
-      height: "100%",
-      position: "absolute",
-      left: 0,
-      top: 0
-    },
-    ".i-image_resize": {
-      width: "100%",
-      height: "100%"
-    },
-    ".i-image_resize-handle": {
-      display: "inline-block",
-      position: "absolute",
-      border: `1px solid ${Theme2.background.default}`,
-      backgroundColor: Theme2.action.disabled,
-      width: 10,
-      height: 10,
-      outline: "1px solid transparent"
-    },
-    ".ord-nw": {
-      top: 0,
-      left: 0,
-      marginTop: -5,
-      marginLeft: -5,
-      cursor: "nw-resize"
-    },
-    ".ord-ne": {
-      top: 0,
-      right: 0,
-      marginTop: -5,
-      marginRight: -5,
-      cursor: "ne-resize"
-    },
-    ".ord-sw": {
-      bottom: 0,
-      left: 0,
-      marginBottom: -5,
-      marginLeft: -5,
-      cursor: "sw-resize"
-    },
-    ".ord-se": {
-      bottom: 0,
-      right: 0,
-      marginBottom: -5,
-      marginRight: -5,
-      cursor: "se-resize"
-    },
-    ".i-image-clipped": {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      zIndex: 99
-    },
-    "img": {
-      maxHeight: "100%",
-      maxWidth: "100%",
-      height: "inherit",
-      verticalAlign: "middle",
-      objectFit: "contain",
-      overflow: "hidden"
-    }
-  }
-});
-
-// packages/image/src/image.ts
-var Image2 = class extends Control {
-  constructor(parent, options) {
-    super(parent, options, {});
-    this._rotate = 0;
-  }
-  get rotate() {
-    return this._rotate;
-  }
-  set rotate(value) {
-    if (value == void 0)
-      return;
-    value = parseInt(value);
-    if (value != this._rotate) {
-      if (this.imageElm) {
-        if (this._rotate != 0)
-          this.imageElm.classList.remove(rotate(this._rotate));
-        this.imageElm.classList.add(rotate(value));
-      }
-      this._rotate = value;
-    }
-  }
-  get url() {
-    return this._url;
-  }
-  set url(value) {
-    this._url = value;
-    if (value && !this.imageElm)
-      this.imageElm = this.createElement("img", this);
-    if (this.imageElm) {
-      this.imageElm.src = value;
-      const self = this;
-      this.imageElm.onerror = function() {
-        self._fallbackUrl && (this.src = self._fallbackUrl);
-      };
-    }
-  }
-  init() {
-    super.init();
-    this._fallbackUrl = this.getAttribute("fallbackUrl", true, "");
-    const urlAttr = this.getAttribute("url", true);
-    urlAttr && (this.url = urlAttr);
-    this.rotate = this.getAttribute("rotate", true);
-  }
-  static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.ready();
-    return self;
-  }
-};
-Image2 = __decorateClass([
-  customElements2("i-image")
-], Image2);
-
-// packages/icon/src/style/icon.css.ts
-var Theme3 = theme_exports.ThemeVars;
-var spinnerAnim2 = keyframes({
-  "0%": {
-    transform: "rotate(0deg)"
-  },
-  "100%": {
-    transform: "rotate(360deg)"
-  }
-});
-cssRule("i-icon", {
-  display: "inline-block",
-  $nest: {
-    "svg": {
-      fill: Theme3.text.primary,
-      verticalAlign: "top",
-      width: "100%",
-      height: "100%"
-    },
-    "&.is-spin": {
-      animation: `${spinnerAnim2} 2s linear infinite`
-    }
-  }
-});
-
-// packages/icon/src/icon.ts
-var _iconLoaded = false;
-async function loadIconFile() {
-  if (_iconLoaded)
-    return;
-  _iconLoaded = true;
-  try {
-    let res = await fetch(`${LibPath}assets/icon/solid.svg`);
-    let text = await res.text();
-    let span = document.createElement("span");
-    span.innerHTML = text;
-    document.body.appendChild(span);
-  } catch (err) {
-    _iconLoaded = false;
-  }
-  ;
+function setAttributeToProperty(element, propertyName) {
+  const prop = element.getAttribute(propertyName, true);
+  if (prop)
+    element[propertyName] = prop;
 }
-var Icon = class extends Control {
-  constructor(parent, options) {
-    super(parent, options);
-    loadIconFile();
-  }
-  init() {
-    if (!this.initialized) {
-      super.init();
-      let fill = this.getAttribute("fill", true);
-      if (fill)
-        this.fill = fill;
-      this._size = this.getAttribute("size", true);
-      this._name = this.getAttribute("name", true);
-      this._updateIcon();
-      const image = this.getAttribute("image", true);
-      if (image) {
-        image.height = image.height || this.height || "16px";
-        image.width = image.width || this.width || "16px";
-        this.image = new Image2(this, image);
-      }
-      this.spin = this.getAttribute("spin", true, false);
-    }
-  }
-  get fill() {
-    return this._fill;
-  }
-  set fill(color) {
-    this._fill = color;
-    let svg = this.querySelector("svg");
-    if (svg)
-      svg.style.fill = color;
-  }
-  get name() {
-    return this._name;
-  }
-  set name(value) {
-    this._name = value;
-    this._updateIcon();
-  }
-  get image() {
-    if (!this._image) {
-      this._image = Image2.create({
-        width: this.width || 16,
-        height: this.height || 16
-      });
-    }
-    return this._image;
-  }
-  set image(image) {
-    if (this._image)
-      this.removeChild(this._image);
-    this._image = image;
-    if (this._image)
-      this.prepend(this._image);
-  }
-  get spin() {
-    return this._spin;
-  }
-  set spin(value) {
-    this._spin = value;
-    if (value)
-      this.classList.add("is-spin");
-    else
-      this.classList.remove("is-spin");
-    this._parent && this._parent.refresh();
-  }
-  _updateIcon() {
-    if (this._name)
-      this.innerHTML = `<svg${this._fill ? ` style="fill: ${this._fill}"` : ""}><use xlink:href="#${this.name}"></use></svg>`;
-    else
-      this.innerHTML = "";
-  }
-  static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.ready();
-    return self;
-  }
-};
-Icon = __decorateClass([
-  customElements2("i-icon")
-], Icon);
-
-// packages/button/src/style/button.css.ts
-var Theme4 = theme_exports.ThemeVars;
-cssRule("i-button", {
-  background: Theme4.colors.primary.main,
-  boxShadow: Theme4.shadows[2],
-  color: Theme4.text.primary,
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  borderRadius: 4,
-  fontFamily: Theme4.typography.fontFamily,
-  fontSize: Theme4.typography.fontSize,
-  gap: 5,
-  cursor: "pointer",
-  $nest: {
-    "&:not(.disabled):hover": {},
-    "&.disabled": {
-      color: Theme4.text.disabled,
-      boxShadow: Theme4.shadows[0],
-      background: Theme4.action.disabledBackground
-    },
-    "i-icon": {
-      display: "inline-block",
-      fill: Theme4.text.primary,
-      verticalAlign: "middle"
-    },
-    ".caption": {
-      paddingRight: ".5rem"
-    },
-    "&.is-spinning, &.is-spinning:not(.disabled):hover, &.is-spinning:not(.disabled):focus": {
-      color: Theme4.text.disabled,
-      boxShadow: Theme4.shadows[0],
-      background: Theme4.action.disabledBackground,
-      cursor: "default"
-    }
-  }
-});
-
-// packages/button/src/button.ts
-var defaultIcon = {
-  width: 16,
-  height: 16,
-  fill: theme_exports.ThemeVars.text.primary
-};
-var Button = class extends Control {
-  static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.ready();
-    return self;
-  }
-  constructor(parent, options) {
-    super(parent, options);
-  }
-  get caption() {
-    return this.captionElm.innerHTML;
-  }
-  set caption(value) {
-    this.captionElm.innerHTML = value;
-    this.captionElm.style.display = value ? "" : "none";
-  }
-  get icon() {
-    if (!this._icon) {
-      this._icon = new Icon(this, defaultIcon);
-      this.prependIcon(this._icon);
-    }
-    return this._icon;
-  }
-  set icon(value) {
-    if (this._icon && this.contains(this._icon))
-      this.removeChild(this._icon);
-    this._icon = value;
-    this.prependIcon(this._icon);
-  }
-  get rightIcon() {
-    if (!this._rightIcon) {
-      this._rightIcon = new Icon(this, {
-        ...defaultIcon,
-        name: "spinner"
-      });
-      this.appendIcon(this._rightIcon);
-    }
-    return this._rightIcon;
-  }
-  set rightIcon(value) {
-    if (this._rightIcon && this.contains(this._rightIcon))
-      this.removeChild(this._rightIcon);
-    this._rightIcon = value;
-    this.appendIcon(this._rightIcon);
-  }
-  get enabled() {
-    return super.enabled;
-  }
-  set enabled(value) {
-    var _a, _b, _c, _d;
-    super.enabled = value;
-    if (!value && this._background) {
-      let bg = "";
-      ((_a = this._background) == null ? void 0 : _a.image) && (bg += `url(${(_b = this._background) == null ? void 0 : _b.image})`);
-      ((_c = this._background) == null ? void 0 : _c.color) && (bg += `${(_d = this._background) == null ? void 0 : _d.color}`);
-      this.style.background = bg;
-    }
-  }
-  get isSpinning() {
-    return this._icon && this._icon.spin && this._icon.visible || this._rightIcon && this._rightIcon.spin && this._rightIcon.visible;
-  }
-  prependIcon(icon) {
-    if (!icon)
-      return;
-    this.appendChild(icon);
-    this.captionElm && this.insertBefore(icon, this.captionElm);
-  }
-  appendIcon(icon) {
-    if (!icon)
-      return;
-    this.appendChild(icon);
-    this.captionElm && this.insertBefore(this.captionElm, icon);
-  }
-  updateButton() {
-    var _a, _b, _c, _d;
-    if (this.isSpinning)
-      this.classList.add("is-spinning");
-    else
-      this.classList.remove("is-spinning");
-    if (!this.enabled && this._background) {
-      let bg = "";
-      ((_a = this._background) == null ? void 0 : _a.image) && (bg += `url(${(_b = this._background) == null ? void 0 : _b.image})`);
-      ((_c = this._background) == null ? void 0 : _c.color) && (bg += `${(_d = this._background) == null ? void 0 : _d.color}`);
-      this.style.background = bg;
-    }
-  }
-  _handleClick(event) {
-    if (this.isSpinning || !this.enabled)
-      return false;
-    return super._handleClick(event);
-  }
-  refresh() {
-    super.refresh();
-    this.updateButton();
-  }
-  init() {
-    if (!this.captionElm) {
-      super.init();
-      this.onClick = this.getAttribute("onClick", true) || this.onClick;
-      this.captionElm = this.createElement("span", this);
-      let caption = this.getAttribute("caption", true, "");
-      this.caption = caption;
-      let iconAttr = this.getAttribute("icon", true);
-      if (iconAttr) {
-        iconAttr = { ...defaultIcon, ...iconAttr };
-        const icon = new Icon(this, iconAttr);
-        this.icon = icon;
-      }
-      let rightIconAttr = this.getAttribute("rightIcon", true);
-      if (rightIconAttr) {
-        rightIconAttr = { ...defaultIcon, name: "spinner", ...rightIconAttr };
-        const icon = new Icon(this, rightIconAttr);
-        this.rightIcon = icon;
-      }
-    }
-  }
-};
-Button = __decorateClass([
-  customElements2("i-button", {
-    icon: "closed-captioning",
-    className: "Button",
-    props: {
-      caption: { type: "string" }
-    },
-    events: {}
-  })
-], Button);
-
-// packages/link/src/style/link.css.ts
-var Theme5 = theme_exports.ThemeVars;
-cssRule("i-link", {
-  display: "block",
-  cursor: "pointer",
-  textTransform: "inherit",
-  $nest: {
-    "&:hover *": {
-      color: Theme5.colors.primary.dark
-    },
-    "> a": {
-      display: "inline",
-      transition: "all .3s",
-      textDecoration: "underline",
-      color: "inherit",
-      fontSize: "inherit",
-      fontWeight: "inherit",
-      fontFamily: "inherit",
-      textTransform: "inherit"
-    }
-  }
-});
-
-// packages/link/src/link.ts
-var Link = class extends Control {
-  constructor(parent, options) {
-    super(parent, options, {
-      target: "_blank"
-    });
-  }
-  get href() {
-    return this._href;
-  }
-  set href(value) {
-    this._href = typeof value === "string" ? value : "";
-    if (this._linkElm)
-      this._linkElm.href = this._href;
-  }
-  get target() {
-    return this._target;
-  }
-  set target(value) {
-    this._target = value;
-    if (this._linkElm)
-      this._linkElm.target = value;
-  }
-  append(children) {
-    if (!this._linkElm) {
-      this._linkElm = this.createElement("a", this);
-    }
-    this._linkElm.appendChild(children);
-  }
-  _handleClick(event, stopPropagation) {
-    event.preventDefault();
-    window.open(this._linkElm.href, this._linkElm.target);
-    return super._handleClick(event);
-  }
-  addChildControl(control) {
-    if (this._linkElm)
-      this._linkElm.appendChild(control);
-  }
-  removeChildControl(control) {
-    if (this._linkElm && this._linkElm.contains(control))
-      this._linkElm.removeChild(control);
-  }
-  init() {
-    if (!this.initialized) {
-      super.init();
-      if (!this._linkElm)
-        this._linkElm = this.createElement("a", this);
-      this.classList.add("i-link");
-      const hrefAttr = this.getAttribute("href", true);
-      hrefAttr && (this.href = hrefAttr);
-      const targetAttr = this.getAttribute("target", true);
-      targetAttr && (this._linkElm.target = targetAttr);
-    }
-  }
-  static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.ready();
-    return self;
-  }
-};
-Link = __decorateClass([
-  customElements2("i-link")
-], Link);
-
-// packages/label/src/style/label.css.ts
-var Theme6 = theme_exports.ThemeVars;
-cssRule("i-label", {
-  display: "inline-block",
-  color: Theme6.text.primary,
-  fontFamily: Theme6.typography.fontFamily,
-  fontSize: Theme6.typography.fontSize
-});
-
-// packages/label/src/label.ts
-var Label = class extends Control {
-  constructor(parent, options) {
-    super(parent, options);
-  }
-  get caption() {
-    return this.captionSpan.innerHTML;
-  }
-  set caption(value) {
-    this.captionSpan.innerHTML = value || "";
-  }
-  get link() {
-    if (!this._link) {
-      this._link = new Link(this, {
-        href: "#",
-        target: "_blank",
-        font: this.font
-      });
-      this._link.append(this.captionSpan);
-      this.appendChild(this._link);
-    }
-    return this._link;
-  }
-  set link(value) {
-    if (this._link) {
-      this._link.prepend(this.captionSpan);
-      this._link.remove();
-    }
-    this._link = value;
-    if (this._link) {
-      this._link.append(this.captionSpan);
-      this.appendChild(this._link);
-    }
-  }
-  set height(value) {
-    this.setPosition("height", value);
-    if (this.captionSpan)
-      this.captionSpan.style.height = value + "px";
-  }
-  set width(value) {
-    this.setPosition("width", value);
-    if (this.captionSpan)
-      this.captionSpan.style.width = value + "px";
-  }
-  get wordBreak() {
-    return this.style.wordBreak;
-  }
-  set wordBreak(value) {
-    this.style.wordBreak = value;
-  }
-  get overflowWrap() {
-    return this.style.overflowWrap;
-  }
-  set overflowWrap(value) {
-    this.style.overflowWrap = value;
-  }
-  init() {
-    if (!this.captionSpan) {
-      let childNodes = [];
-      for (let i = 0; i < this.childNodes.length; i++) {
-        childNodes.push(this.childNodes[i]);
-      }
-      this.captionSpan = this.createElement("span", this);
-      this.caption = this.getAttribute("caption", true) || "";
-      if (childNodes && childNodes.length) {
-        for (let i = 0; i < childNodes.length; i++) {
-          this.captionSpan.appendChild(childNodes[i]);
-        }
-      }
-      const linkAttr = this.getAttribute("link", true);
-      if (linkAttr) {
-        const link = new Link(this, {
-          ...linkAttr,
-          font: this.font
-        });
-        this.link = link;
-      }
-      const wordBreak = this.getAttribute("wordBreak", true);
-      if (wordBreak)
-        this.wordBreak = wordBreak;
-      const overflowWrap = this.getAttribute("overflowWrap", true);
-      if (overflowWrap)
-        this.overflowWrap = overflowWrap;
-      super.init();
-    }
-  }
-  static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.ready();
-    return self;
-  }
-};
-Label = __decorateClass([
-  customElements2("i-label", {
-    icon: "heading",
-    className: "Label",
-    props: {
-      caption: { type: "string" }
-    },
-    events: {}
-  })
-], Label);
-
-// packages/modal/src/style/modal.css.ts
-var Theme7 = theme_exports.ThemeVars;
-var overlayStyle = style({
-  backgroundColor: "rgba(12, 18, 52, 0.7)",
-  position: "fixed",
-  left: 0,
-  top: 0,
-  width: "100%",
-  height: "100%",
-  opacity: 0,
-  visibility: "hidden",
-  zIndex: 1e3,
-  transition: "visibility 0s linear .25s, opacity .25s",
-  $nest: {
-    "&.show": {
-      opacity: "1",
-      visibility: "visible",
-      transition: "visibility 0s linear, opacity .25s"
-    }
-  }
-});
-var wrapperStyle = style({
-  position: "fixed",
-  left: 0,
-  top: 0,
-  width: "100%",
-  height: "100%",
-  opacity: 0,
-  visibility: "hidden",
-  transform: "scale(0.8)",
-  transition: "visibility 0s linear .25s,opacity .25s 0s,transform .25s",
-  zIndex: 1e3,
-  overflow: "auto"
-});
-var noBackdropStyle = style({
-  position: "inherit",
-  top: 0,
-  left: 0,
-  opacity: 0,
-  visibility: "hidden",
-  transform: "scale(0.8)",
-  transition: "visibility 0s linear .25s,opacity .25s 0s,transform .25s",
-  zIndex: 1e3,
-  overflow: "auto",
-  width: "100%",
-  maxWidth: "inherit",
-  $nest: {
-    ".modal": {
-      margin: "0"
-    }
-  }
-});
-var visibleStyle = style({
-  opacity: "1",
-  visibility: "visible",
-  transform: "scale(1)",
-  transition: "visibility 0s linear 0s,opacity .25s 0s,transform .25s"
-});
-var modalStyle = style({
-  fontFamily: "Helvetica",
-  fontSize: "14px",
-  padding: "10px 10px 5px 10px",
-  backgroundColor: Theme7.background.modal,
-  position: "relative",
-  borderRadius: "2px",
-  minWidth: "300px",
-  width: "inherit",
-  maxWidth: "100%"
-});
-var titleStyle = style({
-  fontSize: "18px",
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  $nest: {
-    "span": {
-      color: Theme7.colors.primary.main
-    },
-    "i-icon": {
-      display: "inline-block",
-      cursor: "pointer"
-    }
-  }
-});
-
-// packages/modal/src/modal.ts
-var Theme8 = theme_exports.ThemeVars;
-var showEvent = new Event("show");
-var Modal = class extends Container {
-  constructor(parent, options) {
-    super(parent, options, {
-      showClose: true,
-      showBackdrop: true,
-      closeOnBackdropClick: true,
-      popupPlacement: "center"
-    });
-    this.hasInitializedChildFixed = false;
-    this.mapScrollTop = {};
-    this.boundHandleModalMouseDown = this.handleModalMouseDown.bind(this);
-    this.boundHandleModalMouseUp = this.handleModalMouseUp.bind(this);
-  }
-  get visible() {
-    var _a;
-    return ((_a = this.wrapperDiv) == null ? void 0 : _a.classList.contains(visibleStyle)) || false;
-  }
-  set visible(value) {
-    var _a, _b;
-    this.positionAtChildFixed(value);
-    if (value) {
-      this.wrapperDiv.classList.add(visibleStyle);
-      this.dispatchEvent(showEvent);
-      if (this.showBackdrop) {
-        this.overlayDiv.classList.add("show");
-        document.body.style.overflow = "hidden";
-        const parentModal = (_a = this.parentElement) == null ? void 0 : _a.closest("i-modal");
-        if (parentModal) {
-          parentModal.wrapperDiv.style.overflow = "hidden";
-          parentModal.wrapperDiv.scrollTop = 0;
-        }
-        this.wrapperDiv.style.overflow = "hidden auto";
-      }
-      document.addEventListener("mousedown", this.boundHandleModalMouseDown);
-      document.addEventListener("mouseup", this.boundHandleModalMouseUp);
-    } else {
-      this.wrapperDiv.classList.remove(visibleStyle);
-      this.overlayDiv.classList.remove("show");
-      if (this.showBackdrop) {
-        const parentModal = (_b = this.parentElement) == null ? void 0 : _b.closest("i-modal");
-        if (parentModal) {
-          parentModal.wrapperDiv.style.overflow = "hidden auto";
-          document.body.style.overflow = "hidden";
-        } else {
-          document.body.style.overflow = "hidden auto";
-        }
-      }
-      if (this.isChildFixed) {
-        this.wrapperDiv.style.display = "none";
-      }
-      this.onClose && this.onClose(this);
-      document.removeEventListener("mousedown", this.boundHandleModalMouseDown);
-      document.removeEventListener("mouseup", this.boundHandleModalMouseUp);
-    }
-  }
-  get onOpen() {
-    return this._onOpen;
-  }
-  set onOpen(callback) {
-    this._onOpen = callback;
-  }
-  get title() {
-    const titleElm = this.titleSpan.querySelector("span");
-    return (titleElm == null ? void 0 : titleElm.innerHTML) || "";
-  }
-  set title(value) {
-    const titleElm = this.titleSpan.querySelector("span");
-    titleElm && (titleElm.innerHTML = value || "");
-  }
-  get popupPlacement() {
-    return this._placement;
-  }
-  set popupPlacement(value) {
-    this._placement = value;
-  }
-  get closeIcon() {
-    return this._closeIcon;
-  }
-  set closeIcon(elm) {
-    if (this._closeIcon && this.titleSpan.contains(this._closeIcon))
-      this.titleSpan.removeChild(this._closeIcon);
-    this._closeIcon = elm;
-    if (this._closeIcon) {
-      this._closeIcon.classList.add("i-modal-close");
-      this._closeIcon.onClick = () => this.visible = false;
-      this.titleSpan.appendChild(this._closeIcon);
-    }
-  }
-  get closeOnBackdropClick() {
-    return this._closeOnBackdropClick;
-  }
-  set closeOnBackdropClick(value) {
-    this._closeOnBackdropClick = typeof value === "boolean" ? value : true;
-  }
-  get showBackdrop() {
-    return this._showBackdrop;
-  }
-  set showBackdrop(value) {
-    this._showBackdrop = typeof value === "boolean" ? value : true;
-    if (this._showBackdrop) {
-      this.wrapperDiv.classList.add(wrapperStyle);
-      this.style.position = "unset";
-    } else {
-      this.style.position = "absolute";
-      this.style.left = "0px";
-      this.style.top = "0px";
-      this.wrapperDiv.classList.add(noBackdropStyle);
-    }
-  }
-  get item() {
-    return this.modalDiv.children[0];
-  }
-  set item(value) {
-    if (value instanceof Control) {
-      this.modalDiv.innerHTML = "";
-      value && this.modalDiv.appendChild(value);
-    }
-  }
-  get position() {
-    return this._wrapperPositionAt;
-  }
-  set position(value) {
-    this._wrapperPositionAt = value;
-  }
-  get isChildFixed() {
-    return this._isChildFixed;
-  }
-  set isChildFixed(value) {
-    this._isChildFixed = value;
-    if (value) {
-      this.setChildFixed();
-    } else {
-      this.style.position = "unset";
-    }
-  }
-  get closeOnScrollChildFixed() {
-    return this._closeOnScrollChildFixed;
-  }
-  set closeOnScrollChildFixed(value) {
-    this._closeOnScrollChildFixed = value;
-  }
-  generateUUID() {
-    const uuid = "xxxxxxxx-xxxx-xxxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
-      let r = Math.random() * 16 | 0, v = c == "x" ? r : r & 3 | 8;
-      return v.toString(16);
-    });
-    return uuid;
-  }
-  setChildFixed() {
-    this.style.position = "fixed";
-    this.zIndex = 9999;
-    this.mapScrollTop = {};
-    const getScrollY = (elm) => {
-      let scrollID = elm.getAttribute("scroll-id");
-      if (!scrollID) {
-        scrollID = this.generateUUID();
-        elm.setAttribute("scroll-id", scrollID);
-      }
-      this.mapScrollTop[scrollID] = elm.scrollTop;
-    };
-    const onParentScroll = (e) => {
-      if (this.visible && this.closeOnScrollChildFixed) {
-        this.visible = false;
-      }
-      if (e && !e.target.offsetParent && e.target.getAttribute) {
-        getScrollY(e.target);
-      }
-      if (this.visible && !this.closeOnScrollChildFixed) {
-        this.positionAtChildFixed(true);
-      }
-    };
-    let parentElement = this.parentNode;
-    while (parentElement) {
-      this.hasInitializedChildFixed = true;
-      parentElement.addEventListener("scroll", (e) => onParentScroll(e));
-      parentElement = parentElement.parentNode;
-      if (parentElement === document.body) {
-        document.addEventListener("scroll", (e) => onParentScroll(e));
-        break;
-      } else if (parentElement && !parentElement.offsetParent && parentElement.scrollTop && typeof parentElement.getAttribute === "function") {
-        getScrollY(parentElement);
-      }
-    }
-  }
-  positionAtChildFixed(value) {
-    if (this.isChildFixed) {
-      if (!this.hasInitializedChildFixed) {
-        this.setChildFixed();
-      }
-      if (this.wrapperDiv) {
-        this.wrapperDiv.style.position = !value ? "unset" : "relative";
-        this.wrapperDiv.style.display = !value ? "none" : "block";
-      }
-      if (value && this.parentElement) {
-        const { x, y, height } = this.parentElement.getBoundingClientRect();
-        const mdClientRect = this.getBoundingClientRect();
-        const { innerHeight, innerWidth } = window;
-        const elmHeight = mdClientRect.height + (height || 20);
-        const elmWidth = mdClientRect.width;
-        let totalScrollY = 0;
-        for (const key2 in this.mapScrollTop) {
-          totalScrollY += this.mapScrollTop[key2];
-        }
-        if (y + elmHeight > innerHeight) {
-          const elmTop = y - elmHeight + totalScrollY;
-          this.style.top = `${elmTop < 0 ? 0 : y - elmHeight + totalScrollY}px`;
-        } else {
-          this.style.top = `${y + totalScrollY}px`;
-        }
-        if (x + elmWidth > innerWidth) {
-          this.style.left = `${innerWidth - elmWidth}px`;
-        } else {
-          this.style.left = `${x}px`;
-        }
-      }
-    }
-  }
-  positionAt(placement) {
-    if (this.showBackdrop) {
-      this.positionAtFix(placement);
-    } else {
-      this.positionAtAbsolute(placement);
-    }
-  }
-  positionAtFix(placement) {
-    let parent = document.body;
-    let coords = this.getWrapperFixCoords(parent, placement);
-    this.wrapperDiv.style.width = "100%";
-    this.wrapperDiv.style.height = "100%";
-    this.wrapperDiv.style.paddingLeft = coords.left + "px";
-    this.wrapperDiv.style.paddingTop = coords.top + "px";
-  }
-  positionAtAbsolute(placement) {
-    let parent = this._parent || this.linkTo || this.parentElement || document.body;
-    let coords;
-    if (this.position === "fixed") {
-      coords = this.getWrapperFixCoords(parent, placement);
-    } else {
-      coords = this.getWrapperAbsoluteCoords(parent, placement);
-    }
-    this.wrapperDiv.style.height = "inherit";
-    this.wrapperDiv.style.width = "inherit";
-    this.wrapperDiv.style.left = coords.left + "px";
-    this.wrapperDiv.style.top = coords.top + "px";
-  }
-  getWrapperFixCoords(parent, placement) {
-    const parentCoords = parent.getBoundingClientRect();
-    let left = 0;
-    let top = 0;
-    const parentHeight = this.showBackdrop ? (parentCoords.height || window.innerHeight) - 1 : parentCoords.height;
-    switch (placement) {
-      case "center":
-        top = parentHeight / 2 - this.modalDiv.offsetHeight / 2;
-        left = parentCoords.width / 2 - this.modalDiv.offsetWidth / 2 - 1;
-        break;
-      case "top":
-        top = this.showBackdrop ? 0 : parentCoords.top;
-        left = parentCoords.left + (parent.offsetWidth - this.modalDiv.offsetWidth) / 2 - 1;
-        break;
-      case "topLeft":
-        top = this.showBackdrop ? 0 : parentCoords.top;
-        left = parentCoords.left;
-        break;
-      case "topRight":
-        top = this.showBackdrop ? 0 : parentCoords.top;
-        left = parentCoords.left + parent.offsetWidth - this.modalDiv.offsetWidth - 1;
-        break;
-      case "bottom":
-        top = parentCoords.top + parentHeight;
-        if (this.showBackdrop)
-          top = top - this.modalDiv.offsetHeight - 1;
-        left = parentCoords.left + (parent.offsetWidth - this.modalDiv.offsetWidth) / 2 - 1;
-        break;
-      case "bottomLeft":
-        top = parentCoords.top + parentHeight;
-        if (this.showBackdrop)
-          top = top - this.modalDiv.offsetHeight;
-        left = parentCoords.left;
-        break;
-      case "bottomRight":
-        top = parentCoords.top + parentHeight;
-        if (this.showBackdrop)
-          top = top - this.modalDiv.offsetHeight;
-        left = parentCoords.left + parent.offsetWidth - this.modalDiv.offsetWidth - 1;
-        break;
-      case "rightTop":
-        top = parentCoords.top;
-        left = parentCoords.right;
-        if (parentCoords.right + this.modalDiv.offsetWidth > document.documentElement.clientWidth) {
-          left = document.documentElement.clientWidth - this.modalDiv.offsetWidth;
-        }
-        break;
-    }
-    left = left < 0 ? parentCoords.left : left;
-    top = top < 0 ? parentCoords.top : top;
-    return { top, left };
-  }
-  getWrapperAbsoluteCoords(parent, placement) {
-    const parentCoords = parent.getBoundingClientRect();
-    let left = 0;
-    let top = 0;
-    let max;
-    switch (placement) {
-      case "center":
-        left = (parentCoords.width - this.modalDiv.offsetWidth) / 2;
-        top = (parentCoords.height - this.modalDiv.offsetHeight) / 2;
-        break;
-      case "top":
-      case "topLeft":
-        if (this.isChildFixed) {
-          top = this.getParentOccupiedTop();
-          left = this.getParentOccupiedLeft();
-          break;
-        }
-      case "topRight":
-        if (this.isChildFixed) {
-          top = this.getParentOccupiedTop();
-          left = parentCoords.width - this.getParentOccupiedRight() - this.modalDiv.offsetWidth;
-          break;
-        }
-        if (parentCoords.top - this.modalDiv.offsetHeight >= 0) {
-          top = -this.modalDiv.offsetHeight;
-        } else {
-          if (window.innerHeight < this.modalDiv.offsetHeight + parentCoords.bottom) {
-            max = window.innerHeight - this.modalDiv.offsetHeight - parentCoords.y;
-            top = (parentCoords.height - this.modalDiv.offsetHeight) / 2;
-            top = top < -parentCoords.y ? -parentCoords.y : top > max ? max : top;
-          } else {
-            top = parentCoords.height;
-          }
-        }
-        break;
-      case "bottom":
-      case "bottomLeft":
-        if (this.isChildFixed) {
-          left = 0;
-          top = parentCoords.height;
-          break;
-        }
-      case "bottomRight":
-        if (this.isChildFixed) {
-          top = parentCoords.height;
-          left = parentCoords.width - this.modalDiv.offsetWidth;
-          break;
-        }
-        if (window.innerHeight < this.modalDiv.offsetHeight + parentCoords.bottom) {
-          if (parentCoords.y - this.modalDiv.offsetHeight < 0) {
-            max = window.innerHeight - this.modalDiv.offsetHeight - parentCoords.y;
-            top = (parentCoords.height - this.modalDiv.offsetHeight) / 2;
-            top = top < -parentCoords.y ? -parentCoords.y : top > max ? max : top;
-          } else {
-            top = -this.modalDiv.offsetHeight;
-          }
-        } else {
-          top = parentCoords.height;
-        }
-        break;
-      case "rightTop":
-        top = 0;
-        left = parentCoords.width;
-        break;
-      case "left":
-        max = window.innerHeight - this.modalDiv.offsetHeight - parentCoords.y;
-        top = (parentCoords.height - this.modalDiv.offsetHeight) / 2;
-        top = top < -parentCoords.y ? -parentCoords.y : top > max ? max : top;
-        left = -this.modalDiv.offsetWidth - 8;
-        break;
-    }
-    if (this.isChildFixed) {
-      if (placement !== "bottomRight" && placement !== "left")
-        left = left < 0 ? parentCoords.left : left;
-      if (placement !== "left")
-        top = top < 0 ? parentCoords.top : top;
-      return { top, left };
-    }
-    if (placement === "topRight" || placement === "bottomRight") {
-      if (parentCoords.right - this.modalDiv.offsetWidth >= 0) {
-        left = parentCoords.width - this.modalDiv.offsetWidth;
-      } else {
-        left = -parentCoords.left;
-      }
-    } else if (["top", "topLeft", "bottom", "bottomLeft"].includes(placement)) {
-      if (window.innerWidth >= parentCoords.left + this.modalDiv.offsetWidth) {
-        left = 0;
-      } else {
-        left = Math.min(parentCoords.width - this.modalDiv.offsetWidth, window.innerWidth - parentCoords.left - this.modalDiv.offsetWidth);
-      }
-    }
-    return { top, left };
-  }
-  _handleOnShow(event) {
-    if (this.popupPlacement && this.enabled)
-      this.positionAt(this.popupPlacement);
-    if (this.enabled && this._onOpen) {
-      event.preventDefault();
-      this._onOpen(this);
-    }
-  }
-  handleModalMouseDown(event) {
-    const target = event.target;
-    this.insideClick = true;
-    if (this.closeOnBackdropClick) {
-      this.insideClick = this.showBackdrop ? target !== this.wrapperDiv : this.modalDiv.contains(target);
-    } else if (!this.showBackdrop) {
-      let parent = this._parent || this.linkTo || this.parentElement;
-      this.insideClick = this.modalDiv.contains(target) || (parent == null ? void 0 : parent.contains(target));
-    }
-  }
-  handleModalMouseUp(event) {
-    if (!this.insideClick)
-      this.visible = false;
-  }
-  updateModal(name, value) {
-    if (!isNaN(Number(value)))
-      this.modalDiv.style[name] = value + "px";
-    else
-      this.modalDiv.style[name] = value;
-  }
-  refresh() {
-    super.refresh(true);
-    if (this.visible && this.popupPlacement) {
-      this.positionAt(this.popupPlacement);
-    }
-  }
-  get background() {
-    return this._background;
-  }
-  set background(value) {
-    if (!this._background) {
-      this._background = new Background(this.modalDiv, value);
-    } else {
-      this._background.setBackgroundStyle(value);
-    }
-  }
-  get width() {
-    return !isNaN(this._width) ? this._width : this.offsetWidth;
-  }
-  set width(value) {
-    this._width = value;
-    this.updateModal("width", value);
-  }
-  get border() {
-    return this._border;
-  }
-  set border(value) {
-    this._border = new Border(this.modalDiv, value);
-  }
-  init() {
-    var _a;
-    if (!this.wrapperDiv) {
-      if ((_a = this.options) == null ? void 0 : _a.onClose)
-        this.onClose = this.options.onClose;
-      this.popupPlacement = this.getAttribute("popupPlacement", true);
-      this.closeOnBackdropClick = this.getAttribute("closeOnBackdropClick", true);
-      this.wrapperDiv = this.createElement("div", this);
-      this.wrapperDiv.classList.add("modal-wrapper");
-      this.showBackdrop = this.getAttribute("showBackdrop", true);
-      this.modalDiv = this.createElement("div", this.wrapperDiv);
-      this.titleSpan = this.createElement("div", this.modalDiv);
-      this.titleSpan.classList.add(titleStyle, "i-modal_header");
-      this.createElement("span", this.titleSpan);
-      this.title = this.getAttribute("title", true);
-      const closeIconAttr = this.getAttribute("closeIcon", true);
-      if (closeIconAttr) {
-        closeIconAttr.height = closeIconAttr.height || "16px";
-        closeIconAttr.width = closeIconAttr.width || "16px";
-        closeIconAttr.fill = closeIconAttr.fill || Theme8.colors.primary.main;
-        this.closeIcon = new Icon(void 0, closeIconAttr);
-      }
-      while (this.childNodes.length > 1) {
-        this.modalDiv.appendChild(this.childNodes[0]);
-      }
-      this.overlayDiv = this.createElement("div", this);
-      this.prepend(this.overlayDiv);
-      this.overlayDiv.classList.add(overlayStyle);
-      this.overlayDiv.classList.add("modal-overlay");
-      this.modalDiv.classList.add(modalStyle);
-      this.modalDiv.classList.add("modal");
-      this.addEventListener("show", this._handleOnShow.bind(this));
-      window.addEventListener("keydown", (event) => {
-        if (!this.visible)
-          return;
-        if (event.key === "Escape") {
-          this.visible = false;
-        }
-      });
-      const isChildFixed = this.getAttribute("isChildFixed", true);
-      if (isChildFixed)
-        this.isChildFixed = isChildFixed;
-      const closeOnScrollChildFixed = this.getAttribute("closeOnScrollChildFixed", true);
-      this.closeOnScrollChildFixed = closeOnScrollChildFixed;
-      const itemAttr = this.getAttribute("item", true);
-      if (itemAttr)
-        this.item = itemAttr;
-      super.init();
-      this.maxWidth && this.updateModal("maxWidth", this.maxWidth);
-      this.minWidth && this.updateModal("minWidth", this.minWidth);
-      this.minHeight && this.updateModal("minHeight", this.minHeight);
-      this.maxHeight && this.updateModal("maxHeight", this.maxHeight);
-      let border = this.getAttribute("border", true);
-      if (border) {
-        this._border = new Border(this.modalDiv, border);
-        this.style.border = "none";
-      }
-    }
-  }
-  static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.ready();
-    return self;
-  }
-};
-Modal = __decorateClass([
-  customElements2("i-modal")
-], Modal);
-
-// packages/layout/src/style/panel.css.ts
-var panelStyle = style({
-  display: "block",
-  clear: "both",
-  position: "relative"
-});
-var overflowStyle = style({
-  overflow: "hidden"
-});
-var vStackStyle = style({
-  display: "flex",
-  flexDirection: "column"
-});
-var hStackStyle = style({
-  display: "flex",
-  flexDirection: "row"
-});
-var gridStyle = style({
-  display: "grid"
-});
-var getStackDirectionStyleClass = (direction) => {
-  return style({
-    display: "flex",
-    flexDirection: direction == "vertical" ? "column" : "row"
-  });
-};
-var getStackMediaQueriesStyleClass = (mediaQueries) => {
-  let styleObj = getControlMediaQueriesStyle(mediaQueries);
-  for (let mediaQuery of mediaQueries) {
-    let mediaQueryRule;
-    if (mediaQuery.minWidth && mediaQuery.maxWidth) {
-      mediaQueryRule = `@media (min-width: ${mediaQuery.minWidth}) and (max-width: ${mediaQuery.maxWidth})`;
-    } else if (mediaQuery.minWidth) {
-      mediaQueryRule = `@media (min-width: ${mediaQuery.minWidth})`;
-    } else if (mediaQuery.maxWidth) {
-      mediaQueryRule = `@media (max-width: ${mediaQuery.maxWidth})`;
-    }
-    if (mediaQueryRule) {
-      styleObj["$nest"][mediaQueryRule] = styleObj["$nest"][mediaQueryRule] || {};
-      if (mediaQuery.properties.direction) {
-        styleObj["$nest"][mediaQueryRule]["flexDirection"] = mediaQuery.properties.direction == "vertical" ? "column" : "row";
-      }
-      if (mediaQuery.properties.justifyContent) {
-        styleObj["$nest"][mediaQueryRule]["justifyContent"] = mediaQuery.properties.justifyContent;
-      }
-      if (mediaQuery.properties.alignItems) {
-        styleObj["$nest"][mediaQueryRule]["alignItems"] = mediaQuery.properties.alignItems;
-      }
-      if (mediaQuery.properties.width !== void 0 && mediaQuery.properties.width !== null) {
-        const width = mediaQuery.properties.width;
-        styleObj["$nest"][mediaQueryRule]["width"] = typeof width === "string" ? `${width} !important` : `${width}px !important`;
-      }
-      if (mediaQuery.properties.height !== void 0 && mediaQuery.properties.height !== null) {
-        const height = mediaQuery.properties.height;
-        styleObj["$nest"][mediaQueryRule]["height"] = typeof height === "string" ? `${height} !important` : `${height}px !important`;
-      }
-      if (mediaQuery.properties.gap !== void 0 && mediaQuery.properties.gap !== null) {
-        const gap = mediaQuery.properties.gap;
-        styleObj["$nest"][mediaQueryRule]["gap"] = typeof gap === "string" ? `${gap} !important` : `${gap}px !important`;
-      }
-      if (mediaQuery.properties.position) {
-        styleObj["$nest"][mediaQueryRule]["position"] = `${mediaQuery.properties.position} !important`;
-      }
-      if (mediaQuery.properties.top !== null && mediaQuery.properties.top !== void 0) {
-        styleObj["$nest"][mediaQueryRule]["top"] = `${mediaQuery.properties.top} !important`;
-      }
-      if (typeof mediaQuery.properties.visible === "boolean") {
-        const visible = mediaQuery.properties.visible;
-        styleObj["$nest"][mediaQueryRule]["display"] = visible ? "flex !important" : "none !important";
-      }
-    }
-  }
-  return style(styleObj);
-};
-var justifyContentStartStyle = style({
-  justifyContent: "flex-start"
-});
-var justifyContentCenterStyle = style({
-  justifyContent: "center"
-});
-var justifyContentEndStyle = style({
-  justifyContent: "flex-end"
-});
-var justifyContentSpaceBetweenStyle = style({
-  justifyContent: "space-between"
-});
-var alignItemsStretchStyle = style({
-  alignItems: "stretch"
-});
-var alignItemsStartStyle = style({
-  alignItems: "flex-start"
-});
-var alignItemsCenterStyle = style({
-  alignItems: "center"
-});
-var alignItemsEndStyle = style({
-  alignItems: "flex-end"
-});
-var getTemplateColumnsStyleClass = (columns) => {
-  return style({
-    gridTemplateColumns: columns.join(" ")
-  });
-};
-var getTemplateRowsStyleClass = (rows) => {
-  return style({
-    gridTemplateRows: rows.join(" ")
-  });
-};
-var getTemplateAreasStyleClass = (templateAreas) => {
-  let templateAreasStr = "";
-  for (let i = 0; i < templateAreas.length; i++) {
-    templateAreasStr += '"' + templateAreas[i].join(" ") + '" ';
-  }
-  return style({
-    gridTemplateAreas: templateAreasStr
-  });
-};
-var getGridLayoutMediaQueriesStyleClass = (mediaQueries) => {
-  let styleObj = getControlMediaQueriesStyle(mediaQueries);
-  for (let mediaQuery of mediaQueries) {
-    let mediaQueryRule;
-    if (mediaQuery.minWidth && mediaQuery.maxWidth) {
-      mediaQueryRule = `@media (min-width: ${mediaQuery.minWidth}) and (max-width: ${mediaQuery.maxWidth})`;
-    } else if (mediaQuery.minWidth) {
-      mediaQueryRule = `@media (min-width: ${mediaQuery.minWidth})`;
-    } else if (mediaQuery.maxWidth) {
-      mediaQueryRule = `@media (max-width: ${mediaQuery.maxWidth})`;
-    }
-    if (mediaQueryRule) {
-      styleObj["$nest"][mediaQueryRule] = styleObj["$nest"][mediaQueryRule] || {};
-      if (mediaQuery.properties.templateColumns) {
-        const templateColumnsStr = mediaQuery.properties.templateColumns.join(" ");
-        styleObj["$nest"][mediaQueryRule]["gridTemplateColumns"] = `${templateColumnsStr} !important`;
-      }
-      if (mediaQuery.properties.templateRows) {
-        const templateRowsStr = mediaQuery.properties.templateRows.join(" ");
-        styleObj["$nest"][mediaQueryRule]["gridTemplateRows"] = `${templateRowsStr} !important`;
-      }
-      if (mediaQuery.properties.templateAreas) {
-        let templateAreasStr = "";
-        for (let i = 0; i < mediaQuery.properties.templateAreas.length; i++) {
-          templateAreasStr += '"' + mediaQuery.properties.templateAreas[i].join(" ") + '" ';
-        }
-        styleObj["$nest"][mediaQueryRule]["gridTemplateAreas"] = `${templateAreasStr} !important`;
-      }
-      if (mediaQuery.properties.display) {
-        styleObj["$nest"][mediaQueryRule]["display"] = mediaQuery.properties.display;
-      }
-      if (mediaQuery.properties.gap) {
-        const gap = mediaQuery.properties.gap;
-        if (gap.row) {
-          styleObj["$nest"][mediaQueryRule]["rowGap"] = typeof gap.row === "string" ? gap.row : `${gap.row}px`;
-        }
-        if (gap.column) {
-          styleObj["$nest"][mediaQueryRule]["columnGap"] = typeof gap.column === "string" ? gap.column : `${gap.column}px`;
-        }
-      }
-      if (typeof mediaQuery.properties.visible === "boolean") {
-        const visible = mediaQuery.properties.visible;
-        const display = mediaQuery.properties.display || "grid";
-        styleObj["$nest"][mediaQueryRule]["display"] = visible ? display + " !important" : "none !important";
-      }
-    }
-  }
-  return style(styleObj);
-};
-
-// packages/layout/src/stack.ts
-var StackLayout = class extends Container {
-  constructor(parent, options) {
-    super(parent, options);
-  }
-  static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.ready();
-    return self;
-  }
-  get direction() {
-    return this._direction;
-  }
-  set direction(value) {
-    this._direction = value;
-    if (value) {
-      let style2 = getStackDirectionStyleClass(value);
-      this.classList.add(style2);
-    }
-  }
-  get justifyContent() {
-    return this._justifyContent;
-  }
-  set justifyContent(value) {
-    this._justifyContent = value || "start";
-    switch (this._justifyContent) {
-      case "start":
-        this.classList.add(justifyContentStartStyle);
-        break;
-      case "center":
-        this.classList.add(justifyContentCenterStyle);
-        break;
-      case "end":
-        this.classList.add(justifyContentEndStyle);
-        break;
-      case "space-between":
-        this.classList.add(justifyContentSpaceBetweenStyle);
-        break;
-    }
-  }
-  get alignItems() {
-    return this._alignItems;
-  }
-  set alignItems(value) {
-    this._alignItems = value || "stretch";
-    switch (this._alignItems) {
-      case "stretch":
-        this.classList.add(alignItemsStretchStyle);
-        break;
-      case "start":
-        this.classList.add(alignItemsStartStyle);
-        break;
-      case "center":
-        this.classList.add(alignItemsCenterStyle);
-        break;
-      case "end":
-        this.classList.add(alignItemsEndStyle);
-        break;
-    }
-  }
-  get gap() {
-    return this._gap;
-  }
-  set gap(value) {
-    this._gap = value || "initial";
-    if (typeof this._gap === "number") {
-      this.style.gap = this._gap + "px";
-    } else {
-      this.style.gap = this._gap;
-    }
-  }
-  get wrap() {
-    return this._wrap;
-  }
-  set wrap(value) {
-    if (!value)
-      return;
-    this._wrap = value;
-    this.style.flexWrap = this._wrap;
-  }
-  get mediaQueries() {
-    return this._mediaQueries;
-  }
-  set mediaQueries(value) {
-    this._mediaQueries = value;
-    let style2 = getStackMediaQueriesStyleClass(this._mediaQueries);
-    this._mediaStyle && this.classList.remove(this._mediaStyle);
-    this._mediaStyle = style2;
-    this.classList.add(style2);
-  }
-  setAttributeToProperty(propertyName) {
-    const prop = this.getAttribute(propertyName, true);
-    if (prop)
-      this[propertyName] = prop;
-  }
-  init() {
-    super.init();
-    this.setAttributeToProperty("direction");
-    this.setAttributeToProperty("justifyContent");
-    this.setAttributeToProperty("alignItems");
-    this.setAttributeToProperty("gap");
-    this.setAttributeToProperty("wrap");
-    this.setAttributeToProperty("mediaQueries");
-  }
-};
-StackLayout = __decorateClass([
-  customElements2("i-stack")
-], StackLayout);
-var HStack = class extends StackLayout {
-  constructor(parent, options) {
-    super(parent, options);
-  }
-  get horizontalAlignment() {
-    return this._horizontalAlignment;
-  }
-  set horizontalAlignment(value) {
-    this._horizontalAlignment = value || "start";
-    this.justifyContent = value;
-  }
-  get verticalAlignment() {
-    return this._verticalAlignment;
-  }
-  set verticalAlignment(value) {
-    this._verticalAlignment = value || "stretch";
-    this.alignItems = value;
-  }
-  setAttributeToProperty(propertyName) {
-    const prop = this.getAttribute(propertyName, true);
-    if (prop)
-      this[propertyName] = prop;
-  }
-  init() {
-    super.init();
-    this.direction = "horizontal";
-    this.setAttributeToProperty("horizontalAlignment");
-    this.setAttributeToProperty("verticalAlignment");
-  }
-  static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.ready();
-    return self;
-  }
-};
-HStack = __decorateClass([
-  customElements2("i-hstack")
-], HStack);
-var VStack = class extends StackLayout {
-  constructor(parent, options) {
-    super(parent, options);
-  }
-  get horizontalAlignment() {
-    return this._horizontalAlignment;
-  }
-  set horizontalAlignment(value) {
-    this._horizontalAlignment = value || "stretch";
-    this.alignItems = value;
-  }
-  get verticalAlignment() {
-    return this._verticalAlignment;
-  }
-  set verticalAlignment(value) {
-    this._verticalAlignment = value || "start";
-    this.justifyContent = value;
-  }
-  setAttributeToProperty(propertyName) {
-    const prop = this.getAttribute(propertyName, true);
-    if (prop)
-      this[propertyName] = prop;
-  }
-  init() {
-    super.init();
-    this.direction = "vertical";
-    this.setAttributeToProperty("horizontalAlignment");
-    this.setAttributeToProperty("verticalAlignment");
-  }
-  static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.ready();
-    return self;
-  }
-};
-VStack = __decorateClass([
-  customElements2("i-vstack")
-], VStack);
-
-// packages/layout/src/panel.ts
-var Panel = class extends Container {
-  constructor(parent, options) {
-    super(parent, options);
-  }
-  init() {
-    super.init();
-    this.classList.add(panelStyle);
-    if (this.dock) {
-      this.classList.add(overflowStyle);
-    }
-  }
-  connectedCallback() {
-    if (this.connected) {
-      return;
-    }
-    super.connectedCallback();
-  }
-  static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.ready();
-    return self;
-  }
-};
-Panel = __decorateClass([
-  customElements2("i-panel", {
-    icon: "stop",
-    className: "Panel",
-    props: {},
-    events: {}
-  })
-], Panel);
-
-// packages/layout/src/grid.ts
-var GridLayout = class extends Container {
-  constructor(parent, options) {
-    super(parent, options);
-    this._styleClassMap = {};
-    this.removeStyleClass = this.removeStyleClass.bind(this);
-  }
-  static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.ready();
-    return self;
-  }
-  get templateColumns() {
-    return this._templateColumns;
-  }
-  set templateColumns(columns) {
-    this._templateColumns = columns;
-    this.removeStyleClass("columns");
-    if (columns) {
-      let style2 = getTemplateColumnsStyleClass(columns);
-      this._styleClassMap["columns"] = style2;
-      this.classList.add(style2);
-    }
-  }
-  get templateRows() {
-    return this._templateRows;
-  }
-  set templateRows(rows) {
-    this._templateRows = rows;
-    this.removeStyleClass("rows");
-    if (rows) {
-      let style2 = getTemplateRowsStyleClass(rows);
-      this._styleClassMap["rows"] = style2;
-      this.classList.add(style2);
-    }
-  }
-  get templateAreas() {
-    return this._templateAreas;
-  }
-  set templateAreas(value) {
-    this._templateAreas = value;
-    this.removeStyleClass("areas");
-    if (value) {
-      let style2 = getTemplateAreasStyleClass(value);
-      this._styleClassMap["areas"] = style2;
-      this.classList.add(style2);
-    }
-  }
-  get autoColumnSize() {
-    return this._autoColumnSize;
-  }
-  set autoColumnSize(value) {
-    this._autoColumnSize = value;
-    if (value) {
-      this.style.gridAutoColumns = value;
-    }
-  }
-  get autoRowSize() {
-    return this._autoRowSize;
-  }
-  set autoRowSize(value) {
-    this._autoRowSize = value;
-    if (value) {
-      this.style.gridAutoRows = value;
-    }
-  }
-  get columnsPerRow() {
-    return this._columnsPerRow;
-  }
-  set columnsPerRow(value) {
-    this._columnsPerRow = value;
-    this.style.gridTemplateColumns = `repeat(${this._columnsPerRow}, 1fr)`;
-  }
-  get gap() {
-    return this._gap;
-  }
-  set gap(value) {
-    this._gap = value;
-    if (value) {
-      if (value.row) {
-        if (typeof value.row == "number") {
-          this.style.rowGap = value.row + "px";
-        } else {
-          this.style.rowGap = value.row;
-        }
-      }
-      if (value.column) {
-        if (typeof value.column == "number") {
-          this.style.columnGap = value.column + "px";
-        } else {
-          this.style.columnGap = value.column;
-        }
-      }
-    }
-  }
-  get horizontalAlignment() {
-    return this._horizontalAlignment;
-  }
-  set horizontalAlignment(value) {
-    this._horizontalAlignment = value;
-    this.style.justifyItems = value;
-  }
-  get verticalAlignment() {
-    return this._verticalAlignment;
-  }
-  set verticalAlignment(value) {
-    this._verticalAlignment = value;
-    this.style.alignItems = value;
-  }
-  get autoFillInHoles() {
-    return this._autoFillInHoles;
-  }
-  set autoFillInHoles(value) {
-    this._autoFillInHoles = value;
-    this.style.gridAutoFlow = this._autoFillInHoles ? "dense" : "row";
-  }
-  get mediaQueries() {
-    return this._mediaQueries;
-  }
-  set mediaQueries(value) {
-    this._mediaQueries = value;
-    let style2 = getGridLayoutMediaQueriesStyleClass(this._mediaQueries);
-    this._mediaStyle && this.classList.remove(this._mediaStyle);
-    this._mediaStyle = style2;
-    this.classList.add(style2);
-  }
-  setAttributeToProperty(propertyName) {
-    const prop = this.getAttribute(propertyName, true);
-    if (this.id == "thisPnl") {
-      console.log(propertyName, prop);
-    }
-    if (prop)
-      this[propertyName] = prop;
-  }
-  removeStyleClass(name) {
-    if (this._styleClassMap && this._styleClassMap[name]) {
-      this.classList.remove(this._styleClassMap[name]);
-      delete this._styleClassMap[name];
-    }
-  }
-  init() {
-    super.init();
-    this._styleClassMap = {};
-    this.classList.add(gridStyle);
-    this.setAttributeToProperty("templateColumns");
-    this.setAttributeToProperty("templateRows");
-    this.setAttributeToProperty("templateAreas");
-    this.setAttributeToProperty("gap");
-    this.setAttributeToProperty("horizontalAlignment");
-    this.setAttributeToProperty("verticalAlignment");
-    this.setAttributeToProperty("columnsPerRow");
-    this.setAttributeToProperty("autoFillInHoles");
-    this.setAttributeToProperty("autoColumnSize");
-    this.setAttributeToProperty("autoRowSize");
-    this.setAttributeToProperty("mediaQueries");
-  }
-};
-GridLayout = __decorateClass([
-  customElements2("i-grid-layout")
-], GridLayout);
-
-// packages/layout/src/card.ts
-var CardLayout = class extends GridLayout {
-  constructor(parent, options) {
-    super(parent, options);
-  }
-  static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.ready();
-    return self;
-  }
-  get cardMinWidth() {
-    return this._cardMinWidth;
-  }
-  set cardMinWidth(value) {
-    this._cardMinWidth = value;
-    this.updateGridTemplateColumns();
-  }
-  get columnsPerRow() {
-    return this._columnsPerRow;
-  }
-  set columnsPerRow(value) {
-    this._columnsPerRow = value;
-    this.updateGridTemplateColumns();
-  }
-  get cardHeight() {
-    return this._cardHeight;
-  }
-  set cardHeight(value) {
-    this._cardHeight = typeof value == "number" ? value + "px" : value;
-    this.style.gridAutoRows = this._cardHeight;
-  }
-  updateGridTemplateColumns() {
-    if (this.cardMinWidth && this.columnsPerRow) {
-      let minmaxFirstParam = this.gap && this.gap.column ? `max(${this.cardMinWidth}, calc(100%/${this.columnsPerRow} - ${this.gap.column}))` : `max(${this.cardMinWidth}, 100%/${this.columnsPerRow})`;
-      this.style.gridTemplateColumns = `repeat(auto-fill, minmax(${minmaxFirstParam}, 1fr))`;
-    } else if (this.cardMinWidth) {
-      this.style.gridTemplateColumns = `repeat(auto-fill, minmax(min(${this.cardMinWidth}, 100%), 1fr))`;
-    } else if (this.columnsPerRow) {
-      this.style.gridTemplateColumns = `repeat(${this.columnsPerRow}, 1fr)`;
-    }
-  }
-  setAttributeToProperty(propertyName) {
-    const prop = this.getAttribute(propertyName, true);
-    if (prop)
-      this[propertyName] = prop;
-  }
-  init() {
-    super.init();
-    this.autoRowSize = "1fr";
-    this.setAttributeToProperty("cardMinWidth");
-    this.setAttributeToProperty("cardHeight");
-  }
-};
-CardLayout = __decorateClass([
-  customElements2("i-card-layout")
-], CardLayout);
-
-// packages/alert/src/style/alert.css.ts
-cssRule("i-alert", {
-  $nest: {
-    ".modal": {
-      padding: 0,
-      borderRadius: 4
-    }
-  }
-});
-
-// packages/alert/src/alert.ts
-var Alert = class extends Control {
-  constructor(parent, options) {
-    super(parent, options);
-    this.closeModal = () => {
-      this.mdAlert.visible = false;
-    };
-    this.showModal = () => {
-      this.renderUI();
-      this.mdAlert.visible = true;
-    };
-    this.closeModal = this.closeModal.bind(this);
-  }
-  get status() {
-    return this._status;
-  }
-  set status(value) {
-    this._status = value;
-  }
-  get title() {
-    return this._title;
-  }
-  set title(value) {
-    this._title = value;
-  }
-  get content() {
-    return this._content;
-  }
-  set content(value) {
-    this._content = value;
-  }
-  get link() {
-    return this._link;
-  }
-  set link(value) {
-    this._link = value;
-  }
-  get iconName() {
-    switch (this.status) {
-      case "error":
-        return "times";
-      case "warning":
-      case "confirm":
-        return "exclamation";
-      case "success":
-        return "check";
-      default:
-        return "spinner";
-    }
-  }
-  get color() {
-    switch (this.status) {
-      case "error":
-        return theme_exports.ThemeVars.colors.error.main;
-      case "warning":
-      case "confirm":
-        return theme_exports.ThemeVars.colors.warning.main;
-      case "success":
-        return theme_exports.ThemeVars.colors.success.main;
-      default:
-        return theme_exports.ThemeVars.colors.primary.main;
-    }
-  }
-  renderUI() {
-    this.pnlMain.clearInnerHTML();
-    const wrapperElm = new VStack(this.pnlMain, {
-      horizontalAlignment: "center",
-      gap: "1.75rem"
-    });
-    const border = this.status === "loading" ? {} : {
-      border: {
-        width: 2,
-        style: "solid",
-        color: this.color,
-        radius: "50%"
-      }
-    };
-    const paddingSize = this.status === "loading" ? "0.25rem" : "0.6rem";
-    new Icon(wrapperElm, {
-      width: 55,
-      height: 55,
-      name: this.iconName,
-      fill: this.color,
-      padding: {
-        top: paddingSize,
-        bottom: paddingSize,
-        left: paddingSize,
-        right: paddingSize
-      },
-      spin: this.status === "loading",
-      ...border
-    });
-    this.renderContent(wrapperElm);
-    this.renderLink(wrapperElm);
-    this.renderButtons(wrapperElm);
-  }
-  renderContent(wrapperElm) {
-    if (!this.title && !this.content)
-      return [];
-    const contentElm = new VStack(wrapperElm, {
-      horizontalAlignment: "center",
-      gap: "0.75rem",
-      lineHeight: 1.5
-    });
-    this.title ? new Label(contentElm, {
-      caption: this.title,
-      font: { size: "1.25rem", bold: true }
-    }) : null;
-    this.content ? new Label(contentElm, {
-      caption: this.content,
-      overflowWrap: "anywhere"
-    }) : null;
-  }
-  renderLink(wrapperElm) {
-    if (this.link)
-      new Label(wrapperElm, {
-        class: "text-center",
-        caption: this.link.caption,
-        font: { size: "0.875rem" },
-        link: { href: this.link.href, target: "_blank" },
-        overflowWrap: "anywhere"
-      });
-  }
-  renderButtons(wrapperElm) {
-    if (this.status === "confirm") {
-      const hStack = new HStack(wrapperElm, {
-        verticalAlignment: "center",
-        gap: "0.5rem"
-      });
-      new Button(hStack, {
-        padding: {
-          top: "0.5rem",
-          bottom: "0.5rem",
-          left: "2rem",
-          right: "2rem"
-        },
-        caption: "Cancel",
-        font: { color: theme_exports.ThemeVars.colors.secondary.contrastText },
-        background: { color: theme_exports.ThemeVars.colors.secondary.main },
-        onClick: () => this.closeModal()
-      });
-      new Button(hStack, {
-        padding: {
-          top: "0.5rem",
-          bottom: "0.5rem",
-          left: "2rem",
-          right: "2rem"
-        },
-        caption: "Confirm",
-        font: { color: theme_exports.ThemeVars.colors.primary.contrastText },
-        onClick: () => {
-          if (this.onConfirm) {
-            this.onConfirm();
-          }
-          this.closeModal();
-        }
-      });
-    } else {
-      new Button(wrapperElm, {
-        padding: {
-          top: "0.5rem",
-          bottom: "0.5rem",
-          left: "2rem",
-          right: "2rem"
-        },
-        caption: "Close",
-        font: { color: theme_exports.ThemeVars.colors.primary.contrastText },
-        onClick: () => this.closeModal()
-      });
-    }
-  }
-  async init() {
-    if (!this.mdAlert) {
-      super.init();
-      this.status = this.getAttribute("status", true);
-      this.title = this.getAttribute("title", true);
-      this.content = this.getAttribute("content", true);
-      this.link = this.getAttribute("link", true);
-      this.onClose = this.getAttribute("onClose", true);
-      this.onConfirm = this.getAttribute("onConfirm", true);
-      this.mdAlert = await Modal.create({
-        width: "400px"
-      });
-      this.appendChild(this.mdAlert);
-      this.pnlMain = new Panel(this, {
-        width: "100%",
-        padding: {
-          top: "1.5rem",
-          bottom: "1.5rem",
-          left: "1.5rem",
-          right: "1.5rem"
-        }
-      });
-      this.mdAlert.item = this.pnlMain;
-    }
-  }
-};
-Alert = __decorateClass([
-  customElements2("i-alert")
-], Alert);
 
 // packages/application/src/event-bus.ts
 var _EventBus = class {
@@ -21626,10 +19672,10 @@ EventBus.nextId = 0;
 EventBus.instance = void 0;
 
 // packages/checkbox/src/style/checkbox.css.ts
-var Theme9 = theme_exports.ThemeVars;
+var Theme2 = theme_exports.ThemeVars;
 cssRule("i-checkbox", {
-  fontFamily: Theme9.typography.fontFamily,
-  fontSize: Theme9.typography.fontSize,
+  fontFamily: Theme2.typography.fontFamily,
+  fontSize: Theme2.typography.fontSize,
   userSelect: "none",
   "$nest": {
     ".i-checkbox": {
@@ -21649,14 +19695,14 @@ cssRule("i-checkbox", {
       height: 15,
       display: "inline-block",
       position: "relative",
-      backgroundColor: Theme9.background.paper,
-      border: `1px solid ${Theme9.divider}`,
+      backgroundColor: Theme2.background.paper,
+      border: `1px solid ${Theme2.divider}`,
       boxSizing: "border-box",
       transition: "border-color .25s cubic-bezier(.71,-.46,.29,1.46),background-color .25s cubic-bezier(.71,-.46,.29,1.46)"
     },
     ".i-checkbox_label": {
       boxSizing: "border-box",
-      color: Theme9.text.primary,
+      color: Theme2.text.primary,
       display: "inline-block",
       paddingLeft: 8,
       maxWidth: "100%"
@@ -21672,10 +19718,10 @@ cssRule("i-checkbox", {
     "&.is-checked": {
       "$nest": {
         ".i-checkbox_label": {
-          color: Theme9.colors.info.main
+          color: Theme2.colors.info.main
         },
         ".checkmark": {
-          backgroundColor: Theme9.colors.info.main
+          backgroundColor: Theme2.colors.info.main
         },
         ".checkmark:after": {
           transform: "rotate(45deg) scaleY(1)"
@@ -21686,7 +19732,7 @@ cssRule("i-checkbox", {
       }
     },
     "&:not(.disabled):hover input ~ .checkmark": {
-      borderColor: Theme9.colors.info.main
+      borderColor: Theme2.colors.info.main
     },
     "&.disabled": {
       cursor: "not-allowed"
@@ -21694,7 +19740,7 @@ cssRule("i-checkbox", {
     ".checkmark:after": {
       content: "''",
       boxSizing: "content-box",
-      border: `1px solid ${Theme9.background.paper}`,
+      border: `1px solid ${Theme2.background.paper}`,
       borderLeft: 0,
       borderTop: 0,
       height: 7.5,
@@ -21708,7 +19754,7 @@ cssRule("i-checkbox", {
       position: "absolute"
     },
     ".is-indeterminate .checkmark": {
-      backgroundColor: Theme9.colors.info.main
+      backgroundColor: Theme2.colors.info.main
     },
     ".is-indeterminate .checkmark:after": {
       width: "80%",
@@ -21986,7 +20032,7 @@ var GlobalEvents = class {
 };
 
 // packages/application/src/styles/index.css.ts
-var Theme10 = theme_exports.ThemeVars;
+var Theme3 = theme_exports.ThemeVars;
 var applicationStyle = style({
   height: "100%",
   $nest: {
@@ -22131,8 +20177,1188 @@ async function cidToSri(cid) {
   return await import_ipfs_utils.default.cidToSri(cid);
 }
 
+// packages/image/src/style/image.css.ts
+cssRule("i-image", {
+  position: "relative",
+  $nest: {
+    "img": {
+      maxHeight: "100%",
+      maxWidth: "100%",
+      height: "inherit",
+      verticalAlign: "middle",
+      objectFit: "contain",
+      overflow: "hidden",
+      width: "100%"
+    }
+  }
+});
+
+// packages/image/src/image.ts
+var Image2 = class extends Control {
+  constructor(parent, options) {
+    super(parent, options, {});
+    this._rotate = 0;
+  }
+  get rotate() {
+    return this._rotate;
+  }
+  set rotate(value) {
+    if (value == void 0)
+      return;
+    value = parseInt(value);
+    if (value != this._rotate) {
+      if (this.imageElm) {
+        if (this._rotate != 0)
+          this.imageElm.classList.remove(rotate(this._rotate));
+        this.imageElm.classList.add(rotate(value));
+      }
+      this._rotate = value;
+    }
+  }
+  get url() {
+    return this._url;
+  }
+  set url(value) {
+    this._url = value;
+    if (!this.imageElm)
+      this.imageElm = this.createElement("img", this);
+    this.imageElm.src = value != null ? value : "";
+    this.imageElm.style.display = "none";
+    const self = this;
+    this.imageElm.onerror = function() {
+      if (self._fallbackUrl)
+        this.src = self._fallbackUrl;
+    };
+    this.imageElm.onload = function() {
+      self.imageElm.style.display = "";
+    };
+    if (this._borderValue) {
+      this._border = new Border(this.imageElm, this._borderValue);
+    }
+    if (this._objectFit)
+      this.imageElm.style.objectFit = this._objectFit;
+  }
+  get objectFit() {
+    return this._objectFit;
+  }
+  set objectFit(value) {
+    this._objectFit = value;
+    if (this.imageElm) {
+      this.imageElm.style.objectFit = value;
+    }
+  }
+  get border() {
+    return this._border;
+  }
+  set border(value) {
+    this._borderValue = value;
+    if (this.imageElm) {
+      this._border = new Border(this.imageElm, value);
+    }
+  }
+  init() {
+    super.init();
+    this._fallbackUrl = this.getAttribute("fallbackUrl", true, "");
+    const urlAttr = this.getAttribute("url", true);
+    urlAttr && (this.url = urlAttr);
+    this.rotate = this.getAttribute("rotate", true);
+    const objectFit = this.getAttribute("objectFit", true);
+    if (objectFit)
+      this.objectFit = objectFit;
+    let border = this.getAttribute("border", true);
+    if (border) {
+      this._borderValue = border;
+      if (this.imageElm) {
+        this._border = new Border(this.imageElm, border);
+        this.style.border = "none";
+      }
+    }
+  }
+  static async create(options, parent) {
+    let self = new this(parent, options);
+    await self.ready();
+    return self;
+  }
+};
+Image2 = __decorateClass([
+  customElements2("i-image")
+], Image2);
+
+// packages/icon/src/style/icon.css.ts
+var Theme4 = theme_exports.ThemeVars;
+var spinnerAnim2 = keyframes({
+  "0%": {
+    transform: "rotate(0deg)"
+  },
+  "100%": {
+    transform: "rotate(360deg)"
+  }
+});
+cssRule("i-icon", {
+  display: "inline-block",
+  $nest: {
+    "svg": {
+      fill: Theme4.text.primary,
+      verticalAlign: "top",
+      width: "100%",
+      height: "100%"
+    },
+    "&.is-spin": {
+      animation: `${spinnerAnim2} 2s linear infinite`
+    }
+  }
+});
+
+// packages/icon/src/icon.ts
+var _iconLoaded = false;
+async function loadIconFile() {
+  if (_iconLoaded)
+    return;
+  _iconLoaded = true;
+  try {
+    let res = await fetch(`${LibPath}assets/icon/solid.svg`);
+    let text = await res.text();
+    let span = document.createElement("span");
+    span.innerHTML = text;
+    document.body.appendChild(span);
+  } catch (err) {
+    _iconLoaded = false;
+  }
+  ;
+}
+var Icon = class extends Control {
+  constructor(parent, options) {
+    super(parent, options);
+    loadIconFile();
+  }
+  init() {
+    if (!this.initialized) {
+      super.init();
+      let fill = this.getAttribute("fill", true);
+      if (fill)
+        this.fill = fill;
+      this._size = this.getAttribute("size", true);
+      this._name = this.getAttribute("name", true);
+      this._updateIcon();
+      const image = this.getAttribute("image", true);
+      if (image) {
+        image.height = image.height || this.height || "16px";
+        image.width = image.width || this.width || "16px";
+        this.image = new Image2(this, image);
+      }
+      this.spin = this.getAttribute("spin", true, false);
+    }
+  }
+  get fill() {
+    return this._fill;
+  }
+  set fill(color) {
+    this._fill = color;
+    let svg = this.querySelector("svg");
+    if (svg)
+      svg.style.fill = color;
+  }
+  get name() {
+    return this._name;
+  }
+  set name(value) {
+    this._name = value;
+    this._updateIcon();
+  }
+  get image() {
+    if (!this._image) {
+      this._image = Image2.create({
+        width: this.width || 16,
+        height: this.height || 16
+      });
+    }
+    return this._image;
+  }
+  set image(image) {
+    if (this._image)
+      this.removeChild(this._image);
+    this._image = image;
+    if (this._image)
+      this.prepend(this._image);
+  }
+  get spin() {
+    return this._spin;
+  }
+  set spin(value) {
+    this._spin = value;
+    if (value)
+      this.classList.add("is-spin");
+    else
+      this.classList.remove("is-spin");
+    this._parent && this._parent.refresh();
+  }
+  _updateIcon() {
+    if (this._name)
+      this.innerHTML = `<svg${this._fill ? ` style="fill: ${this._fill}"` : ""}><use xlink:href="#${this.name}"></use></svg>`;
+    else
+      this.innerHTML = "";
+  }
+  static async create(options, parent) {
+    let self = new this(parent, options);
+    await self.ready();
+    return self;
+  }
+};
+Icon = __decorateClass([
+  customElements2("i-icon")
+], Icon);
+
+// packages/link/src/style/link.css.ts
+var Theme5 = theme_exports.ThemeVars;
+cssRule("i-link", {
+  display: "block",
+  cursor: "pointer",
+  textTransform: "inherit",
+  $nest: {
+    "&:hover *": {
+      color: Theme5.colors.primary.dark
+    },
+    "> a": {
+      display: "inline",
+      transition: "all .3s",
+      textDecoration: "underline",
+      color: "inherit",
+      fontSize: "inherit",
+      fontWeight: "inherit",
+      fontFamily: "inherit",
+      textTransform: "inherit"
+    }
+  }
+});
+
+// packages/link/src/link.ts
+var Link = class extends Control {
+  constructor(parent, options) {
+    super(parent, options, {
+      target: "_blank"
+    });
+  }
+  get href() {
+    return this._href;
+  }
+  set href(value) {
+    this._href = typeof value === "string" ? value : "";
+    if (this._linkElm)
+      this._linkElm.href = this._href;
+  }
+  get target() {
+    return this._target;
+  }
+  set target(value) {
+    this._target = value;
+    if (this._linkElm)
+      this._linkElm.target = value;
+  }
+  append(children) {
+    if (!this._linkElm) {
+      this._linkElm = this.createElement("a", this);
+    }
+    this._linkElm.appendChild(children);
+  }
+  _handleClick(event, stopPropagation) {
+    event.preventDefault();
+    window.open(this._linkElm.href, this._linkElm.target);
+    return super._handleClick(event);
+  }
+  addChildControl(control) {
+    if (this._linkElm)
+      this._linkElm.appendChild(control);
+  }
+  removeChildControl(control) {
+    if (this._linkElm && this._linkElm.contains(control))
+      this._linkElm.removeChild(control);
+  }
+  init() {
+    if (!this.initialized) {
+      super.init();
+      if (!this._linkElm)
+        this._linkElm = this.createElement("a", this);
+      this.classList.add("i-link");
+      const hrefAttr = this.getAttribute("href", true);
+      hrefAttr && (this.href = hrefAttr);
+      const targetAttr = this.getAttribute("target", true);
+      targetAttr && (this._linkElm.target = targetAttr);
+    }
+  }
+  static async create(options, parent) {
+    let self = new this(parent, options);
+    await self.ready();
+    return self;
+  }
+};
+Link = __decorateClass([
+  customElements2("i-link")
+], Link);
+
+// packages/text/src/style/text.css.ts
+var Theme6 = theme_exports.ThemeVars;
+cssRule("i-text", {
+  display: "inline-block",
+  color: Theme6.text.primary,
+  fontFamily: Theme6.typography.fontFamily,
+  fontSize: Theme6.typography.fontSize
+});
+
+// packages/text/src/text.ts
+var Text = class extends Control {
+  constructor(parent, options) {
+    super(parent, options);
+  }
+  get wordBreak() {
+    return this.style.wordBreak;
+  }
+  set wordBreak(value) {
+    this.style.wordBreak = value;
+  }
+  get overflowWrap() {
+    return this.style.overflowWrap;
+  }
+  set overflowWrap(value) {
+    this.style.overflowWrap = value;
+  }
+  get textOverflow() {
+    return this.style.textOverflow;
+  }
+  set textOverflow(value) {
+    if (!value)
+      return;
+    this.style.textOverflow = value;
+    this.style.whiteSpace = "nowrap";
+    this.overflow = "hidden";
+  }
+  get lineClamp() {
+    return Number(this.style.webkitLineClamp);
+  }
+  set lineClamp(value) {
+    this.style.webkitLineClamp = `${value}`;
+    this.style.overflow = "hidden";
+    this.style.webkitBoxOrient = "vertical";
+    this.display = "-webkit-box";
+    this.overflow = "hidden";
+    this.style.whiteSpace = "";
+  }
+  get display() {
+    return this._display;
+  }
+  set display(value) {
+    const isNotNone = value !== "none";
+    this._display = this.lineClamp && isNotNone ? "-webkit-box" : value;
+    this.style.display = this._display;
+  }
+  init() {
+    super.init();
+    const wordBreak = this.getAttribute("wordBreak", true);
+    if (wordBreak)
+      this.wordBreak = wordBreak;
+    const overflowWrap = this.getAttribute("overflowWrap", true);
+    if (overflowWrap)
+      this.overflowWrap = overflowWrap;
+    const textOverflow = this.getAttribute("textOverflow", true);
+    if (textOverflow)
+      this.textOverflow = textOverflow;
+    const lineClamp = this.getAttribute("lineClamp", true);
+    if (lineClamp)
+      this.lineClamp = lineClamp;
+  }
+  static async create(options, parent) {
+    let self = new this(parent, options);
+    await self.ready();
+    return self;
+  }
+};
+Text = __decorateClass([
+  customElements2("i-text")
+], Text);
+
+// packages/label/src/style/label.css.ts
+var Theme7 = theme_exports.ThemeVars;
+cssRule("i-label", {
+  display: "inline-block",
+  color: Theme7.text.primary,
+  fontFamily: Theme7.typography.fontFamily,
+  fontSize: Theme7.typography.fontSize
+});
+
+// packages/label/src/label.ts
+var Label = class extends Text {
+  constructor(parent, options) {
+    super(parent, options);
+  }
+  get caption() {
+    return this.captionSpan.innerHTML;
+  }
+  set caption(value) {
+    this.captionSpan.innerHTML = value || "";
+  }
+  get link() {
+    if (!this._link) {
+      this._link = new Link(this, {
+        href: "#",
+        target: "_blank",
+        font: this.font
+      });
+      this._link.append(this.captionSpan);
+      this.appendChild(this._link);
+    }
+    return this._link;
+  }
+  set link(value) {
+    if (this._link) {
+      this._link.prepend(this.captionSpan);
+      this._link.remove();
+    }
+    this._link = value;
+    if (this._link) {
+      this._link.append(this.captionSpan);
+      this.appendChild(this._link);
+    }
+  }
+  set height(value) {
+    this.setPosition("height", value);
+    if (this.captionSpan)
+      this.captionSpan.style.height = value + "px";
+  }
+  set width(value) {
+    this.setPosition("width", value);
+    if (this.captionSpan)
+      this.captionSpan.style.width = value + "px";
+  }
+  get textDecoration() {
+    return this.style.textDecoration;
+  }
+  set textDecoration(value) {
+    this.style.textDecoration = value;
+  }
+  init() {
+    if (!this.captionSpan) {
+      let childNodes = [];
+      for (let i = 0; i < this.childNodes.length; i++) {
+        childNodes.push(this.childNodes[i]);
+      }
+      this.captionSpan = this.createElement("span", this);
+      this.caption = this.getAttribute("caption", true) || "";
+      if (childNodes && childNodes.length) {
+        for (let i = 0; i < childNodes.length; i++) {
+          this.captionSpan.appendChild(childNodes[i]);
+        }
+      }
+      const linkAttr = this.getAttribute("link", true);
+      if (linkAttr) {
+        const link = new Link(this, {
+          ...linkAttr,
+          font: this.font
+        });
+        this.link = link;
+      }
+      const textDecoration = this.getAttribute("textDecoration", true);
+      if (textDecoration)
+        this.textDecoration = textDecoration;
+      super.init();
+    }
+  }
+  static async create(options, parent) {
+    let self = new this(parent, options);
+    await self.ready();
+    return self;
+  }
+};
+Label = __decorateClass([
+  customElements2("i-label", {
+    icon: "heading",
+    className: "Label",
+    props: {
+      caption: { type: "string" }
+    },
+    events: {}
+  })
+], Label);
+
+// packages/layout/src/style/panel.css.ts
+var panelStyle = style({
+  display: "block",
+  clear: "both",
+  position: "relative"
+});
+var overflowStyle = style({
+  overflow: "hidden"
+});
+var vStackStyle = style({
+  display: "flex",
+  flexDirection: "column"
+});
+var hStackStyle = style({
+  display: "flex",
+  flexDirection: "row"
+});
+var gridStyle = style({
+  display: "grid"
+});
+var getStackDirectionStyleClass = (direction) => {
+  return style({
+    display: "flex",
+    flexDirection: direction == "vertical" ? "column" : "row"
+  });
+};
+var getStackMediaQueriesStyleClass = (mediaQueries) => {
+  let styleObj = getControlMediaQueriesStyle(mediaQueries);
+  for (let mediaQuery of mediaQueries) {
+    let mediaQueryRule;
+    if (mediaQuery.minWidth && mediaQuery.maxWidth) {
+      mediaQueryRule = `@media (min-width: ${mediaQuery.minWidth}) and (max-width: ${mediaQuery.maxWidth})`;
+    } else if (mediaQuery.minWidth) {
+      mediaQueryRule = `@media (min-width: ${mediaQuery.minWidth})`;
+    } else if (mediaQuery.maxWidth) {
+      mediaQueryRule = `@media (max-width: ${mediaQuery.maxWidth})`;
+    }
+    if (mediaQueryRule) {
+      styleObj["$nest"][mediaQueryRule] = styleObj["$nest"][mediaQueryRule] || {};
+      if (mediaQuery.properties.direction) {
+        styleObj["$nest"][mediaQueryRule]["flexDirection"] = mediaQuery.properties.direction == "vertical" ? "column" : "row";
+      }
+      if (mediaQuery.properties.justifyContent) {
+        styleObj["$nest"][mediaQueryRule]["justifyContent"] = mediaQuery.properties.justifyContent;
+      }
+      if (mediaQuery.properties.alignItems) {
+        styleObj["$nest"][mediaQueryRule]["alignItems"] = mediaQuery.properties.alignItems;
+      }
+      if (mediaQuery.properties.alignSelf) {
+        styleObj["$nest"][mediaQueryRule]["alignSelf"] = mediaQuery.properties.alignSelf;
+      }
+      if (mediaQuery.properties.width !== void 0 && mediaQuery.properties.width !== null) {
+        const width = mediaQuery.properties.width;
+        styleObj["$nest"][mediaQueryRule]["width"] = typeof width === "string" ? `${width} !important` : `${width}px !important`;
+      }
+      if (mediaQuery.properties.height !== void 0 && mediaQuery.properties.height !== null) {
+        const height = mediaQuery.properties.height;
+        styleObj["$nest"][mediaQueryRule]["height"] = typeof height === "string" ? `${height} !important` : `${height}px !important`;
+      }
+      if (mediaQuery.properties.gap !== void 0 && mediaQuery.properties.gap !== null) {
+        const gap = mediaQuery.properties.gap;
+        styleObj["$nest"][mediaQueryRule]["gap"] = typeof gap === "string" ? `${gap} !important` : `${gap}px !important`;
+      }
+      if (mediaQuery.properties.position) {
+        styleObj["$nest"][mediaQueryRule]["position"] = `${mediaQuery.properties.position} !important`;
+      }
+      if (mediaQuery.properties.top !== null && mediaQuery.properties.top !== void 0) {
+        styleObj["$nest"][mediaQueryRule]["top"] = `${mediaQuery.properties.top} !important`;
+      }
+    }
+  }
+  return style(styleObj);
+};
+var justifyContentStartStyle = style({
+  justifyContent: "flex-start"
+});
+var justifyContentCenterStyle = style({
+  justifyContent: "center"
+});
+var justifyContentEndStyle = style({
+  justifyContent: "flex-end"
+});
+var justifyContentSpaceBetweenStyle = style({
+  justifyContent: "space-between"
+});
+var alignItemsStretchStyle = style({
+  alignItems: "stretch"
+});
+var alignItemsStartStyle = style({
+  alignItems: "flex-start"
+});
+var alignItemsCenterStyle = style({
+  alignItems: "center"
+});
+var alignItemsEndStyle = style({
+  alignItems: "flex-end"
+});
+var alignSelfAutoStyle = style({
+  alignSelf: "auto"
+});
+var alignSelfStretchStyle = style({
+  alignSelf: "stretch"
+});
+var alignSelfStartStyle = style({
+  alignSelf: "flex-start"
+});
+var alignSelfCenterStyle = style({
+  alignSelf: "center"
+});
+var alignSelfEndStyle = style({
+  alignSelf: "flex-end"
+});
+var getTemplateColumnsStyleClass = (columns) => {
+  return style({
+    gridTemplateColumns: columns.join(" ")
+  });
+};
+var getTemplateRowsStyleClass = (rows) => {
+  return style({
+    gridTemplateRows: rows.join(" ")
+  });
+};
+var getTemplateAreasStyleClass = (templateAreas) => {
+  let templateAreasStr = "";
+  for (let i = 0; i < templateAreas.length; i++) {
+    templateAreasStr += '"' + templateAreas[i].join(" ") + '" ';
+  }
+  return style({
+    gridTemplateAreas: templateAreasStr
+  });
+};
+var getGridLayoutMediaQueriesStyleClass = (mediaQueries) => {
+  let styleObj = getControlMediaQueriesStyle(mediaQueries);
+  for (let mediaQuery of mediaQueries) {
+    let mediaQueryRule;
+    if (mediaQuery.minWidth && mediaQuery.maxWidth) {
+      mediaQueryRule = `@media (min-width: ${mediaQuery.minWidth}) and (max-width: ${mediaQuery.maxWidth})`;
+    } else if (mediaQuery.minWidth) {
+      mediaQueryRule = `@media (min-width: ${mediaQuery.minWidth})`;
+    } else if (mediaQuery.maxWidth) {
+      mediaQueryRule = `@media (max-width: ${mediaQuery.maxWidth})`;
+    }
+    if (mediaQueryRule) {
+      styleObj["$nest"][mediaQueryRule] = styleObj["$nest"][mediaQueryRule] || {};
+      if (mediaQuery.properties.templateColumns) {
+        const templateColumnsStr = mediaQuery.properties.templateColumns.join(" ");
+        styleObj["$nest"][mediaQueryRule]["gridTemplateColumns"] = `${templateColumnsStr} !important`;
+      }
+      if (mediaQuery.properties.templateRows) {
+        const templateRowsStr = mediaQuery.properties.templateRows.join(" ");
+        styleObj["$nest"][mediaQueryRule]["gridTemplateRows"] = `${templateRowsStr} !important`;
+      }
+      if (mediaQuery.properties.templateAreas) {
+        let templateAreasStr = "";
+        for (let i = 0; i < mediaQuery.properties.templateAreas.length; i++) {
+          templateAreasStr += '"' + mediaQuery.properties.templateAreas[i].join(" ") + '" ';
+        }
+        styleObj["$nest"][mediaQueryRule]["gridTemplateAreas"] = `${templateAreasStr} !important`;
+      }
+      if (mediaQuery.properties.gap !== void 0 && mediaQuery.properties.gap !== null) {
+        const gap = mediaQuery.properties.gap;
+        if (gap.row) {
+          styleObj["$nest"][mediaQueryRule]["rowGap"] = typeof gap.row === "string" ? gap.row : `${gap.row}px`;
+        }
+        if (gap.column) {
+          styleObj["$nest"][mediaQueryRule]["columnGap"] = typeof gap.column === "string" ? gap.column : `${gap.column}px`;
+        }
+      }
+    }
+  }
+  return style(styleObj);
+};
+var getHoverStyleClass = (hover) => {
+  return style({
+    $nest: {
+      "&:hover": {
+        backgroundColor: hover.backgroundColor,
+        color: hover.fontColor,
+        opacity: hover.opacity
+      }
+    }
+  });
+};
+
+// packages/layout/src/stack.ts
+var StackLayout = class extends Container {
+  constructor(parent, options) {
+    super(parent, options);
+  }
+  static async create(options, parent) {
+    let self = new this(parent, options);
+    await self.ready();
+    return self;
+  }
+  get direction() {
+    return this._direction;
+  }
+  set direction(value) {
+    this._direction = value;
+    if (value) {
+      let style2 = getStackDirectionStyleClass(value);
+      this.setStyle("direction", style2);
+    }
+  }
+  get justifyContent() {
+    return this._justifyContent;
+  }
+  set justifyContent(value) {
+    this._justifyContent = value || "start";
+    switch (this._justifyContent) {
+      case "start":
+        this.setStyle("justifyContent", justifyContentStartStyle);
+        break;
+      case "center":
+        this.setStyle("justifyContent", justifyContentCenterStyle);
+        break;
+      case "end":
+        this.setStyle("justifyContent", justifyContentEndStyle);
+        break;
+      case "space-between":
+        this.setStyle("justifyContent", justifyContentSpaceBetweenStyle);
+        break;
+    }
+  }
+  get alignItems() {
+    return this._alignItems;
+  }
+  set alignItems(value) {
+    this._alignItems = value || "stretch";
+    switch (this._alignItems) {
+      case "stretch":
+        this.setStyle("alignItems", alignItemsStretchStyle);
+        break;
+      case "start":
+        this.setStyle("alignItems", alignItemsStartStyle);
+        break;
+      case "center":
+        this.setStyle("alignItems", alignItemsCenterStyle);
+        break;
+      case "end":
+        this.setStyle("alignItems", alignItemsEndStyle);
+        break;
+    }
+  }
+  get alignSelf() {
+    return this._alignSelf;
+  }
+  set alignSelf(value) {
+    this._alignSelf = value || "auto";
+    switch (this._alignSelf) {
+      case "auto":
+        this.setStyle("alignSelf", alignSelfAutoStyle);
+        break;
+      case "stretch":
+        this.setStyle("alignSelf", alignSelfStretchStyle);
+        break;
+      case "start":
+        this.setStyle("alignSelf", alignSelfStartStyle);
+        break;
+      case "center":
+        this.setStyle("alignSelf", alignSelfCenterStyle);
+        break;
+      case "end":
+        this.setStyle("alignSelf", alignSelfEndStyle);
+        break;
+    }
+  }
+  get gap() {
+    return this._gap;
+  }
+  set gap(value) {
+    this._gap = value || "initial";
+    if (typeof this._gap === "number") {
+      this.style.gap = this._gap + "px";
+    } else {
+      this.style.gap = this._gap;
+    }
+  }
+  get wrap() {
+    return this._wrap;
+  }
+  set wrap(value) {
+    if (!value)
+      return;
+    this._wrap = value;
+    this.style.flexWrap = this._wrap;
+  }
+  get mediaQueries() {
+    return this._mediaQueries;
+  }
+  set mediaQueries(value) {
+    this._mediaQueries = value;
+    let style2 = getStackMediaQueriesStyleClass(this._mediaQueries);
+    this._mediaStyle && this.classList.remove(this._mediaStyle);
+    this._mediaStyle = style2;
+    this.classList.add(style2);
+  }
+  get hover() {
+    return this._hover;
+  }
+  set hover(value) {
+    this._hover = value;
+    if (this._hover) {
+      const hoverStyle = getHoverStyleClass(this._hover);
+      this.setStyle("hover", hoverStyle);
+    } else {
+      this.removeStyle("hover");
+    }
+  }
+  removeStyle(propertyName) {
+    let style2 = this.propertyClassMap[propertyName];
+    if (style2)
+      this.classList.remove(style2);
+  }
+  setStyle(propertyName, value) {
+    this.removeStyle(propertyName);
+    if (value) {
+      this.propertyClassMap[propertyName] = value;
+      this.classList.add(value);
+    }
+  }
+  init() {
+    super.init();
+    setAttributeToProperty(this, "direction");
+    setAttributeToProperty(this, "justifyContent");
+    setAttributeToProperty(this, "alignItems");
+    setAttributeToProperty(this, "alignSelf");
+    setAttributeToProperty(this, "gap");
+    setAttributeToProperty(this, "wrap");
+    setAttributeToProperty(this, "mediaQueries");
+    setAttributeToProperty(this, "hover");
+  }
+};
+StackLayout = __decorateClass([
+  customElements2("i-stack")
+], StackLayout);
+var HStack = class extends StackLayout {
+  constructor(parent, options) {
+    super(parent, options);
+  }
+  get horizontalAlignment() {
+    return this._horizontalAlignment;
+  }
+  set horizontalAlignment(value) {
+    this._horizontalAlignment = value || "start";
+    this.justifyContent = value;
+  }
+  get verticalAlignment() {
+    return this._verticalAlignment;
+  }
+  set verticalAlignment(value) {
+    this._verticalAlignment = value || "stretch";
+    this.alignItems = value;
+  }
+  init() {
+    super.init();
+    this.direction = "horizontal";
+    setAttributeToProperty(this, "horizontalAlignment");
+    setAttributeToProperty(this, "verticalAlignment");
+  }
+  static async create(options, parent) {
+    let self = new this(parent, options);
+    await self.ready();
+    return self;
+  }
+};
+HStack = __decorateClass([
+  customElements2("i-hstack")
+], HStack);
+var VStack = class extends StackLayout {
+  constructor(parent, options) {
+    super(parent, options);
+  }
+  get horizontalAlignment() {
+    return this._horizontalAlignment;
+  }
+  set horizontalAlignment(value) {
+    this._horizontalAlignment = value || "stretch";
+    this.alignItems = value;
+  }
+  get verticalAlignment() {
+    return this._verticalAlignment;
+  }
+  set verticalAlignment(value) {
+    this._verticalAlignment = value || "start";
+    this.justifyContent = value;
+  }
+  init() {
+    super.init();
+    this.direction = "vertical";
+    setAttributeToProperty(this, "horizontalAlignment");
+    setAttributeToProperty(this, "verticalAlignment");
+  }
+  static async create(options, parent) {
+    let self = new this(parent, options);
+    await self.ready();
+    return self;
+  }
+};
+VStack = __decorateClass([
+  customElements2("i-vstack")
+], VStack);
+
+// packages/layout/src/panel.ts
+var Panel = class extends Container {
+  constructor(parent, options) {
+    super(parent, options);
+  }
+  get hover() {
+    return this._hover;
+  }
+  set hover(value) {
+    this._hover = value;
+    if (this._hover) {
+      const hoverStyle = getHoverStyleClass(this._hover);
+      this.setStyle("hover", hoverStyle);
+    } else {
+      this.removeStyle("hover");
+    }
+  }
+  removeStyle(propertyName) {
+    let style2 = this.propertyClassMap[propertyName];
+    if (style2)
+      this.classList.remove(style2);
+  }
+  setStyle(propertyName, value) {
+    this.removeStyle(propertyName);
+    if (value) {
+      this.propertyClassMap[propertyName] = value;
+      this.classList.add(value);
+    }
+  }
+  init() {
+    super.init();
+    setAttributeToProperty(this, "hover");
+    this.classList.add(panelStyle);
+    if (this.dock) {
+      this.classList.add(overflowStyle);
+    }
+  }
+  connectedCallback() {
+    if (this.connected) {
+      return;
+    }
+    super.connectedCallback();
+  }
+  static async create(options, parent) {
+    let self = new this(parent, options);
+    await self.ready();
+    return self;
+  }
+};
+Panel = __decorateClass([
+  customElements2("i-panel", {
+    icon: "stop",
+    className: "Panel",
+    props: {},
+    events: {}
+  })
+], Panel);
+
+// packages/layout/src/grid.ts
+var GridLayout = class extends Container {
+  constructor(parent, options) {
+    super(parent, options);
+    this._styleClassMap = {};
+    this.removeStyleClass = this.removeStyleClass.bind(this);
+  }
+  static async create(options, parent) {
+    let self = new this(parent, options);
+    await self.ready();
+    return self;
+  }
+  get templateColumns() {
+    return this._templateColumns;
+  }
+  set templateColumns(columns) {
+    this._templateColumns = columns;
+    this.removeStyleClass("columns");
+    if (columns) {
+      let style2 = getTemplateColumnsStyleClass(columns);
+      this._styleClassMap["columns"] = style2;
+      this.classList.add(style2);
+    }
+  }
+  get templateRows() {
+    return this._templateRows;
+  }
+  set templateRows(rows) {
+    this._templateRows = rows;
+    this.removeStyleClass("rows");
+    if (rows) {
+      let style2 = getTemplateRowsStyleClass(rows);
+      this._styleClassMap["rows"] = style2;
+      this.classList.add(style2);
+    }
+  }
+  get templateAreas() {
+    return this._templateAreas;
+  }
+  set templateAreas(value) {
+    this._templateAreas = value;
+    this.removeStyleClass("areas");
+    if (value) {
+      let style2 = getTemplateAreasStyleClass(value);
+      this._styleClassMap["areas"] = style2;
+      this.classList.add(style2);
+    }
+  }
+  get autoColumnSize() {
+    return this._autoColumnSize;
+  }
+  set autoColumnSize(value) {
+    this._autoColumnSize = value;
+    if (value) {
+      this.style.gridAutoColumns = value;
+    }
+  }
+  get autoRowSize() {
+    return this._autoRowSize;
+  }
+  set autoRowSize(value) {
+    this._autoRowSize = value;
+    if (value) {
+      this.style.gridAutoRows = value;
+    }
+  }
+  get columnsPerRow() {
+    return this._columnsPerRow;
+  }
+  set columnsPerRow(value) {
+    this._columnsPerRow = value;
+    this.style.gridTemplateColumns = `repeat(${this._columnsPerRow}, 1fr)`;
+  }
+  get gap() {
+    return this._gap;
+  }
+  set gap(value) {
+    this._gap = value;
+    if (value) {
+      if (value.row) {
+        if (typeof value.row == "number") {
+          this.style.rowGap = value.row + "px";
+        } else {
+          this.style.rowGap = value.row;
+        }
+      }
+      if (value.column) {
+        if (typeof value.column == "number") {
+          this.style.columnGap = value.column + "px";
+        } else {
+          this.style.columnGap = value.column;
+        }
+      }
+    }
+  }
+  get horizontalAlignment() {
+    return this._horizontalAlignment;
+  }
+  set horizontalAlignment(value) {
+    this._horizontalAlignment = value;
+    this.style.justifyItems = value;
+  }
+  get verticalAlignment() {
+    return this._verticalAlignment;
+  }
+  set verticalAlignment(value) {
+    this._verticalAlignment = value;
+    this.style.alignItems = value;
+  }
+  get autoFillInHoles() {
+    return this._autoFillInHoles;
+  }
+  set autoFillInHoles(value) {
+    this._autoFillInHoles = value;
+    this.style.gridAutoFlow = this._autoFillInHoles ? "dense" : "row";
+  }
+  get mediaQueries() {
+    return this._mediaQueries;
+  }
+  set mediaQueries(value) {
+    this._mediaQueries = value;
+    let style2 = getGridLayoutMediaQueriesStyleClass(this._mediaQueries);
+    this._mediaStyle && this.classList.remove(this._mediaStyle);
+    this._mediaStyle = style2;
+    this.classList.add(style2);
+  }
+  setAttributeToProperty(propertyName) {
+    const prop = this.getAttribute(propertyName, true);
+    if (this.id == "thisPnl") {
+      console.log(propertyName, prop);
+    }
+    if (prop)
+      this[propertyName] = prop;
+  }
+  removeStyleClass(name) {
+    if (this._styleClassMap && this._styleClassMap[name]) {
+      this.classList.remove(this._styleClassMap[name]);
+      delete this._styleClassMap[name];
+    }
+  }
+  init() {
+    super.init();
+    this._styleClassMap = {};
+    this.classList.add(gridStyle);
+    this.setAttributeToProperty("templateColumns");
+    this.setAttributeToProperty("templateRows");
+    this.setAttributeToProperty("templateAreas");
+    this.setAttributeToProperty("gap");
+    this.setAttributeToProperty("horizontalAlignment");
+    this.setAttributeToProperty("verticalAlignment");
+    this.setAttributeToProperty("columnsPerRow");
+    this.setAttributeToProperty("autoFillInHoles");
+    this.setAttributeToProperty("autoColumnSize");
+    this.setAttributeToProperty("autoRowSize");
+    this.setAttributeToProperty("mediaQueries");
+  }
+};
+GridLayout = __decorateClass([
+  customElements2("i-grid-layout")
+], GridLayout);
+
+// packages/layout/src/card.ts
+var CardLayout = class extends GridLayout {
+  constructor(parent, options) {
+    super(parent, options);
+  }
+  static async create(options, parent) {
+    let self = new this(parent, options);
+    await self.ready();
+    return self;
+  }
+  get cardMinWidth() {
+    return this._cardMinWidth;
+  }
+  set cardMinWidth(value) {
+    this._cardMinWidth = value;
+    this.updateGridTemplateColumns();
+  }
+  get columnsPerRow() {
+    return this._columnsPerRow;
+  }
+  set columnsPerRow(value) {
+    this._columnsPerRow = value;
+    this.updateGridTemplateColumns();
+  }
+  get cardHeight() {
+    return this._cardHeight;
+  }
+  set cardHeight(value) {
+    this._cardHeight = typeof value == "number" ? value + "px" : value;
+    this.style.gridAutoRows = this._cardHeight;
+  }
+  updateGridTemplateColumns() {
+    if (this.cardMinWidth && this.columnsPerRow) {
+      let minmaxFirstParam = this.gap && this.gap.column ? `max(${this.cardMinWidth}, calc(100%/${this.columnsPerRow} - ${this.gap.column}))` : `max(${this.cardMinWidth}, 100%/${this.columnsPerRow})`;
+      this.style.gridTemplateColumns = `repeat(auto-fill, minmax(${minmaxFirstParam}, 1fr))`;
+    } else if (this.cardMinWidth) {
+      this.style.gridTemplateColumns = `repeat(auto-fill, minmax(min(${this.cardMinWidth}, 100%), 1fr))`;
+    } else if (this.columnsPerRow) {
+      this.style.gridTemplateColumns = `repeat(${this.columnsPerRow}, 1fr)`;
+    }
+  }
+  setAttributeToProperty(propertyName) {
+    const prop = this.getAttribute(propertyName, true);
+    if (prop)
+      this[propertyName] = prop;
+  }
+  init() {
+    super.init();
+    this.autoRowSize = "1fr";
+    this.setAttributeToProperty("cardMinWidth");
+    this.setAttributeToProperty("cardHeight");
+  }
+};
+CardLayout = __decorateClass([
+  customElements2("i-card-layout")
+], CardLayout);
+
 // packages/upload/src/style/upload.css.ts
-var Theme11 = theme_exports.ThemeVars;
+var Theme8 = theme_exports.ThemeVars;
 cssRule("i-upload", {
   margin: "1rem 0",
   listStyle: "none",
@@ -22145,7 +21371,7 @@ cssRule("i-upload", {
   $nest: {
     ".i-upload-wrapper": {
       position: "relative",
-      border: `2px dashed ${Theme11.divider}`,
+      border: `2px dashed ${Theme8.divider}`,
       width: "100%",
       display: "flex",
       flexDirection: "column",
@@ -22165,8 +21391,8 @@ cssRule("i-upload", {
       marginTop: "4rem"
     },
     ".i-upload-dragger_active": {
-      border: `2px dashed ${Theme11.colors.primary.main}`,
-      backgroundColor: Theme11.colors.info.light,
+      border: `2px dashed ${Theme8.colors.primary.main}`,
+      backgroundColor: Theme8.colors.info.light,
       opacity: "0.8"
     },
     'input[type="file"]': {
@@ -22195,7 +21421,7 @@ cssRule("i-upload", {
     },
     ".i-upload_preview-crop": {
       position: "absolute",
-      border: `1px dashed ${Theme11.background.paper}`,
+      border: `1px dashed ${Theme8.background.paper}`,
       width: 150,
       height: 150,
       left: "50%",
@@ -22259,7 +21485,7 @@ cssRule("i-upload", {
       display: "block"
     },
     ".i-upload_list.i-upload_list-text .i-upload_list-item:hover": {
-      backgroundColor: Theme11.background.default
+      backgroundColor: Theme8.background.default
     },
     ".i-upload_list.i-upload_list-text .i-upload_list-item": {
       width: "100%",
@@ -22281,7 +21507,7 @@ cssRule("i-upload", {
 });
 
 // packages/upload/src/upload.ts
-var Theme12 = theme_exports.ThemeVars;
+var Theme9 = theme_exports.ThemeVars;
 var fileId = 1;
 var genFileId = () => Date.now() + fileId++;
 var UploadDrag = class extends Control {
@@ -22425,7 +21651,7 @@ var UploadDrag = class extends Control {
       this._wrapperElm = this.createElement("div", this);
       this._wrapperElm.classList.add("i-upload-drag_area");
       this._labelElm = this.createElement("span", this._wrapperElm);
-      this._labelElm.style.color = Theme12.text.primary;
+      this._labelElm.style.color = Theme9.text.primary;
       this.caption = this.getAttribute("caption", true);
       this.disabled = this.getAttribute("disabled", true);
       this.addEventListener("dragenter", this.handleOnDragEnter.bind(this));
@@ -22593,7 +21819,7 @@ var Upload = class extends Control {
         const removeIcon = new Icon(void 0, {
           width: 12,
           height: 12,
-          fill: Theme12.action.active,
+          fill: Theme9.action.active,
           name: "trash"
         });
         itemElm.appendChild(removeIcon);
@@ -22616,7 +21842,7 @@ var Upload = class extends Control {
     this._previewRemoveElm.classList.add("i-upload_preview-remove");
     this._previewRemoveElm.onclick = this.handleRemoveImagePreview.bind(this);
     const span = this.createElement("span", this._previewRemoveElm);
-    span.style.fontFamily = Theme12.typography.fontFamily;
+    span.style.fontFamily = Theme9.typography.fontFamily;
     span.innerHTML = "Click to remove";
   }
   handleRemoveImagePreview(event) {
@@ -22733,7 +21959,7 @@ var Upload = class extends Control {
         margin: {
           bottom: 20
         },
-        fill: Theme12.divider
+        fill: Theme9.divider
       });
       new Label(panel, {
         caption: this.caption || (this.draggable ? "Drag a file or click to upload" : "Click to upload"),
@@ -22771,6 +21997,1014 @@ Upload = __decorateClass([
   customElements2("i-upload")
 ], Upload);
 
+// packages/button/src/style/button.css.ts
+var Theme10 = theme_exports.ThemeVars;
+cssRule("i-button", {
+  background: Theme10.colors.primary.main,
+  boxShadow: Theme10.shadows[2],
+  color: Theme10.text.primary,
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  borderRadius: 4,
+  fontFamily: Theme10.typography.fontFamily,
+  fontSize: Theme10.typography.fontSize,
+  gap: 5,
+  cursor: "pointer",
+  $nest: {
+    "&:not(.disabled):hover": {},
+    "&.disabled": {
+      color: Theme10.text.disabled,
+      boxShadow: Theme10.shadows[0],
+      background: Theme10.action.disabledBackground,
+      cursor: "not-allowed"
+    },
+    "i-icon": {
+      display: "inline-block",
+      fill: Theme10.text.primary,
+      verticalAlign: "middle"
+    },
+    ".caption": {
+      paddingRight: ".5rem"
+    },
+    "&.is-spinning, &.is-spinning:not(.disabled):hover, &.is-spinning:not(.disabled):focus": {
+      color: Theme10.text.disabled,
+      boxShadow: Theme10.shadows[0],
+      background: Theme10.action.disabledBackground,
+      cursor: "default"
+    }
+  }
+});
+
+// packages/button/src/button.ts
+var defaultIcon = {
+  width: 16,
+  height: 16,
+  fill: theme_exports.ThemeVars.text.primary
+};
+var Button = class extends Control {
+  static async create(options, parent) {
+    let self = new this(parent, options);
+    await self.ready();
+    return self;
+  }
+  constructor(parent, options) {
+    super(parent, options);
+  }
+  get caption() {
+    return this.captionElm.innerHTML;
+  }
+  set caption(value) {
+    this.captionElm.innerHTML = value;
+    this.captionElm.style.display = value ? "" : "none";
+  }
+  get icon() {
+    if (!this._icon) {
+      this._icon = new Icon(this, defaultIcon);
+      this.prependIcon(this._icon);
+    }
+    return this._icon;
+  }
+  set icon(value) {
+    if (this._icon && this.contains(this._icon))
+      this.removeChild(this._icon);
+    this._icon = value;
+    this.prependIcon(this._icon);
+  }
+  get rightIcon() {
+    if (!this._rightIcon) {
+      this._rightIcon = new Icon(this, {
+        ...defaultIcon,
+        name: "spinner"
+      });
+      this.appendIcon(this._rightIcon);
+    }
+    return this._rightIcon;
+  }
+  set rightIcon(value) {
+    if (this._rightIcon && this.contains(this._rightIcon))
+      this.removeChild(this._rightIcon);
+    this._rightIcon = value;
+    this.appendIcon(this._rightIcon);
+  }
+  get enabled() {
+    return super.enabled;
+  }
+  set enabled(value) {
+    var _a, _b, _c, _d;
+    super.enabled = value;
+    if (!value && this._background) {
+      let bg = "";
+      ((_a = this._background) == null ? void 0 : _a.image) && (bg += `url(${(_b = this._background) == null ? void 0 : _b.image})`);
+      ((_c = this._background) == null ? void 0 : _c.color) && (bg += `${(_d = this._background) == null ? void 0 : _d.color}`);
+      this.style.background = bg;
+    }
+  }
+  get isSpinning() {
+    return this._icon && this._icon.spin && this._icon.visible || this._rightIcon && this._rightIcon.spin && this._rightIcon.visible;
+  }
+  prependIcon(icon) {
+    if (!icon)
+      return;
+    this.appendChild(icon);
+    this.captionElm && this.insertBefore(icon, this.captionElm);
+  }
+  appendIcon(icon) {
+    if (!icon)
+      return;
+    this.appendChild(icon);
+    this.captionElm && this.insertBefore(this.captionElm, icon);
+  }
+  updateButton() {
+    var _a, _b, _c, _d;
+    if (this.isSpinning)
+      this.classList.add("is-spinning");
+    else
+      this.classList.remove("is-spinning");
+    if (!this.enabled && this._background) {
+      let bg = "";
+      ((_a = this._background) == null ? void 0 : _a.image) && (bg += `url(${(_b = this._background) == null ? void 0 : _b.image})`);
+      ((_c = this._background) == null ? void 0 : _c.color) && (bg += `${(_d = this._background) == null ? void 0 : _d.color}`);
+      this.style.background = bg;
+    }
+  }
+  _handleClick(event) {
+    if (this.isSpinning || !this.enabled)
+      return false;
+    return super._handleClick(event);
+  }
+  refresh() {
+    super.refresh();
+    this.updateButton();
+  }
+  init() {
+    if (!this.captionElm) {
+      super.init();
+      this.onClick = this.getAttribute("onClick", true) || this.onClick;
+      this.captionElm = this.createElement("span", this);
+      let caption = this.getAttribute("caption", true, "");
+      this.caption = caption;
+      let iconAttr = this.getAttribute("icon", true);
+      if (iconAttr) {
+        iconAttr = { ...defaultIcon, ...iconAttr };
+        const icon = new Icon(this, iconAttr);
+        this.icon = icon;
+      }
+      let rightIconAttr = this.getAttribute("rightIcon", true);
+      if (rightIconAttr) {
+        rightIconAttr = { ...defaultIcon, name: "spinner", ...rightIconAttr };
+        const icon = new Icon(this, rightIconAttr);
+        this.rightIcon = icon;
+      }
+    }
+  }
+};
+Button = __decorateClass([
+  customElements2("i-button", {
+    icon: "closed-captioning",
+    className: "Button",
+    props: {
+      caption: { type: "string" }
+    },
+    events: {}
+  })
+], Button);
+
+// packages/modal/src/style/modal.css.ts
+var Theme11 = theme_exports.ThemeVars;
+var getOverlayStyle = () => {
+  return style({
+    backgroundColor: "rgba(12, 18, 52, 0.7)",
+    position: "fixed",
+    left: 0,
+    top: 0,
+    width: "100%",
+    height: "100%",
+    opacity: 0,
+    visibility: "hidden",
+    zIndex: 1e3,
+    transition: "visibility 0s linear .25s, opacity .25s",
+    $nest: {
+      "&.show": {
+        opacity: "1",
+        visibility: "visible",
+        transition: "visibility 0s linear, opacity .25s"
+      }
+    }
+  });
+};
+var getWrapperStyle = () => {
+  return style({
+    position: "fixed",
+    left: 0,
+    top: 0,
+    width: "100%",
+    height: "100%",
+    opacity: 0,
+    visibility: "hidden",
+    transform: "scale(0.8)",
+    transition: "visibility 0s linear .25s,opacity .25s 0s,transform .25s",
+    zIndex: 1e3,
+    overflow: "auto",
+    $nest: {
+      "&.show": {
+        opacity: "1",
+        visibility: "visible",
+        transform: "scale(1)",
+        transition: "visibility 0s linear 0s,opacity .25s 0s,transform .25s"
+      }
+    }
+  });
+};
+var getNoBackdropStyle = () => {
+  return style({
+    position: "inherit",
+    top: 0,
+    left: 0,
+    opacity: 0,
+    visibility: "hidden",
+    transform: "scale(0.8)",
+    transition: "visibility 0s linear .25s,opacity .25s 0s,transform .25s",
+    zIndex: 1e3,
+    overflow: "auto",
+    width: "100%",
+    maxWidth: "inherit",
+    $nest: {
+      ".modal": {
+        margin: "0"
+      },
+      "&.show": {
+        opacity: "1",
+        visibility: "visible",
+        transform: "scale(1)",
+        transition: "visibility 0s linear 0s,opacity .25s 0s,transform .25s"
+      }
+    }
+  });
+};
+var modalStyle = style({
+  fontFamily: "Helvetica",
+  fontSize: "14px",
+  padding: "10px 10px 5px 10px",
+  backgroundColor: Theme11.background.modal,
+  position: "relative",
+  borderRadius: "2px",
+  minWidth: "300px",
+  width: "inherit",
+  maxWidth: "100%"
+});
+var titleStyle = style({
+  fontSize: "18px",
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  $nest: {
+    "span": {
+      color: Theme11.colors.primary.main
+    },
+    "i-icon": {
+      display: "inline-block",
+      cursor: "pointer"
+    }
+  }
+});
+var getStringValue = (value) => {
+  return typeof value === "string" ? `${value} !important` : `${value}px !important`;
+};
+var getModalMediaQueriesStyleClass = (mediaQueries) => {
+  let styleObj = getControlMediaQueriesStyle(mediaQueries);
+  for (let mediaQuery of mediaQueries) {
+    let mediaQueryRule;
+    if (mediaQuery.minWidth && mediaQuery.maxWidth) {
+      mediaQueryRule = `@media (min-width: ${mediaQuery.minWidth}) and (max-width: ${mediaQuery.maxWidth})`;
+    } else if (mediaQuery.minWidth) {
+      mediaQueryRule = `@media (min-width: ${mediaQuery.minWidth})`;
+    } else if (mediaQuery.maxWidth) {
+      mediaQueryRule = `@media (max-width: ${mediaQuery.maxWidth})`;
+    }
+    if (mediaQueryRule) {
+      const nestObj = styleObj["$nest"][mediaQueryRule]["$nest"] || {};
+      const ruleObj = styleObj["$nest"][mediaQueryRule];
+      styleObj["$nest"][mediaQueryRule] = {
+        ...ruleObj,
+        $nest: {
+          ...nestObj,
+          "&.show > .modal-overlay": {},
+          ".modal-wrapper": {},
+          ".modal": {}
+        }
+      };
+      if (mediaQuery.properties.showBackdrop) {
+        const showBackdrop = mediaQuery.properties.showBackdrop;
+        if (showBackdrop) {
+          styleObj["$nest"][mediaQueryRule]["$nest"]["&.show > .modal-overlay"]["visibility"] = "visible !important";
+          styleObj["$nest"][mediaQueryRule]["$nest"]["&.show > .modal-overlay"]["opacity"] = "1 !important";
+        } else {
+          styleObj["$nest"][mediaQueryRule]["$nest"]["&.show > .modal-overlay"]["visibility"] = "hidden !important";
+          styleObj["$nest"][mediaQueryRule]["$nest"]["&.show > .modal-overlay"]["opacity"] = "0 !important";
+        }
+      }
+      if (mediaQuery.properties.position) {
+        const position = mediaQuery.properties.position;
+        styleObj["$nest"][mediaQueryRule]["$nest"][".modal-wrapper"]["position"] = `${position} !important`;
+      }
+      if (mediaQuery.properties.maxWidth !== void 0 && mediaQuery.properties.maxWidth !== null) {
+        const maxWidth = getStringValue(mediaQuery.properties.maxWidth);
+        styleObj["$nest"][mediaQueryRule]["maxWidth"] = maxWidth;
+        styleObj["$nest"][mediaQueryRule]["$nest"][".modal"]["maxWidth"] = maxWidth;
+      }
+      if (mediaQuery.properties.maxHeight !== void 0 && mediaQuery.properties.maxHeight !== null) {
+        const maxHeight = getStringValue(mediaQuery.properties.maxHeight);
+        styleObj["$nest"][mediaQueryRule]["$nest"][".modal"]["maxHeight"] = maxHeight;
+      }
+      if (mediaQuery.properties.height !== void 0 && mediaQuery.properties.height !== null) {
+        const height = getStringValue(mediaQuery.properties.height);
+        styleObj["$nest"][mediaQueryRule]["$nest"][".modal"]["height"] = height;
+      }
+      if (mediaQuery.properties.width !== void 0 && mediaQuery.properties.width !== null) {
+        const width = getStringValue(mediaQuery.properties.width);
+        styleObj["$nest"][mediaQueryRule]["width"] = width;
+        styleObj["$nest"][mediaQueryRule]["$nest"][".modal"]["width"] = width;
+      }
+      if (mediaQuery.properties.minWidth !== void 0 && mediaQuery.properties.minWidth !== null) {
+        const minWidth = getStringValue(mediaQuery.properties.minWidth);
+        styleObj["$nest"][mediaQueryRule]["minWidth"] = minWidth;
+        styleObj["$nest"][mediaQueryRule]["$nest"][".modal"]["minWidth"] = minWidth;
+      }
+      if (mediaQuery.properties.popupPlacement) {
+        const placement = mediaQuery.properties.popupPlacement;
+        let positionObj = {
+          top: "unset",
+          left: "unset",
+          right: "unset",
+          bottom: "unset"
+        };
+        if (placement === "bottom") {
+          positionObj.top = "auto !important";
+          positionObj.left = "0 !important";
+          positionObj.bottom = "0 !important";
+        } else if (placement === "top") {
+          positionObj.top = "0 !important";
+          positionObj.left = "0 !important";
+        } else if (placement === "center") {
+          positionObj.top = "50% !important";
+          positionObj.left = "50% !important";
+        }
+        for (let pos in positionObj) {
+          styleObj["$nest"][mediaQueryRule]["$nest"][".modal-wrapper"][pos] = positionObj[pos];
+        }
+      }
+      if (mediaQuery.properties.border) {
+        const { radius, width, style: style2, color, bottom, top, left, right } = mediaQuery.properties.border;
+        if (width !== void 0 && width !== null)
+          styleObj["$nest"][mediaQueryRule]["$nest"][".modal"]["border"] = `${width || ""} ${style2 || ""} ${color || ""}!important`;
+        if (radius) {
+          styleObj["$nest"][mediaQueryRule]["$nest"][".modal-wrapper"]["borderRadius"] = "inherit";
+          styleObj["$nest"][mediaQueryRule]["$nest"][".modal"]["borderRadius"] = `${getSpacingValue(radius)} !important`;
+        }
+        if (bottom)
+          styleObj["$nest"][mediaQueryRule]["$nest"][".modal"]["borderBottom"] = `${getSpacingValue(bottom.width || "")} ${bottom.style || ""} ${bottom.color || ""}!important`;
+        if (top)
+          styleObj["$nest"][mediaQueryRule]["$nest"][".modal"]["borderTop"] = `${getSpacingValue(top.width || "") || ""} ${top.style || ""} ${top.color || ""}!important`;
+        if (left)
+          styleObj["$nest"][mediaQueryRule]["$nest"][".modal"]["borderLeft"] = `${getSpacingValue(left.width || "")} ${left.style || ""} ${left.color || ""}!important`;
+        if (right)
+          styleObj["$nest"][mediaQueryRule]["$nest"][".modal"]["borderRight"] = `${getSpacingValue(right.width || "")} ${right.style || ""} ${right.color || ""}!important`;
+      }
+      if (mediaQuery.properties.padding) {
+        const { top = 0, right = 0, bottom = 0, left = 0 } = mediaQuery.properties.padding;
+        styleObj["$nest"][mediaQueryRule]["$nest"][".modal"]["padding"] = `${getSpacingValue(top)} ${getSpacingValue(right)} ${getSpacingValue(bottom)} ${getSpacingValue(left)} !important`;
+      }
+      if (mediaQuery.properties.overflow) {
+        const overflow = mediaQuery.properties.overflow;
+        if (typeof overflow === "string") {
+          styleObj["$nest"][mediaQueryRule]["$nest"][".modal"]["overflow"] = `${overflow} !important`;
+        } else {
+          const { x, y } = overflow || {};
+          if (x === y) {
+            styleObj["$nest"][mediaQueryRule]["$nest"][".modal"]["overflow"] = `${x} !important`;
+          } else {
+            if (x)
+              styleObj["$nest"][mediaQueryRule]["$nest"][".modal"]["overflowX"] = `${x} !important`;
+            if (y)
+              styleObj["$nest"][mediaQueryRule]["$nest"][".modal"]["overflowY"] = `${y} !important`;
+          }
+        }
+      }
+    }
+  }
+  return style(styleObj);
+};
+
+// packages/modal/src/modal.ts
+var Theme12 = theme_exports.ThemeVars;
+var showEvent = new Event("show");
+var Modal = class extends Container {
+  constructor(parent, options) {
+    super(parent, options, {
+      showClose: true,
+      showBackdrop: true,
+      closeOnBackdropClick: true,
+      popupPlacement: "center"
+    });
+    this.hasInitializedChildFixed = false;
+    this.mapScrollTop = {};
+    this.boundHandleModalMouseDown = this.handleModalMouseDown.bind(this);
+    this.boundHandleModalMouseUp = this.handleModalMouseUp.bind(this);
+  }
+  get visible() {
+    return this._visible;
+  }
+  set visible(value) {
+    var _a, _b;
+    this.positionAtChildFixed(value);
+    if (value) {
+      this._visible = true;
+      this.style.display = "block";
+      this.wrapperDiv.classList.add("show");
+      this.dispatchEvent(showEvent);
+      if (this.showBackdrop) {
+        this.overlayDiv.classList.add("show");
+        document.body.style.overflow = "hidden";
+        const parentModal = (_a = this.parentElement) == null ? void 0 : _a.closest("i-modal");
+        if (parentModal) {
+          parentModal.wrapperDiv.style.overflow = "hidden";
+          parentModal.wrapperDiv.scrollTop = 0;
+        }
+        this.wrapperDiv.style.overflow = "hidden auto";
+      }
+      document.addEventListener("mousedown", this.boundHandleModalMouseDown);
+      document.addEventListener("mouseup", this.boundHandleModalMouseUp);
+    } else {
+      this._visible = false;
+      this.style.display = "none";
+      this.wrapperDiv.classList.remove("show");
+      this.overlayDiv.classList.remove("show");
+      if (this.showBackdrop) {
+        const parentModal = (_b = this.parentElement) == null ? void 0 : _b.closest("i-modal");
+        if (parentModal) {
+          parentModal.wrapperDiv.style.overflow = "hidden auto";
+          document.body.style.overflow = "hidden";
+        } else {
+          document.body.style.overflow = "hidden auto";
+        }
+      }
+      if (this.isChildFixed) {
+        this.wrapperDiv.style.display = "none";
+      }
+      this.onClose && this.onClose(this);
+      document.removeEventListener("mousedown", this.boundHandleModalMouseDown);
+      document.removeEventListener("mouseup", this.boundHandleModalMouseUp);
+    }
+  }
+  get onOpen() {
+    return this._onOpen;
+  }
+  set onOpen(callback) {
+    this._onOpen = callback;
+  }
+  get title() {
+    const titleElm = this.titleSpan.querySelector("span");
+    return (titleElm == null ? void 0 : titleElm.innerHTML) || "";
+  }
+  set title(value) {
+    const titleElm = this.titleSpan.querySelector("span");
+    titleElm && (titleElm.innerHTML = value || "");
+  }
+  get popupPlacement() {
+    return this._placement;
+  }
+  set popupPlacement(value) {
+    this._placement = value;
+  }
+  get closeIcon() {
+    return this._closeIcon;
+  }
+  set closeIcon(elm) {
+    if (this._closeIcon && this.titleSpan.contains(this._closeIcon))
+      this.titleSpan.removeChild(this._closeIcon);
+    this._closeIcon = elm;
+    if (this._closeIcon) {
+      this._closeIcon.classList.add("i-modal-close");
+      this._closeIcon.onClick = () => this.visible = false;
+      this.titleSpan.appendChild(this._closeIcon);
+    }
+  }
+  get closeOnBackdropClick() {
+    return this._closeOnBackdropClick;
+  }
+  set closeOnBackdropClick(value) {
+    this._closeOnBackdropClick = typeof value === "boolean" ? value : true;
+  }
+  get showBackdrop() {
+    return this._showBackdrop;
+  }
+  set showBackdrop(value) {
+    this._showBackdrop = typeof value === "boolean" ? value : true;
+    if (this._showBackdrop) {
+      const wrapperStyle = getWrapperStyle();
+      this.setTargetStyle(this.wrapperDiv, "showBackdrop", wrapperStyle);
+      this.style.position = "unset";
+    } else {
+      this.style.position = "absolute";
+      this.style.left = "0px";
+      this.style.top = "0px";
+      const noBackdropStyle = getNoBackdropStyle();
+      this.setTargetStyle(this.wrapperDiv, "showBackdrop", noBackdropStyle);
+    }
+  }
+  get item() {
+    return this.modalDiv.children[0];
+  }
+  set item(value) {
+    if (value instanceof Control) {
+      this.modalDiv.innerHTML = "";
+      value && this.modalDiv.appendChild(value);
+    }
+  }
+  get body() {
+    return this.modalDiv.children[0];
+  }
+  set body(value) {
+    if (value instanceof Control) {
+      this.bodyDiv.innerHTML = "";
+      value && this.bodyDiv.appendChild(value);
+    }
+  }
+  get position() {
+    return this._wrapperPositionAt;
+  }
+  set position(value) {
+    this._wrapperPositionAt = value;
+  }
+  get isChildFixed() {
+    return this._isChildFixed;
+  }
+  set isChildFixed(value) {
+    this._isChildFixed = value;
+    if (value) {
+      this.setChildFixed();
+    } else {
+      this.style.position = "unset";
+    }
+  }
+  get closeOnScrollChildFixed() {
+    return this._closeOnScrollChildFixed;
+  }
+  set closeOnScrollChildFixed(value) {
+    this._closeOnScrollChildFixed = value;
+  }
+  get mediaQueries() {
+    return this._mediaQueries;
+  }
+  set mediaQueries(value) {
+    this._mediaQueries = value;
+    let style2 = getModalMediaQueriesStyleClass(this._mediaQueries);
+    this._mediaStyle && this.classList.remove(this._mediaStyle);
+    this._mediaStyle = style2;
+    this.classList.add(style2);
+  }
+  setChildFixed() {
+    this.style.position = "fixed";
+    this.zIndex = 9999;
+    this.mapScrollTop = {};
+    const getScrollY = (elm) => {
+      let scrollID = elm.getAttribute("scroll-id");
+      if (!scrollID) {
+        scrollID = IdUtils.generateUUID();
+        elm.setAttribute("scroll-id", scrollID);
+      }
+      this.mapScrollTop[scrollID] = elm.scrollTop;
+    };
+    const onParentScroll = (e) => {
+      if (this.visible && this.closeOnScrollChildFixed) {
+        this.visible = false;
+      }
+      if (e && !e.target.offsetParent && e.target.getAttribute) {
+        getScrollY(e.target);
+      }
+      if (this.visible && !this.closeOnScrollChildFixed) {
+        this.positionAtChildFixed(true);
+      }
+    };
+    let parentElement = this.parentNode;
+    while (parentElement) {
+      this.hasInitializedChildFixed = true;
+      parentElement.addEventListener("scroll", (e) => onParentScroll(e));
+      parentElement = parentElement.parentNode;
+      if (parentElement === document.body) {
+        document.addEventListener("scroll", (e) => onParentScroll(e));
+        break;
+      } else if (parentElement && !parentElement.offsetParent && parentElement.scrollTop && typeof parentElement.getAttribute === "function") {
+        getScrollY(parentElement);
+      }
+    }
+  }
+  positionAtChildFixed(value) {
+    if (this.isChildFixed) {
+      if (!this.hasInitializedChildFixed) {
+        this.setChildFixed();
+      }
+      if (this.wrapperDiv) {
+        this.wrapperDiv.style.position = !value ? "unset" : "relative";
+        this.wrapperDiv.style.display = !value ? "none" : "block";
+      }
+      if (value && this.parentElement) {
+        const { x, y, height } = this.parentElement.getBoundingClientRect();
+        const mdClientRect = this.getBoundingClientRect();
+        const { innerHeight, innerWidth } = window;
+        const elmHeight = mdClientRect.height + (height || 20);
+        const elmWidth = mdClientRect.width;
+        let totalScrollY = 0;
+        for (const key2 in this.mapScrollTop) {
+          totalScrollY += this.mapScrollTop[key2];
+        }
+        if (y + elmHeight > innerHeight) {
+          const elmTop = y - elmHeight + totalScrollY;
+          this.style.top = `${elmTop < 0 ? 0 : y - elmHeight + totalScrollY}px`;
+        } else {
+          this.style.top = `${y + totalScrollY}px`;
+        }
+        if (x + elmWidth > innerWidth) {
+          this.style.left = `${innerWidth - elmWidth}px`;
+        } else {
+          this.style.left = `${x}px`;
+        }
+      }
+    }
+  }
+  positionAt(placement) {
+    if (this.showBackdrop) {
+      this.positionAtFix(placement);
+    } else {
+      this.positionAtAbsolute(placement);
+    }
+  }
+  positionAtFix(placement) {
+    let parent = document.body;
+    let coords = this.getWrapperFixCoords(parent, placement);
+    this.wrapperDiv.style.width = "100%";
+    this.wrapperDiv.style.height = "100%";
+    this.wrapperDiv.style.paddingLeft = coords.left + "px";
+    this.wrapperDiv.style.paddingTop = coords.top + "px";
+  }
+  positionAtAbsolute(placement) {
+    let parent = this._parent || this.linkTo || this.parentElement || document.body;
+    let coords;
+    if (this.position === "fixed") {
+      coords = this.getWrapperFixCoords(parent, placement);
+    } else {
+      coords = this.getWrapperAbsoluteCoords(parent, placement);
+    }
+    this.wrapperDiv.style.height = "inherit";
+    this.wrapperDiv.style.width = "inherit";
+    this.wrapperDiv.style.left = coords.left + "px";
+    this.wrapperDiv.style.top = coords.top + "px";
+  }
+  getWrapperFixCoords(parent, placement) {
+    const parentCoords = parent.getBoundingClientRect();
+    let left = 0;
+    let top = 0;
+    const parentHeight = this.showBackdrop ? (parentCoords.height || window.innerHeight) - 1 : parentCoords.height;
+    switch (placement) {
+      case "center":
+        top = parentHeight / 2 - this.modalDiv.offsetHeight / 2;
+        left = parentCoords.width / 2 - this.modalDiv.offsetWidth / 2 - 1;
+        break;
+      case "top":
+        top = this.showBackdrop ? 0 : parentCoords.top - parentHeight;
+        left = parentCoords.left + (parent.offsetWidth - this.modalDiv.offsetWidth) / 2 - 1;
+        break;
+      case "topLeft":
+        top = this.showBackdrop ? 0 : parentCoords.top - parentHeight;
+        left = parentCoords.left;
+        break;
+      case "topRight":
+        top = this.showBackdrop ? 0 : parentCoords.top - parentHeight;
+        left = parentCoords.left + parent.offsetWidth - this.modalDiv.offsetWidth - 1;
+        break;
+      case "bottom":
+        top = parentCoords.top + parentHeight;
+        if (this.showBackdrop)
+          top = top - this.modalDiv.offsetHeight - 1;
+        left = parentCoords.left + (parent.offsetWidth - this.modalDiv.offsetWidth) / 2 - 1;
+        break;
+      case "bottomLeft":
+        top = parentCoords.top + parentHeight;
+        if (this.showBackdrop)
+          top = top - this.modalDiv.offsetHeight;
+        left = parentCoords.left;
+        break;
+      case "bottomRight":
+        top = parentCoords.top + parentHeight;
+        if (this.showBackdrop)
+          top = top - this.modalDiv.offsetHeight;
+        left = parentCoords.left + parent.offsetWidth - this.modalDiv.offsetWidth - 1;
+        break;
+      case "rightTop":
+        top = parentCoords.top;
+        left = parentCoords.right;
+        if (parentCoords.right + this.modalDiv.offsetWidth > document.documentElement.clientWidth) {
+          left = document.documentElement.clientWidth - this.modalDiv.offsetWidth;
+        }
+        break;
+    }
+    left = left < 0 ? parentCoords.left : left;
+    top = top < 0 ? parentCoords.top : top;
+    return { top, left };
+  }
+  getWrapperAbsoluteCoords(parent, placement) {
+    const parentCoords = parent.getBoundingClientRect();
+    let left = 0;
+    let top = 0;
+    let max;
+    switch (placement) {
+      case "center":
+        left = (parentCoords.width - this.wrapperDiv.offsetWidth) / 2;
+        top = (parentCoords.height - this.modalDiv.offsetHeight) / 2;
+        break;
+      case "top":
+      case "topLeft":
+        if (this.isChildFixed) {
+          top = this.getParentOccupiedTop();
+          left = this.getParentOccupiedLeft();
+          break;
+        }
+      case "topRight":
+        if (this.isChildFixed) {
+          top = this.getParentOccupiedTop();
+          left = parentCoords.width - this.getParentOccupiedRight() - this.wrapperDiv.offsetWidth;
+          break;
+        }
+        if (parentCoords.top - this.modalDiv.offsetHeight >= 0) {
+          top = -this.modalDiv.offsetHeight;
+        } else {
+          if (window.innerHeight < this.modalDiv.offsetHeight + parentCoords.bottom) {
+            max = window.innerHeight - this.modalDiv.offsetHeight - parentCoords.y;
+            top = (parentCoords.height - this.modalDiv.offsetHeight) / 2;
+            top = top < -parentCoords.y ? -parentCoords.y : top > max ? max : top;
+          } else {
+            top = parentCoords.height;
+          }
+        }
+        break;
+      case "bottom":
+      case "bottomLeft":
+        if (this.isChildFixed) {
+          left = 0;
+          top = parentCoords.height;
+          break;
+        }
+      case "bottomRight":
+        if (this.isChildFixed) {
+          top = parentCoords.height;
+          left = parentCoords.width - this.wrapperDiv.offsetWidth;
+          break;
+        }
+        if (window.innerHeight < this.modalDiv.offsetHeight + parentCoords.bottom) {
+          if (parentCoords.y - this.modalDiv.offsetHeight < 0) {
+            max = window.innerHeight - this.modalDiv.offsetHeight - parentCoords.y;
+            top = (parentCoords.height - this.modalDiv.offsetHeight) / 2;
+            top = top < -parentCoords.y ? -parentCoords.y : top > max ? max : top;
+          } else {
+            top = -this.modalDiv.offsetHeight;
+          }
+        } else {
+          top = parentCoords.height;
+        }
+        break;
+      case "rightTop":
+        top = 0;
+        left = parentCoords.width;
+        break;
+      case "left":
+        max = window.innerHeight - this.modalDiv.offsetHeight - parentCoords.y;
+        top = (parentCoords.height - this.modalDiv.offsetHeight) / 2;
+        top = top < -parentCoords.y ? -parentCoords.y : top > max ? max : top;
+        left = -this.wrapperDiv.offsetWidth - 8;
+        break;
+    }
+    if (this.isChildFixed) {
+      if (placement !== "bottomRight" && placement !== "left")
+        left = left < 0 ? parentCoords.left : left;
+      if (placement !== "left")
+        top = top < 0 ? parentCoords.top : top;
+      return { top, left };
+    }
+    if (placement === "topRight" || placement === "bottomRight") {
+      if (parentCoords.right - this.wrapperDiv.offsetWidth >= 0) {
+        left = parentCoords.width - this.wrapperDiv.offsetWidth;
+      } else {
+        left = -parentCoords.left;
+      }
+    } else if (["top", "topLeft", "bottom", "bottomLeft"].includes(placement)) {
+      if (window.innerWidth >= parentCoords.left + this.wrapperDiv.offsetWidth) {
+        left = 0;
+      } else {
+        left = Math.min(parentCoords.width - this.wrapperDiv.offsetWidth, window.innerWidth - parentCoords.left - this.wrapperDiv.offsetWidth);
+      }
+    }
+    return { top, left };
+  }
+  _handleOnShow(event) {
+    if (this.popupPlacement && this.enabled)
+      this.positionAt(this.popupPlacement);
+    if (this.enabled && this._onOpen) {
+      event.preventDefault();
+      this._onOpen(this);
+    }
+  }
+  handleModalMouseDown(event) {
+    const target = event.target;
+    this.insideClick = true;
+    if (this.closeOnBackdropClick) {
+      this.insideClick = this.showBackdrop ? target !== this.wrapperDiv : this.modalDiv.contains(target);
+    } else if (!this.showBackdrop) {
+      let parent = this._parent || this.linkTo || this.parentElement;
+      this.insideClick = this.modalDiv.contains(target) || (parent == null ? void 0 : parent.contains(target));
+    }
+  }
+  handleModalMouseUp(event) {
+    if (!this.insideClick)
+      this.visible = false;
+  }
+  updateModal(name, value) {
+    if (!isNaN(Number(value)))
+      this.modalDiv.style[name] = value + "px";
+    else
+      this.modalDiv.style[name] = value;
+    this.style[name] = "";
+  }
+  refresh() {
+    super.refresh(true);
+    if (this.visible && this.popupPlacement) {
+      this.positionAt(this.popupPlacement);
+    }
+  }
+  get background() {
+    return this._background;
+  }
+  set background(value) {
+    if (!this._background) {
+      this._background = new Background(this.modalDiv, value);
+    } else {
+      this._background.setBackgroundStyle(value);
+    }
+  }
+  get width() {
+    return !isNaN(this._width) ? this._width : this.offsetWidth;
+  }
+  set width(value) {
+    this._width = value;
+    this.updateModal("width", value);
+  }
+  get height() {
+    return this._height;
+  }
+  set height(value) {
+    this._height = value;
+    this.updateModal("height", value);
+  }
+  get border() {
+    return this._border;
+  }
+  set border(value) {
+    this._border = new Border(this.showBackdrop ? this.modalDiv : this.wrapperDiv, value);
+  }
+  get padding() {
+    return this._padding;
+  }
+  set padding(value) {
+    if (!this._padding)
+      this._padding = new SpaceValue(this.modalDiv, value, "padding");
+    else
+      this._padding.update(value);
+  }
+  get boxShadow() {
+    return (this.showBackdrop ? this.modalDiv : this.wrapperDiv).style.boxShadow;
+  }
+  set boxShadow(value) {
+    (this.showBackdrop ? this.modalDiv : this.wrapperDiv).style.boxShadow = value;
+  }
+  get overflow() {
+    if (!this._overflow) {
+      this._overflow = new Overflow(this.modalDiv);
+    }
+    return this._overflow;
+  }
+  set overflow(value) {
+    if (!this._overflow) {
+      this._overflow = new Overflow(this.modalDiv, value);
+    } else {
+      this._overflow.setOverflowStyle(value);
+    }
+  }
+  removeTargetStyle(target, propertyName) {
+    let style2 = this.propertyClassMap[propertyName];
+    if (style2)
+      target.classList.remove(style2);
+  }
+  setTargetStyle(target, propertyName, value) {
+    this.removeTargetStyle(target, propertyName);
+    if (value) {
+      this.propertyClassMap[propertyName] = value;
+      target.classList.add(value);
+    }
+  }
+  init() {
+    var _a;
+    if (!this.wrapperDiv) {
+      if ((_a = this.options) == null ? void 0 : _a.onClose)
+        this.onClose = this.options.onClose;
+      this.popupPlacement = this.getAttribute("popupPlacement", true);
+      this.closeOnBackdropClick = this.getAttribute("closeOnBackdropClick", true);
+      this.wrapperDiv = this.createElement("div", this);
+      this.wrapperDiv.classList.add("modal-wrapper");
+      this.showBackdrop = this.getAttribute("showBackdrop", true);
+      this.modalDiv = this.createElement("div", this.wrapperDiv);
+      this.titleSpan = this.createElement("div", this.modalDiv);
+      this.titleSpan.classList.add(titleStyle, "i-modal_header");
+      this.createElement("span", this.titleSpan);
+      this.title = this.getAttribute("title", true);
+      const closeIconAttr = this.getAttribute("closeIcon", true);
+      if (closeIconAttr) {
+        closeIconAttr.height = closeIconAttr.height || "16px";
+        closeIconAttr.width = closeIconAttr.width || "16px";
+        closeIconAttr.fill = closeIconAttr.fill || Theme12.colors.primary.main;
+        this.closeIcon = new Icon(void 0, closeIconAttr);
+      }
+      this.bodyDiv = this.createElement("div", this.modalDiv);
+      while (this.childNodes.length > 1) {
+        this.bodyDiv.appendChild(this.childNodes[0]);
+      }
+      this.overlayDiv = this.createElement("div", this);
+      this.prepend(this.overlayDiv);
+      const overlayStyle = getOverlayStyle();
+      this.overlayDiv.classList.add(overlayStyle);
+      this.overlayDiv.classList.add("modal-overlay");
+      this.modalDiv.classList.add(modalStyle);
+      this.modalDiv.classList.add("modal");
+      this.addEventListener("show", this._handleOnShow.bind(this));
+      window.addEventListener("keydown", (event) => {
+        if (!this.visible)
+          return;
+        if (event.key === "Escape") {
+          this.visible = false;
+        }
+      });
+      const isChildFixed = this.getAttribute("isChildFixed", true);
+      if (isChildFixed)
+        this.isChildFixed = isChildFixed;
+      const closeOnScrollChildFixed = this.getAttribute("closeOnScrollChildFixed", true);
+      this.closeOnScrollChildFixed = closeOnScrollChildFixed;
+      const itemAttr = this.getAttribute("item", true);
+      if (itemAttr)
+        this.item = itemAttr;
+      super.init();
+      const maxWidth = this.getAttribute("maxWidth", true);
+      if (maxWidth !== void 0)
+        this.updateModal("maxWidth", this.maxWidth);
+      const minHeight = this.getAttribute("minHeight", true);
+      if (minHeight !== void 0)
+        this.updateModal("minHeight", this.minHeight);
+      const minWidth = this.getAttribute("minWidth", true);
+      if (minWidth !== void 0)
+        this.updateModal("minWidth", this.minWidth);
+      const height = this.getAttribute("height", true);
+      if (height !== void 0)
+        this.updateModal("height", this.height);
+      const maxHeight = this.getAttribute("maxHeight", true);
+      if (maxHeight !== void 0)
+        this.updateModal("maxHeight", this.maxHeight);
+      let border = this.getAttribute("border", true);
+      if (border) {
+        this._border = new Border(this.showBackdrop ? this.modalDiv : this.wrapperDiv, border);
+        this.style.border = "none";
+      }
+      let padding = this.getAttribute("padding", true);
+      if (padding) {
+        this._padding = new SpaceValue(this.modalDiv, padding, "padding");
+      }
+      let boxShadow = this.getAttribute("boxShadow", true);
+      if (boxShadow)
+        this.boxShadow = boxShadow;
+      let overflow = this.getAttribute("overflow", true);
+      if (overflow) {
+        this._overflow = new Overflow(this.modalDiv, overflow);
+      }
+      this.mediaQueries = this.getAttribute("mediaQueries", true, []);
+    }
+  }
+  static async create(options, parent) {
+    let self = new this(parent, options);
+    await self.ready();
+    return self;
+  }
+};
+Modal = __decorateClass([
+  customElements2("i-modal")
+], Modal);
+
 // packages/upload/src/style/upload-modal.css.ts
 var Theme13 = theme_exports.ThemeVars;
 cssRule("i-upload-modal", {
@@ -22787,7 +23021,7 @@ cssRule("i-upload-modal", {
         ".modal": {
           padding: 0,
           height: "auto",
-          backgroundColor: Theme13.colors.primary.contrastText,
+          backgroundColor: Theme13.background.modal,
           borderRadius: "10px",
           boxShadow: "0 1px 5px 0 rgb(0 0 0 / 12%), 0 2px 10px 0 rgb(0 0 0 / 8%), 0 1px 20px 0 rgb(0 0 0 / 8%)",
           overflow: "auto",
@@ -23294,7 +23528,7 @@ var UploadModal = class extends Control {
   }
   async onUpload() {
     return new Promise(async (resolve, reject) => {
-      var _a, _b, _c, _d, _e;
+      var _a, _b, _c, _d, _e, _f;
       if (!this.fileListData.length)
         reject();
       this._uploadBtnElm.caption = "Uploading files to IPFS...";
@@ -23327,15 +23561,27 @@ var UploadModal = class extends Control {
           console.log("uploadToResult: ", uploadResult);
           if (uploadResult && uploadResult.data) {
             uploadResult.data.name = this.parentDir.name;
-            console.log("uploadToResult before sync: ", this.parentDir);
-            const syncResult = await application.uploadTo(this.rootCid, [
-              { cid: uploadResult.data }
-            ]);
-            console.log("syncResult: ", syncResult);
-            if (syncResult && syncResult.data) {
+            if (this.parentDir.cid !== this.rootCid) {
+              const syncResult = await application.uploadTo(this.rootCid, [
+                { cid: uploadResult.data }
+              ]);
+              console.log("syncResult: ", syncResult);
+              if (syncResult && syncResult.data) {
+                if (this.onBeforeUploaded)
+                  this.onBeforeUploaded(this, syncResult.data);
+              }
+            } else {
               if (this.onBeforeUploaded)
-                this.onBeforeUploaded(this, syncResult.data);
+                this.onBeforeUploaded(this, uploadResult.data);
             }
+            for (let i = 0; i < this.fileListData.length; i++) {
+              const file = this.fileListData[i];
+              if (this.onUploaded && file.file.cid)
+                this.onUploaded(this, file.file, (_b = file.file.cid) == null ? void 0 : _b.cid);
+              file.status = 1;
+            }
+            this.renderFilterBar();
+            this.renderFileList();
           }
         } catch (err) {
           console.log("Error! ", err);
@@ -23356,17 +23602,17 @@ var UploadModal = class extends Control {
           } else {
             const file = this.fileListData[i];
             file.url = `/ipfs/${cidItems.cid}${file.file.path || file.file.name}`;
-            if ([1, 3].includes(file.status) || !((_b = file.file.cid) == null ? void 0 : _b.cid)) {
+            if ([1, 3].includes(file.status) || !((_c = file.file.cid) == null ? void 0 : _c.cid)) {
               continue;
             }
             this.fileListData[i].status = 3;
             this.renderFilterBar();
-            if (uploadUrl[(_c = file.file.cid) == null ? void 0 : _c.cid]) {
+            if (uploadUrl[(_d = file.file.cid) == null ? void 0 : _d.cid]) {
               try {
-                let result = await application.upload(uploadUrl[(_d = file.file.cid) == null ? void 0 : _d.cid], file.file);
+                let result = await application.upload(uploadUrl[(_e = file.file.cid) == null ? void 0 : _e.cid], file.file);
                 console.log("uploaded fileListData result: ", result);
                 if (this.onUploaded)
-                  this.onUploaded(this, file.file, (_e = file.file.cid) == null ? void 0 : _e.cid);
+                  this.onUploaded(this, file.file, (_f = file.file.cid) == null ? void 0 : _f.cid);
                 this.fileListData[i].status = 1;
                 this.renderFilterBar();
                 this.renderFileList();
@@ -24376,7 +24622,7 @@ var ComboBox = class extends Control {
   }
   getItemIndex(items, item) {
     const value = item == null ? void 0 : item.value.toString();
-    if (!value)
+    if (!value && value !== "")
       return -1;
     const index = items.findIndex((_item) => {
       return _item.value.toString().toLowerCase() === value.toLowerCase();
@@ -26064,6 +26310,7 @@ var ColorPicker = class extends Control {
       this.inputMap.set(item, input);
       const span = this.createElement("span", inputWrap);
       span.style.textTransform = "uppercase";
+      span.style.color = "#222";
       span.innerHTML = item;
     }
   }
@@ -26391,6 +26638,7 @@ cssRule("i-input", {
   display: "inline-block",
   fontFamily: Theme22.typography.fontFamily,
   fontSize: Theme22.typography.fontSize,
+  background: Theme22.input.background,
   "$nest": {
     "> span": {
       overflow: "hidden"
@@ -26414,7 +26662,8 @@ cssRule("i-input", {
       background: Theme22.input.background,
       borderRadius: "inherit",
       fontSize: "inherit",
-      maxHeight: "100%"
+      maxHeight: "100%",
+      maxWidth: "100%"
     },
     ".clear-btn": {
       display: "none",
@@ -26440,14 +26689,11 @@ cssRule("i-input", {
 });
 
 // packages/input/src/input.ts
-var defaultCaptionWidth3 = 40;
 var defaultRows = 4;
+var CLEAR_BTN_WIDTH = 16;
 var Input = class extends Control {
   constructor(parent, options) {
-    super(parent, options, {
-      height: 25,
-      width: 100
-    });
+    super(parent, options, {});
     this._inputCallback = (value) => {
       this._value = value;
     };
@@ -26480,7 +26726,7 @@ var Input = class extends Control {
     if (this._inputControl) {
       this._inputControl.captionWidth = value;
     } else {
-      value = this._caption ? value || defaultCaptionWidth3 : 0;
+      value = value != null ? value : "auto";
       this._captionWidth = value;
       this.labelElm.style.width = value + "px";
     }
@@ -26510,6 +26756,13 @@ var Input = class extends Control {
         value = "";
       this._value = value;
       this.inputElm.value = value;
+      if (this.clearIconElm) {
+        if (this._showClearButton && value) {
+          this.clearIconElm.classList.add("active");
+        } else {
+          this.clearIconElm.classList.remove("active");
+        }
+      }
     }
   }
   get width() {
@@ -26520,8 +26773,13 @@ var Input = class extends Control {
     const clearBtnWidth = this._showClearButton ? this._clearBtnWidth : 0;
     const captionWidth = typeof this._captionWidth === "string" ? this._captionWidth : `${this._captionWidth}px`;
     this.setPosition("width", value);
-    if (this.inputElm)
-      this.inputElm.style.width = `calc(100% - ${captionWidth} - ${clearBtnWidth}px)`;
+    if (this.inputElm) {
+      if (captionWidth === "auto") {
+        this.inputElm.style.width = `calc(100% - ${clearBtnWidth}px)`;
+      } else {
+        this.inputElm.style.width = `calc(100% - ${captionWidth} - ${clearBtnWidth}px)`;
+      }
+    }
   }
   get readOnly() {
     return this._readOnly;
@@ -26604,6 +26862,18 @@ var Input = class extends Control {
   get border() {
     return super.border;
   }
+  set maxLength(value) {
+    this._maxLength = value;
+    if (this.inputElm) {
+      if (value)
+        this.inputElm.maxLength = value;
+      else
+        this.inputElm.removeAttribute("maxLength");
+    }
+  }
+  get maxLength() {
+    return this._maxLength;
+  }
   set onClosed(callback) {
     this._onClosed = callback;
     if (!this._inputControl || this.inputType !== "color")
@@ -26621,7 +26891,7 @@ var Input = class extends Control {
     const checked = this.getAttribute("checked", true);
     const enabled = this.getAttribute("enabled", true);
     const background = this.getAttribute("background", true);
-    this._clearBtnWidth = height - 2 || 0;
+    this._clearBtnWidth = height - 2 || CLEAR_BTN_WIDTH;
     switch (type) {
       case "checkbox":
         this._inputControl = new Checkbox(this, {
@@ -26823,6 +27093,9 @@ var Input = class extends Control {
     if (this.onClearClick)
       this.onClearClick(this);
   }
+  focus() {
+    this.inputElm.focus();
+  }
   init() {
     if (!this.inputType) {
       this._placeholder = this.getAttribute("placeholder", true);
@@ -26830,10 +27103,11 @@ var Input = class extends Control {
       this._createInputElement(this.inputType);
       this.multiline = this.getAttribute("multiline", true);
       this.caption = this.getAttribute("caption", true);
-      this.captionWidth = parseInt(this.getAttribute("captionWidth", true));
+      this.captionWidth = this.getAttribute("captionWidth", true);
       this.value = this.getAttribute("value", true);
       this.readOnly = this.getAttribute("readOnly", true, false);
       this.resize = this.getAttribute("resize", true, "none");
+      this.maxLength = this.getAttribute("maxLength", true);
       if (this.value && this.clearIconElm)
         this.clearIconElm.classList.add("active");
       super.init();
@@ -28467,6 +28741,224 @@ function convertFieldNameToLabel(name) {
   return label;
 }
 
+// packages/moment/src/index.ts
+RequireJS.config({
+  paths: {
+    "@moment": `${LibPath}lib/moment/2.29.1/moment.js`
+  }
+});
+var moment;
+RequireJS.require(["@moment"], (_moment) => {
+  moment = _moment;
+});
+
+// packages/application/src/formatUtils.ts
+var FormatUtils = class {
+  static unixToFormattedDate(unixTimestamp) {
+    return moment.unix(unixTimestamp).format("YYYY-MM-DD HH:mm:ss");
+  }
+  static truncateTxHash(hash, length = 20) {
+    return hash.substring(0, length) + "...";
+  }
+  static truncateWalletAddress(address) {
+    return address.substring(0, 6) + "..." + address.substring(address.length - 4);
+  }
+  static formatNumber(value, options) {
+    if (!value)
+      return "0";
+    const { decimalFigures, useSeparators = true, roundingMethod = "round", minValue, shortScale = false } = options || {};
+    let stringValue = typeof value === "string" ? value : value.toString();
+    stringValue = stringValue.trim();
+    if (stringValue === "0")
+      return "0";
+    if (minValue !== void 0) {
+      const compareResult = this.compareToMinValue(stringValue, minValue.toString());
+      if (compareResult === -1)
+        return `<${minValue}`;
+    }
+    const hasExponential = stringValue.includes("e");
+    stringValue = hasExponential ? this.removeExponential(stringValue) : stringValue;
+    let suffix = "";
+    if (shortScale) {
+      const { value: newValue2, suffix: newSuffix } = this.scaleValue(stringValue);
+      if (newValue2)
+        stringValue = newValue2;
+      suffix = newSuffix;
+    }
+    let [integerPart, decimalPart] = stringValue.split(".");
+    const formattedInteger = useSeparators ? integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : integerPart;
+    if (decimalFigures === void 0 || decimalFigures < 0) {
+      return (decimalPart ? `${formattedInteger}.${decimalPart}` : formattedInteger) + suffix;
+    }
+    let newValue = "";
+    if (decimalFigures && decimalFigures > 0) {
+      const { newDecimal, newInteger } = this.processDecimalPart(decimalPart, integerPart, options);
+      const formattedInteger2 = useSeparators ? newInteger.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : newInteger;
+      newValue = newDecimal ? `${formattedInteger2}.${newDecimal}` : formattedInteger2;
+    } else {
+      const newInteger = this.roundIntegerPart(decimalPart, integerPart, roundingMethod);
+      newValue = useSeparators ? newInteger.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : newInteger;
+    }
+    return (newValue.length > 18 ? newValue.substring(0, 18) + "..." : newValue) + suffix;
+  }
+  static scaleValue(value) {
+    let [integerPart] = value.split(".");
+    const absBigInteger = BigInt(integerPart.replace(/\-|\s+/g, ""));
+    const newBigValue = new BigDecimal(value);
+    let newValue = "";
+    let suffix = "";
+    if (absBigInteger >= 1e9) {
+      newValue = newBigValue.divide(new BigDecimal("1000000000")).toString();
+      suffix = "B";
+    } else if (absBigInteger >= 1e6) {
+      newValue = newBigValue.divide(new BigDecimal("1000000")).toString();
+      suffix = "M";
+    } else if (absBigInteger >= 1e3) {
+      newValue = newBigValue.divide(new BigDecimal("1000")).toString();
+      suffix = "K";
+    }
+    return { value: newValue, suffix };
+  }
+  static removeExponential(value) {
+    let [numberPart, ePart] = value.split("e");
+    numberPart = numberPart.replace(".", "");
+    const powValue = Number(ePart) > 0 ? Number(ePart) : Number(ePart) * -1;
+    const eValue = (10 ** powValue).toLocaleString("en-US", { useGrouping: false });
+    const rightPart = Math.abs(numberPart.length - eValue.length);
+    if (Number(ePart) < 0) {
+      return "0." + "0".repeat(Math.abs(rightPart) - 1) + numberPart;
+    } else {
+      return numberPart + "0".repeat(rightPart);
+    }
+  }
+  static compareToMinValue(stringValue, minValue) {
+    let [integerPart1, decimalPart1 = ""] = stringValue.split(".");
+    let [integerPart2, decimalPart2 = ""] = minValue.split(".");
+    const maxDecimals = Math.max(decimalPart1.length, decimalPart2.length);
+    const bigValue1 = BigInt(integerPart1 + decimalPart1.padEnd(maxDecimals, "0"));
+    const bigValue2 = BigInt(integerPart2 + decimalPart2.padEnd(maxDecimals, "0"));
+    if (bigValue1 > bigValue2) {
+      return 1;
+    } else if (bigValue1 < bigValue2) {
+      return -1;
+    } else {
+      return 0;
+    }
+  }
+  static processDecimalPart(decimalPart, integerPart, options) {
+    const { decimalFigures = 0, roundingMethod = "round", hasTrailingZero = true } = options || {};
+    let roundingValue = { newDecimal: decimalPart, newInteger: integerPart };
+    if (decimalPart) {
+      const initialDecimalPart = decimalPart.slice(0, decimalFigures).replace(/0+$/g, "");
+      switch (roundingMethod) {
+        case "round":
+          roundingValue = this.customRound(decimalPart, integerPart, decimalFigures, 5, hasTrailingZero);
+          break;
+        case "ceil":
+          if (integerPart.startsWith("-")) {
+            roundingValue.newDecimal = initialDecimalPart;
+          } else {
+            roundingValue = this.customRound(decimalPart, integerPart, decimalFigures, 1, hasTrailingZero);
+          }
+          break;
+        default:
+          roundingValue.newDecimal = initialDecimalPart;
+      }
+    } else if (hasTrailingZero) {
+      roundingValue.newDecimal = "0".repeat(decimalFigures);
+    }
+    return { ...roundingValue };
+  }
+  static customRound(decimalPart, integerPart, decimalFigures, roundingNumber, hasTrailingZero) {
+    const decimalArr = decimalPart.split("");
+    let lastIndex2 = decimalArr.length - 1;
+    let newInteger = integerPart;
+    for (let i = decimalArr.length - 1; i >= 0; i--) {
+      if (i < decimalFigures) {
+        if (decimalArr[i] === "10" && i === 0) {
+          newInteger = this.incrementLastDigit(integerPart);
+          lastIndex2 = -1;
+          break;
+        } else if (decimalArr[i] !== "10") {
+          lastIndex2 = i + 1;
+          break;
+        }
+      }
+      if (+decimalArr[i] >= roundingNumber && i - 1 >= 0) {
+        decimalArr[i] = "0";
+        decimalArr[i - 1] = `${+decimalArr[i - 1] + 1}`;
+      }
+    }
+    const newDecimal = lastIndex2 >= 0 ? decimalArr.slice(0, lastIndex2).join("") : "";
+    let roundingValue;
+    if (hasTrailingZero && newDecimal.length < decimalFigures) {
+      roundingValue = newDecimal + "0".repeat(decimalFigures - newDecimal.length);
+    } else {
+      roundingValue = newDecimal.replace(/0+$/g, "");
+    }
+    return { newDecimal: roundingValue, newInteger };
+  }
+  static roundIntegerPart(decimalPart, integerPart, roundingMethod) {
+    const firstDecimal = decimalPart && decimalPart.charAt(0);
+    const notRounding = integerPart.startsWith("-") && roundingMethod === "ceil" || roundingMethod === "floor" || !firstDecimal || roundingMethod === "round" && +firstDecimal < 5 || roundingMethod === "ceil" && +firstDecimal < 1;
+    return notRounding ? integerPart : this.incrementLastDigit(integerPart);
+  }
+  static incrementLastDigit(integerPart) {
+    let chars = integerPart.split("") || [];
+    let isNegative = chars[0] === "-";
+    isNegative && chars.shift();
+    if (chars[chars.length - 1] === "9") {
+      for (let i = chars.length - 1; i > 0; i--) {
+        const num = +chars[i];
+        if (num >= 9 && i - 1 > 0) {
+          chars[i] = "0";
+          chars[i - 1] = `${+chars[i - 1] + 1}`;
+        }
+      }
+    } else {
+      chars[chars.length - 1] = `${+chars[chars.length - 1] + 1}`;
+    }
+    if (isNegative)
+      chars.unshift("-");
+    return chars.join("");
+  }
+};
+var _BigDecimal = class {
+  constructor(value) {
+    let [integerPart, decimalPart = ""] = value.split(".");
+    decimalPart = decimalPart.padEnd(_BigDecimal.decimals, "0");
+    this.bigVal = BigInt(integerPart + decimalPart);
+  }
+  static fromBigInt(bigVal) {
+    return Object.assign(Object.create(_BigDecimal.prototype), { bigVal });
+  }
+  toString() {
+    const str = this.bigVal.toString().padStart(_BigDecimal.decimals + 1, "0");
+    return str.slice(0, -_BigDecimal.decimals) + "." + str.slice(-_BigDecimal.decimals).replace(/\.?0+$/, "");
+  }
+  divide(value) {
+    if (!value)
+      throw new Error("Cannot divide to empty value");
+    return _BigDecimal.fromBigInt(this.bigVal * BigInt("1" + "0".repeat(_BigDecimal.decimals)) / value.bigVal);
+  }
+};
+var BigDecimal = _BigDecimal;
+BigDecimal.decimals = 18;
+
+// packages/application/src/idUtils.ts
+var IdUtils = class {
+  static generateUUID(length) {
+    const uuid = "xxxxxxxx-xxxx-xxxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
+      let r = Math.random() * 16 | 0, v = c == "x" ? r : r & 3 | 8;
+      return v.toString(16);
+    });
+    if (length) {
+      return uuid.substring(0, length);
+    }
+    return uuid;
+  }
+};
+
 // packages/application/src/index.ts
 var API_IPFS_BASEURL = "/api/ipfs/v0";
 var IpfsDataType;
@@ -28543,10 +29035,22 @@ var Application = class {
                 if (dependency === "@ijstech/components" || this.packageNames.has(dependency))
                   continue;
                 let packageModulePath = await this.calculatePackageModulePath(dependency, modulePath || "*");
-                if (!packageModulePath)
+                if (!packageModulePath || this.packages[packageModulePath])
                   continue;
+                try {
+                  let m = window["require"](dependency);
+                  if (m) {
+                    if (!this.packageNames.has(dependency))
+                      this.packageNames.add(dependency);
+                    this.packages[packageModulePath] = m.default || m;
+                    continue;
+                  }
+                  ;
+                } catch (err) {
+                }
+                ;
                 packageModulePathMap[dependency] = packageModulePath;
-                promisesMap[dependency] = this.retrievePackageScript(dependency, packageModulePath);
+                promisesMap[dependency] = this.getScript(packageModulePath);
               }
               ;
               let dependenciesArr = Object.keys(promisesMap);
@@ -28566,8 +29070,9 @@ var Application = class {
         }
         ;
         let loaded = await this.loadPackage(packageName, modulePath || "*");
-        if (loaded)
+        if (loaded) {
           result = document.createElement(elementName);
+        }
       }
       ;
       if (result) {
@@ -28906,26 +29411,107 @@ var Application = class {
     }
     return modulePath;
   }
-  async retrievePackageScript(packageName, packageModulePath) {
-    if (this.packages[packageModulePath])
-      return this.packages[packageModulePath];
-    let script = "";
-    if (this.bundleLibs[packageName])
-      script = this.bundleLibs[packageName];
-    else
-      script = await this.getScript(packageModulePath);
-    return script;
-  }
   async loadPackage(packageName, modulePath) {
     let packageModulePath = await this.calculatePackageModulePath(packageName, modulePath);
     if (!packageModulePath)
       return null;
-    let script = await this.retrievePackageScript(packageName, packageModulePath);
+    try {
+      let m = window["require"](packageName);
+      if (m) {
+        if (!this.packageNames.has(packageName))
+          this.packageNames.add(packageName);
+        this.packages[packageModulePath] = m.default || m;
+        return m.default || m;
+      }
+      ;
+    } catch (err) {
+    }
+    ;
+    let script = await this.getScript(packageModulePath);
     if (script) {
-      return this.dynamicImportPackage(script, packageName, packageModulePath);
+      const importedPackage = await this.dynamicImportPackage(script, packageName, packageModulePath);
+      return importedPackage;
     }
     ;
     return null;
+  }
+  async loadPackages(packages) {
+    let paths = [];
+    let packs = [];
+    let script = "";
+    for (let i = 0; i < packages.length; i++) {
+      let pack = packages[i];
+      let m;
+      try {
+        m = window["require"](pack);
+      } catch (err) {
+      }
+      ;
+      let path = this.getModulePath(pack);
+      if (m) {
+        this.packages[path] = m.default || m;
+      } else {
+        if (!this.packages[path]) {
+          packs.push(pack);
+          paths.push(path);
+        }
+        ;
+      }
+    }
+    ;
+    if (paths.length > 0) {
+      if (this._initOptions && this._initOptions.modules) {
+        for (let idx = paths.length - 1; idx >= 0; idx--) {
+          let pack = packs[idx];
+          let module2 = this._initOptions.modules[pack];
+          if (module2 && module2.dependencies) {
+            for (let i = 0; i < module2.dependencies.length; i++) {
+              let dependency = module2.dependencies[i];
+              let depIdx = packs.indexOf(dependency);
+              if (depIdx > idx) {
+                paths.splice(idx, 0, paths[depIdx]);
+                packs.splice(idx, 0, packs[depIdx]);
+                paths.splice(depIdx + 1, 1);
+                packs.splice(depIdx + 1, 1);
+              }
+              ;
+            }
+            ;
+          }
+          ;
+        }
+        ;
+      }
+      ;
+      let result = await Promise.all(paths.map((u) => fetch(u)));
+      for (let i = 0; i < paths.length; i++) {
+        let pack = packs[i];
+        let path = paths[i];
+        path = path.split("/").slice(0, -1).join("/");
+        if (this._initOptions && this._initOptions.modules && this._initOptions.modules[pack])
+          script += `application.currentModuleDir=application.rootDir+'modules/${this._initOptions.modules[pack].path}';
+`;
+        else
+          script += `application.currentModuleDir=application.rootDir+'libs/${pack}';
+`;
+        script += await result[i].text() + "\n";
+      }
+      ;
+      await import(`data:text/javascript,${encodeURIComponent(script)}`);
+      for (let i = 0; i < paths.length; i++) {
+        let pack = packs[i];
+        let path = paths[i];
+        let m = window["require"](pack);
+        if (m) {
+          if (!this.packageNames.has(pack))
+            this.packageNames.add(pack);
+          this.packages[path] = m.default || m;
+        }
+        ;
+      }
+      ;
+    }
+    ;
   }
   async dynamicImportPackage(script, packageName, packageModulePath) {
     _currentDefineModule = null;
@@ -29072,32 +29658,20 @@ var Application = class {
     if (options) {
       if (options.main) {
         this._initOptions = options;
-        if (options.bundle) {
-          try {
-            let rootDir = (options == null ? void 0 : options.rootDir) ? options == null ? void 0 : options.rootDir : "";
-            if (!rootDir.endsWith("/"))
-              rootDir += "/";
-            let content = await this.getScript(rootDir + "bundle.json");
-            if (content) {
-              this.bundleLibs = JSON.parse(content);
-            }
-            ;
-          } catch (err) {
-            this.bundleLibs = {};
-          }
-          ;
-        }
-        ;
       }
       ;
       if (!this._assets && options.assets)
         this._assets = await this.loadPackage(options.assets) || {};
       if (options.dependencies) {
+        let packages = [];
         for (let p in options.dependencies) {
-          if (p != options.main)
-            await this.loadPackage(p, options.dependencies[p]);
+          if (p != options.main) {
+            packages.push(p);
+          }
+          ;
         }
         ;
+        await this.loadPackages(packages);
       }
       ;
     }
@@ -29141,15 +29715,34 @@ var Application = class {
     else {
       if (this._initOptions && this._initOptions.modules && this._initOptions.modules[module2] && this._initOptions.modules[module2].dependencies) {
         let dependencies = this._initOptions.modules[module2].dependencies;
-        for (let i = 0; i < dependencies.length; i++) {
-          let dep = dependencies[i];
-          let path = this.getModulePath(dep);
-          if (!this.packages[path]) {
-            await this.loadPackage(dep, path);
+        await this.loadPackages(dependencies);
+      }
+      ;
+      try {
+        let m = window["require"](module2);
+        if (m) {
+          let module3 = m.default || m;
+          if (module3) {
+            this.currentModulePath = modulePath;
+            if (modulePath.indexOf("://") > 0)
+              this.currentModuleDir = modulePath.split("/").slice(0, -1).join("/");
+            else if (!modulePath.startsWith("/"))
+              this.currentModuleDir = this.LibHost + this.rootDir + modulePath.split("/").slice(0, -1).join("/");
+            else
+              this.currentModuleDir = this.LibHost + modulePath.split("/").slice(0, -1).join("/");
+            this.id++;
+            let elmId2 = `i-module--${this.id}`;
+            let Module2 = class extends module3 {
+            };
+            this.modulesId[modulePath] = elmId2;
+            this.modules[modulePath] = Module2;
+            customElements.define(elmId2, Module2);
+            let result = new Module2(null, options);
+            return result;
           }
           ;
         }
-        ;
+      } catch (err) {
       }
       ;
       if (this.bundleLibs[module2])
@@ -29201,6 +29794,217 @@ var Application = class {
 };
 window["application"] = Application.Instance;
 var application = Application.Instance;
+
+// packages/alert/src/style/alert.css.ts
+cssRule("i-alert", {
+  $nest: {
+    ".modal": {
+      padding: 0,
+      borderRadius: 4
+    }
+  }
+});
+
+// packages/alert/src/alert.ts
+var Alert = class extends Control {
+  constructor(parent, options) {
+    super(parent, options);
+    this.closeModal = () => {
+      this.mdAlert.visible = false;
+    };
+    this.showModal = () => {
+      this.renderUI();
+      this.mdAlert.visible = true;
+    };
+    this.closeModal = this.closeModal.bind(this);
+  }
+  get status() {
+    return this._status;
+  }
+  set status(value) {
+    this._status = value;
+  }
+  get title() {
+    return this._title;
+  }
+  set title(value) {
+    this._title = value;
+  }
+  get content() {
+    return this._content;
+  }
+  set content(value) {
+    this._content = value;
+  }
+  get link() {
+    return this._link;
+  }
+  set link(value) {
+    this._link = value;
+  }
+  get iconName() {
+    switch (this.status) {
+      case "error":
+        return "times";
+      case "warning":
+      case "confirm":
+        return "exclamation";
+      case "success":
+        return "check";
+      default:
+        return "spinner";
+    }
+  }
+  get color() {
+    switch (this.status) {
+      case "error":
+        return theme_exports.ThemeVars.colors.error.main;
+      case "warning":
+      case "confirm":
+        return theme_exports.ThemeVars.colors.warning.main;
+      case "success":
+        return theme_exports.ThemeVars.colors.success.main;
+      default:
+        return theme_exports.ThemeVars.colors.primary.main;
+    }
+  }
+  renderUI() {
+    this.pnlMain.clearInnerHTML();
+    const wrapperElm = new VStack(this.pnlMain, {
+      horizontalAlignment: "center",
+      gap: "1.75rem"
+    });
+    const border = this.status === "loading" ? {} : {
+      border: {
+        width: 2,
+        style: "solid",
+        color: this.color,
+        radius: "50%"
+      }
+    };
+    const paddingSize = this.status === "loading" ? "0.25rem" : "0.6rem";
+    new Icon(wrapperElm, {
+      width: 55,
+      height: 55,
+      name: this.iconName,
+      fill: this.color,
+      padding: {
+        top: paddingSize,
+        bottom: paddingSize,
+        left: paddingSize,
+        right: paddingSize
+      },
+      spin: this.status === "loading",
+      ...border
+    });
+    this.renderContent(wrapperElm);
+    this.renderLink(wrapperElm);
+    this.renderButtons(wrapperElm);
+  }
+  renderContent(wrapperElm) {
+    if (!this.title && !this.content)
+      return [];
+    const contentElm = new VStack(wrapperElm, {
+      horizontalAlignment: "center",
+      gap: "0.75rem",
+      lineHeight: 1.5
+    });
+    this.title ? new Label(contentElm, {
+      caption: this.title,
+      font: { size: "1.25rem", bold: true }
+    }) : null;
+    this.content ? new Label(contentElm, {
+      caption: this.content,
+      overflowWrap: "anywhere"
+    }) : null;
+  }
+  renderLink(wrapperElm) {
+    if (this.link)
+      new Label(wrapperElm, {
+        class: "text-center",
+        caption: this.link.caption,
+        font: { size: "0.875rem" },
+        link: { href: this.link.href, target: "_blank" },
+        overflowWrap: "anywhere"
+      });
+  }
+  renderButtons(wrapperElm) {
+    if (this.status === "confirm") {
+      const hStack = new HStack(wrapperElm, {
+        verticalAlignment: "center",
+        gap: "0.5rem"
+      });
+      new Button(hStack, {
+        padding: {
+          top: "0.5rem",
+          bottom: "0.5rem",
+          left: "2rem",
+          right: "2rem"
+        },
+        caption: "Cancel",
+        font: { color: theme_exports.ThemeVars.colors.secondary.contrastText },
+        background: { color: theme_exports.ThemeVars.colors.secondary.main },
+        onClick: () => this.closeModal()
+      });
+      new Button(hStack, {
+        padding: {
+          top: "0.5rem",
+          bottom: "0.5rem",
+          left: "2rem",
+          right: "2rem"
+        },
+        caption: "Confirm",
+        font: { color: theme_exports.ThemeVars.colors.primary.contrastText },
+        onClick: () => {
+          if (this.onConfirm) {
+            this.onConfirm();
+          }
+          this.closeModal();
+        }
+      });
+    } else {
+      new Button(wrapperElm, {
+        padding: {
+          top: "0.5rem",
+          bottom: "0.5rem",
+          left: "2rem",
+          right: "2rem"
+        },
+        caption: "Close",
+        font: { color: theme_exports.ThemeVars.colors.primary.contrastText },
+        onClick: () => this.closeModal()
+      });
+    }
+  }
+  async init() {
+    if (!this.mdAlert) {
+      super.init();
+      this.status = this.getAttribute("status", true);
+      this.title = this.getAttribute("title", true);
+      this.content = this.getAttribute("content", true);
+      this.link = this.getAttribute("link", true);
+      this.onClose = this.getAttribute("onClose", true);
+      this.onConfirm = this.getAttribute("onConfirm", true);
+      this.mdAlert = await Modal.create({
+        width: "400px"
+      });
+      this.appendChild(this.mdAlert);
+      this.pnlMain = new Panel(this, {
+        width: "100%",
+        padding: {
+          top: "1.5rem",
+          bottom: "1.5rem",
+          left: "1.5rem",
+          right: "1.5rem"
+        }
+      });
+      this.mdAlert.item = this.pnlMain;
+    }
+  }
+};
+Alert = __decorateClass([
+  customElements2("i-alert")
+], Alert);
 
 // packages/code-editor/src/monaco.ts
 function getLanguageType(fileName) {
@@ -29683,7 +30487,7 @@ CodeDiffEditor = __decorateClass([
 ], CodeDiffEditor);
 
 // packages/data-grid/src/dataGrid.ts
-var import_moment2 = __toModule(require_moment());
+var import_moment3 = __toModule(require_moment());
 
 // packages/data-grid/src/style/dataGrid.css.ts
 var Theme24 = theme_exports.ThemeVars;
@@ -31695,7 +32499,7 @@ var DataGrid = class extends Control {
       if (cell.value != void 0) {
         editor.value = cell.value;
       } else {
-        editor.value = import_moment2.default.unix(import_moment2.default.now() / 1e3);
+        editor.value = import_moment3.default.unix(import_moment3.default.now() / 1e3);
       }
       let inputElm = editor.getElementsByTagName("input")[0];
       inputElm.style.height = "";
@@ -31714,7 +32518,7 @@ var DataGrid = class extends Control {
       if (cell.value != void 0) {
         editor.value = cell.value;
       } else {
-        editor.value = import_moment2.default.unix(import_moment2.default.now() / 1e3);
+        editor.value = import_moment3.default.unix(import_moment3.default.now() / 1e3);
       }
       let inputElm = editor.getElementsByTagName("input")[0];
       inputElm.style.height = "";
@@ -31733,7 +32537,7 @@ var DataGrid = class extends Control {
       if (cell.value != void 0) {
         editor.value = cell.value;
       } else {
-        editor.value = import_moment2.default.unix(import_moment2.default.now() / 1e3);
+        editor.value = import_moment3.default.unix(import_moment3.default.now() / 1e3);
       }
       let inputElm = editor.getElementsByTagName("input")[0];
       inputElm.style.height = "";
@@ -32280,15 +33084,15 @@ var DataGrid = class extends Control {
           break;
         case "datePicker":
           if (cell.value == void 0 || cell.value == "")
-            cell._value = import_moment2.default.unix(import_moment2.default.now() / 1e3);
+            cell._value = import_moment3.default.unix(import_moment3.default.now() / 1e3);
           break;
         case "dateTimePicker":
           if (cell.value == void 0 || cell.value == "")
-            cell._value = import_moment2.default.unix(import_moment2.default.now() / 1e3);
+            cell._value = import_moment3.default.unix(import_moment3.default.now() / 1e3);
           break;
         case "timePicker":
           if (cell.value == void 0 || cell.value == "")
-            cell._value = import_moment2.default.unix(import_moment2.default.now() / 1e3);
+            cell._value = import_moment3.default.unix(import_moment3.default.now() / 1e3);
           break;
         case "comboBox":
           let colOrRowComboItems = this.mode == "vertical" ? this.cols(cell.col).comboItems : this.rows(cell.row).comboItems;
@@ -32899,7 +33703,8 @@ DataGrid = __decorateClass([
 var Theme25 = theme_exports.ThemeVars;
 cssRule("i-markdown", {
   fontFamily: Theme25.typography.fontFamily,
-  fontSize: Theme25.typography.fontSize
+  fontSize: Theme25.typography.fontSize,
+  color: `var(--custom-text-color, ${Theme25.text.primary})`
 });
 
 // packages/markdown/src/markdown.ts
@@ -32920,6 +33725,18 @@ var Markdown = class extends Control {
     else
       this.classList.add("toastui-editor-dark");
   }
+  get padding() {
+    return this._padding;
+  }
+  set padding(value) {
+    this._space = value;
+    if (!this.elm)
+      return;
+    if (!this._padding)
+      this._padding = new SpaceValue(this.elm, value, "padding");
+    else
+      this._padding.update(value);
+  }
   getRenderer() {
     const renderer = {};
     return renderer;
@@ -32930,7 +33747,9 @@ var Markdown = class extends Control {
     let renderer = this.getRenderer();
     this.marked.use({ renderer });
     if (text) {
-      text = await this.marked.parse(text);
+      text = await this.marked.parse(text, {
+        breaks: true
+      });
       text = await this.processText(text);
     } else {
       text = "";
@@ -32938,6 +33757,8 @@ var Markdown = class extends Control {
     if (!this.elm)
       this.elm = this.createElement("div", this);
     this.elm.innerHTML = text;
+    if (!this._padding && this._space)
+      this.padding = this._space;
     return this.elm.innerHTML;
   }
   async beforeRender(text) {
@@ -32960,6 +33781,10 @@ var Markdown = class extends Control {
     super.init();
     this.elm = this.createElement("div", this);
     this.elm.classList.add("toastui-editor-contents");
+    let padding = this.getAttribute("padding", true);
+    if (padding) {
+      this._padding = new SpaceValue(this.elm, padding, "padding");
+    }
   }
 };
 Markdown = __decorateClass([
@@ -32993,7 +33818,7 @@ var editorCSS = [
   { name: "toastui-editor", href: `${LibPath}lib/tui-editor/toastui-editor.css` },
   { name: "toastui-plugins", href: `${LibPath}lib/tui-editor/toastui-plugins.min.css` }
 ];
-var MarkdownEditor = class extends Control {
+var MarkdownEditor = class extends Text {
   constructor(parent, options) {
     super(parent, options);
     this.editorPlugins = [];
@@ -33007,6 +33832,7 @@ var MarkdownEditor = class extends Control {
     this._customPlugins = [];
     this._widgetRules = [];
     this._hideModeSwitch = false;
+    this._placeholder = "";
   }
   get mode() {
     return this._mode;
@@ -33080,7 +33906,11 @@ var MarkdownEditor = class extends Control {
     return this._toolbarItems || TOOLBAR_ITEMS_DEFAULT;
   }
   set toolbarItems(items) {
+    var _a;
     this._toolbarItems = items;
+    const toolbar = this.querySelector(".toastui-editor-toolbar");
+    if (toolbar && !((_a = this.toolbarItems) == null ? void 0 : _a.length))
+      toolbar.style.display = "none";
     if (!this.editor)
       return;
     this.renderEditor(true);
@@ -33109,6 +33939,41 @@ var MarkdownEditor = class extends Control {
   }
   set hideModeSwitch(value) {
     this._hideModeSwitch = value != null ? value : false;
+  }
+  get placeholder() {
+    var _a;
+    return (_a = this._placeholder) != null ? _a : "";
+  }
+  set placeholder(value) {
+    this._placeholder = value != null ? value : "";
+    if (this.editorObj)
+      this.renderEditor(true);
+  }
+  get padding() {
+    return this._padding;
+  }
+  set padding(value) {
+    if (!this.elm)
+      return;
+    if (!this._padding)
+      this._padding = new SpaceValue(this.elm, value, "padding");
+    else
+      this._padding.update(value);
+    const { top = 0, right = 0, bottom = 0, left = 0 } = value;
+    const padding = `${this._padding.getSpacingValue(top)} ${this._padding.getSpacingValue(right)} ${this._padding.getSpacingValue(bottom)} ${this._padding.getSpacingValue(left)}`;
+    const ProseMirrors = this.querySelectorAll(".ProseMirror");
+    for (let elm of ProseMirrors) {
+      elm.style.padding = padding;
+    }
+    this.elm.style.padding = "";
+  }
+  get border() {
+    return this._border;
+  }
+  set border(value) {
+    if (!this.elm)
+      return;
+    this._border = new Border(this.elm, value);
   }
   static async create(options, parent) {
     let self = new this(parent, options);
@@ -33150,7 +34015,11 @@ var MarkdownEditor = class extends Control {
     }
   }
   renderEditor(valueChanged) {
+    var _a, _b;
     const editorPlugins = [...this.editorPlugins].filter(Boolean);
+    let padding = this.getAttribute("padding", true);
+    let font = this.getAttribute("font", true);
+    let border = this.getAttribute("border", true);
     if (this.viewer) {
       if (this.editorObj) {
         this.editorObj.destroy();
@@ -33162,6 +34031,10 @@ var MarkdownEditor = class extends Control {
         this.elm.style.height = "auto";
       }
       this.mdViewer = new Markdown();
+      if (padding)
+        this.mdViewer.padding = padding;
+      if (font)
+        this.mdViewer.font = font;
       this.mdViewer.theme = this.theme;
       this.elm.appendChild(this.mdViewer);
     } else {
@@ -33182,10 +34055,30 @@ var MarkdownEditor = class extends Control {
         plugins: [...editorPlugins, ...this.plugins],
         widgetRules: this.widgetRules,
         hideModeSwitch: this.hideModeSwitch,
-        minHeight: "300px"
+        minHeight: (_a = this.minHeight) != null ? _a : "300px",
+        placeholder: this.placeholder,
+        autofocus: false,
+        events: {
+          change: (event) => {
+            if (this.onChanged)
+              this.onChanged(this, event);
+          }
+        }
       });
       if (this.theme === "light")
         this.elm.classList.remove("toastui-editor-dark");
+      const toolbar = this.querySelector(".toastui-editor-toolbar");
+      if (toolbar && !((_b = this.toolbarItems) == null ? void 0 : _b.length))
+        toolbar.style.display = "none";
+      if (!this._padding)
+        this.padding = padding;
+    }
+    this.elm.style.background = "inherit";
+    this.elm.style.fontSize = "inherit";
+    if (border) {
+      this._border = new Border(this.elm, border);
+      this.style.border = "none";
+      this.style.borderRadius = "unset";
     }
   }
   getMarkdownValue() {
@@ -33207,6 +34100,7 @@ var MarkdownEditor = class extends Control {
   }
   async init() {
     super.init();
+    this.onChanged = this.getAttribute("onChanged", true) || this.onChanged;
     const mode = this.getAttribute("mode", true, "");
     if (mode) {
       this._mode = mode;
@@ -33247,6 +34141,7 @@ var MarkdownEditor = class extends Control {
     if (widgetRules) {
       this._widgetRules = widgetRules;
     }
+    this._placeholder = this.getAttribute("placeholder", true, "");
     this._hideModeSwitch = this.getAttribute("hideModeSwitch", true, false);
     this.initEditor();
   }
@@ -33329,7 +34224,6 @@ var menuStyle = style({
 var meunItemStyle = style({
   position: "relative",
   display: "block",
-  color: Theme27.text.secondary,
   $nest: {
     ".menu-item": {
       position: "relative",
@@ -33343,14 +34237,15 @@ var meunItemStyle = style({
       textOverflow: "ellipsis",
       lineHeight: "36px",
       width: "100%",
+      justifyContent: "var(--custom-text-align, left)",
       alignItems: "center"
     },
     "&:not(.hide-arrow-icon) .menu-item.has-children": {
       paddingRight: "2.25rem"
     },
     ".menu-item.menu-active, .menu-item.menu-selected, .menu-item:hover": {
-      background: Theme27.action.hover,
-      color: Theme27.text.primary
+      background: Theme27.action.hoverBackground,
+      color: Theme27.action.hover
     },
     ".menu-item.menu-active > .menu-item-arrow": {
       transform: "rotate(180deg)",
@@ -33636,6 +34531,7 @@ ContextMenu = __decorateClass([
 var MenuItem = class extends Control {
   constructor(parent, options) {
     super(parent, options);
+    this._textAlign = "left";
   }
   add(options) {
     const newItem = new MenuItem(this, options);
@@ -33710,8 +34606,26 @@ var MenuItem = class extends Control {
     this.renderArrowIcon();
     this.renderSubMenuItem();
   }
+  get textAlign() {
+    return this._textAlign;
+  }
+  set textAlign(value) {
+    this._textAlign = value;
+    this.style.setProperty("--custom-text-align", value);
+  }
   set level(value) {
     this.updateLevel(value);
+  }
+  get padding() {
+    return this._padding;
+  }
+  set padding(value) {
+    if (!this.itemWrapperElm)
+      return;
+    if (!this._padding)
+      this._padding = new SpaceValue(this.itemWrapperElm, value, "padding");
+    else
+      this._padding.update(value);
   }
   get selected() {
     return this.itemWrapperElm.classList.contains("menu-selected");
@@ -33926,9 +34840,17 @@ var MenuItem = class extends Control {
       this.itemElm = this.createElement("li", this);
       this.itemWrapperElm = this.createElement("div", this.itemElm);
       this.itemWrapperElm.classList.add("menu-item");
+      if (this._linkTo.padding) {
+        const padding = this._linkTo.padding;
+        this._padding = new SpaceValue(this.itemWrapperElm, padding, "padding");
+        this._linkTo.style.padding = "";
+      }
       this.captionElm = this.createElement("span", this.itemWrapperElm);
       this.level = this.getAttribute("level", true, 0);
       this.title = this.getAttribute("title", true);
+      const textAlign = this.getAttribute("textAlign", true);
+      if (textAlign)
+        this.textAlign = textAlign;
       const link = this.getAttribute("link", true);
       if (link) {
         link.target = link.target || "_self";
@@ -34109,7 +35031,39 @@ var Module = class extends Container {
   }
   onHide() {
   }
+  disconnectedCallback() {
+    delete Module._modalMap[this.uuid];
+    super.disconnectedCallback();
+  }
+  openModal(options) {
+    let modal = Module._modalMap[this.uuid];
+    if (modal) {
+      modal.zIndex = (options == null ? void 0 : options.zIndex) || 10;
+      modal.visible = true;
+      return modal;
+    }
+    modal = new Modal(void 0, {
+      closeIcon: {
+        name: "times"
+      },
+      border: { radius: 10 },
+      ...options
+    });
+    document.body.appendChild(modal);
+    Module._modalMap[this.uuid] = modal;
+    modal.body = this;
+    modal.zIndex = (options == null ? void 0 : options.zIndex) || 10;
+    modal.visible = true;
+    return modal;
+  }
+  closeModal() {
+    let modal = Module._modalMap[this.uuid];
+    if (modal) {
+      modal.visible = false;
+    }
+  }
 };
+Module._modalMap = {};
 Module = __decorateClass([
   customElements2("i-module")
 ], Module);
@@ -34198,12 +35152,17 @@ cssRule("i-tree-view", {
           top: 25
         },
         "i-tree-node.active > .i-tree-node_content": {
-          backgroundColor: Theme28.action.selected,
-          border: `1px solid ${Theme28.colors.info.dark}`,
-          color: Theme28.text.primary
+          backgroundColor: Theme28.action.selectedBackground,
+          color: Theme28.action.selected,
+          $nest: {
+            "> .i-tree-node_label": {
+              color: Theme28.action.selected
+            }
+          }
         },
         ".i-tree-node_content:hover": {
-          backgroundColor: Theme28.action.hover,
+          backgroundColor: Theme28.action.hoverBackground,
+          color: Theme28.action.hover,
           $nest: {
             "> .is-right .button-group *": {
               display: "inline-flex"
@@ -34650,6 +35609,13 @@ var TreeNode = class extends Control {
       this._iconRightElm = Icon.create(defaultIcon3);
     return this._iconRightElm;
   }
+  get height() {
+    return !isNaN(this._height) ? this._height : this.offsetHeight;
+  }
+  set height(value) {
+    this._height = value;
+    this._wrapperElm.style.height = typeof value === "string" ? value : `${value}px`;
+  }
   handleChange(target, oldValue, newValue) {
     debugger;
     const fn = this.rootParent.onChange;
@@ -34657,7 +35623,6 @@ var TreeNode = class extends Control {
       fn(this.rootParent, target, oldValue, newValue);
   }
   renderEditMode() {
-    console.log("renderEditMode");
     const captionInput = this.createElement("input");
     captionInput.value = this.caption;
     captionInput.classList.add("text-input");
@@ -36092,7 +37057,6 @@ var tableStyle = style({
       overflowX: "auto"
     },
     ".i-table-cell": {
-      padding: "1rem",
       overflowWrap: "break-word",
       position: "relative",
       textOverflow: "ellipsis",
@@ -36114,8 +37078,8 @@ var tableStyle = style({
       transition: "background .3s ease"
     },
     "tr:hover td": {
-      background: Theme34.background.paper,
-      color: Theme34.text.secondary
+      background: Theme34.action.hoverBackground,
+      color: Theme34.action.hover
     },
     "&.i-table--bordered": {
       $nest: {
@@ -36199,6 +37163,30 @@ var tableStyle = style({
     }
   }
 });
+var getCustomStylesClass = (styles) => {
+  var _a;
+  let styleObj = {};
+  const { padding, background, font, cursor, height } = styles || {};
+  const { top = "1rem", right = "1rem", bottom = "1rem", left = "1rem" } = padding || {};
+  styleObj.padding = `${getSpacingValue(top)} ${getSpacingValue(right)} ${getSpacingValue(bottom)} ${getSpacingValue(left)}`;
+  if (font) {
+    const { color = "", size = "", name = "", style: style2 = "", transform = "none", bold, weight = "" } = font;
+    styleObj.color = color;
+    styleObj.fontSize = size;
+    styleObj.fontFamily = name;
+    styleObj.fontStyle = style2;
+    styleObj.textTransform = transform;
+    styleObj.fontWeight = bold ? "bold" : `${weight}`;
+  }
+  if (background)
+    styleObj.background = ((_a = getBackground(background)) == null ? void 0 : _a.background) || "";
+  if (cursor)
+    styleObj.cursor = cursor;
+  if (height !== void 0 && height !== null) {
+    styleObj.height = getSpacingValue(height);
+  }
+  return style(styleObj);
+};
 var getTableMediaQueriesStyleClass = (columns, mediaQueries) => {
   let styleObj = getControlMediaQueriesStyle(mediaQueries);
   for (let mediaQuery of mediaQueries) {
@@ -36236,7 +37224,6 @@ var getTableMediaQueriesStyleClass = (columns, mediaQueries) => {
                 }
               }
             };
-            console.log(fieldName, styleObj["$nest"][mediaQueryRule]["$nest"][`[data-fieldname="${fieldName}"]`]);
           }
         }
       }
@@ -36356,12 +37343,10 @@ var TableColumn = class extends Control {
         this.key = this.options.key;
       if (this.options.onRenderCell)
         this.onRenderCell = this.options.onRenderCell.bind(this);
-      if (this.options.grid)
-        this.grid = this.options.grid;
-      if (this.options.display)
-        this.display = this.options.display;
       if (this.options.textAlign)
         this.textAlign = this.options.textAlign;
+      this.setAttributeToProperty("grid");
+      this.setAttributeToProperty("display");
       this.isHeader = this.options.header || false;
       this.visible = typeof this.options.visible === "boolean" ? this.options.visible : true;
       this.columnElm = this.createElement("div", this);
@@ -36459,6 +37444,8 @@ var Table = class extends Control {
     this._rows = [];
     this.firstLoad = true;
     this._sortConfig = {};
+    this._bodyStyle = "";
+    this._headingStyle = "";
   }
   get data() {
     return this._data;
@@ -36555,6 +37542,40 @@ var Table = class extends Control {
     this._mediaStyle = style2;
     this.classList.add(style2);
   }
+  get headingStyles() {
+    return this._headingStyles;
+  }
+  set headingStyles(value) {
+    this._headingStyles = value;
+    const newStyle = getCustomStylesClass(value);
+    if (this._headingStyle) {
+      const ths = this.querySelectorAll("th.i-table-cell");
+      for (let th of ths) {
+        if (th.classList.contains(this._headingStyle)) {
+          th.classList.remove(this._headingStyle);
+          th.classList.add(newStyle);
+        }
+      }
+    }
+    this._headingStyle = newStyle;
+  }
+  get bodyStyles() {
+    return this._bodyStyles;
+  }
+  set bodyStyles(value) {
+    this._bodyStyles = value;
+    const newStyle = getCustomStylesClass(value);
+    if (this._bodyStyle) {
+      const tds = this.querySelectorAll("td.i-table-cell");
+      for (let td of tds) {
+        if (td.classList.contains(this._bodyStyle)) {
+          td.classList.remove(this._bodyStyle);
+          td.classList.add(newStyle);
+        }
+      }
+    }
+    this._bodyStyle = newStyle;
+  }
   onPageChanged(source, value) {
     this.renderBody();
   }
@@ -36567,16 +37588,17 @@ var Table = class extends Control {
       this.onColumnSort(this, key2, value);
   }
   renderHeader() {
+    this._headingStyle = getCustomStylesClass(this.headingStyles);
     this.tHeadElm.innerHTML = "";
     const rowElm = this.createElement("tr", this.tHeadElm);
     if (this.hasExpandColumn) {
       const thElm = this.createElement("th", rowElm);
-      thElm.classList.add("i-table-cell", "i-table-cell--expand", "text-center");
+      thElm.classList.add("i-table-cell", "i-table-cell--expand", "text-center", this._headingStyle);
     }
     this.columns.forEach((column, colIndex) => {
       const thElm = this.createElement("th", rowElm);
       column.visible === false && (thElm.style.display = "none");
-      thElm.classList.add("i-table-cell");
+      thElm.classList.add("i-table-cell", this._headingStyle);
       thElm.setAttribute("data-fieldname", column.fieldName || "action");
       if (column.width)
         thElm.style.width = typeof column.width === "number" ? `${column.width}px` : column.width;
@@ -36625,7 +37647,7 @@ var Table = class extends Control {
       if (expandIcon) {
         const expandTd = this.createElement("td", rowElm);
         expandTd.appendChild(expandIcon(this, false));
-        expandTd.classList.add("i-table-cell", "i-table-cell--expand", "text-center");
+        expandTd.classList.add("i-table-cell", "i-table-cell--expand", "text-center", this._bodyStyle);
       }
     }
     let row = [];
@@ -36639,7 +37661,7 @@ var Table = class extends Control {
       });
       const tdElm = this.createElement("td", rowElm);
       column.visible === false && (tdElm.style.display = "none");
-      tdElm.classList.add("i-table-cell");
+      tdElm.classList.add("i-table-cell", this._bodyStyle);
       tdElm.setAttribute("data-index", colIndex.toString());
       tdElm.setAttribute("data-fieldname", column.fieldName || "action");
       if (column.width)
@@ -36658,6 +37680,7 @@ var Table = class extends Control {
   }
   renderBody() {
     var _a, _b;
+    this._bodyStyle = getCustomStylesClass(this.bodyStyles);
     this.tBodyElm.innerHTML = "";
     if (this.hasData) {
       const currentPage = ((_a = this.pagination) == null ? void 0 : _a.currentPage) || 1;
@@ -36691,7 +37714,7 @@ var Table = class extends Control {
       const rowElm = this.createElement("tr", this.tBodyElm);
       const tdElm = this.createElement("td", rowElm);
       tdElm.setAttribute("colspan", `${this.columnLength + (this.hasExpandColumn ? 1 : 0)}`);
-      tdElm.classList.add("text-center");
+      tdElm.classList.add("i-table-cell", "text-center", this._bodyStyle);
       if (this.onRenderEmptyTable) {
         this.onRenderEmptyTable(this);
       } else {
@@ -36730,6 +37753,8 @@ var Table = class extends Control {
         this.onColumnSort = this.options.onColumnSort;
       if ((_c = this.options) == null ? void 0 : _c.onCellClick)
         this.onCellClick = this.options.onCellClick;
+      this.headingStyles = this.getAttribute("headingStyles", true);
+      this.bodyStyles = this.getAttribute("bodyStyles", true);
       this.wrapperElm = this.createElement("div", this);
       this.wrapperElm.classList.add("i-table-container");
       this._heading = this.getAttribute("heading", true, false);
@@ -37251,20 +38276,15 @@ CarouselItem = __decorateClass([
   customElements2("i-carousel-item")
 ], CarouselItem);
 
-// packages/moment/src/index.ts
-RequireJS.config({
-  paths: {
-    "@moment": `${LibPath}lib/moment/2.29.1/moment.js`
-  }
-});
-var moment;
-RequireJS.require(["@moment"], (_moment) => {
-  moment = _moment;
-});
-
 // packages/video/src/style/video.css.ts
 cssRule("i-video", {
-  $nest: {}
+  $nest: {
+    ".video-js  .vjs-big-play-button": {
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)"
+    }
+  }
 });
 
 // packages/video/src/video.ts
@@ -37298,35 +38318,90 @@ var Video = class extends Container {
       this.sourceElm = this.createElement("source", this.videoElm);
     if (this.sourceElm)
       this.sourceElm.src = value;
+    if (this.player) {
+      this.player.src({
+        src: value,
+        type: "application/x-mpegURL"
+      });
+    }
+  }
+  get border() {
+    return this._border;
+  }
+  set border(value) {
+    var _a;
+    const video = (_a = this.videoElm) == null ? void 0 : _a.querySelector("video");
+    if (!video)
+      return;
+    this._border = new Border(video, value);
+  }
+  getVideoTypeFromExtension(url) {
+    if (!url)
+      return null;
+    let videoType;
+    let ext = url.split(".").pop();
+    switch (ext) {
+      case "mp4":
+        videoType = "video/mp4";
+        break;
+      case "webm":
+        videoType = "video/webm";
+        break;
+      case "ogg":
+        videoType = "video/ogg";
+        break;
+      default:
+        videoType = "video/mp4";
+        break;
+    }
+    return videoType;
   }
   init() {
     if (!this.initialized) {
       super.init();
       loadCss();
       const self = this;
-      let id = `video-${new Date().getTime()}`;
-      this.videoElm = this.createElement("video-js", this);
-      this.videoElm.id = id;
-      this.videoElm.setAttribute("controls", "true");
-      this.videoElm.setAttribute("preload", "auto");
-      this.videoElm.classList.add("vjs-default-skin");
-      this.sourceElm = this.createElement("source", this.videoElm);
-      this.sourceElm.type = "application/x-mpegURL";
-      this.url = this.getAttribute("url", true);
-      RequireJS.require(reqs, function(videojs) {
-        self.player = videojs(id, {
-          playsinline: true,
-          autoplay: false,
-          controls: true,
-          fluid: true,
-          aspectRatio: "16:9",
-          responsive: true,
-          inactivityTimeout: 500,
-          preload: "auto",
-          techOrder: ["html5"],
-          plugins: {}
+      const isStreaming = this.getAttribute("isStreaming", true);
+      if (isStreaming) {
+        let id = `video-${new Date().getTime()}`;
+        this.videoElm = this.createElement("video-js", this);
+        this.videoElm.id = id;
+        this.videoElm.setAttribute("controls", "true");
+        this.videoElm.setAttribute("preload", "auto");
+        this.videoElm.classList.add("vjs-default-skin");
+        this.sourceElm = this.createElement("source", this.videoElm);
+        this.sourceElm.type = "application/x-mpegURL";
+        this.url = this.getAttribute("url", true);
+        const border = this.getAttribute("border", true);
+        RequireJS.require(reqs, function(videojs) {
+          self.player = videojs(id, {
+            playsinline: true,
+            autoplay: false,
+            controls: true,
+            fluid: true,
+            responsive: true,
+            inactivityTimeout: 500,
+            preload: "auto",
+            techOrder: ["html5"],
+            plugins: {},
+            height: "100%",
+            width: "100%"
+          });
+          const video = self.videoElm.querySelector("video");
+          if (video && border)
+            self._border = new Border(video, border);
         });
-      });
+      } else {
+        this.videoElm = this.createElement("video", this);
+        this.videoElm.setAttribute("controls", "true");
+        this.videoElm.setAttribute("width", "100%");
+        this.sourceElm = this.createElement("source", this.videoElm);
+        this.url = this.getAttribute("url", true);
+        let videoType = this.getVideoTypeFromExtension(this.url);
+        if (videoType) {
+          this.sourceElm.type = videoType;
+        }
+      }
     }
   }
   static async create(options, parent) {
@@ -38828,19 +39903,9 @@ var SchemaDesigner = class extends Container {
     }
     return label;
   }
-  generateUUID(length) {
-    const uuid = "xxxxxxxx-xxxx-xxxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
-      let r = Math.random() * 16 | 0, v = c == "x" ? r : r & 3 | 8;
-      return v.toString(16);
-    });
-    if (length) {
-      return uuid.substring(0, length);
-    }
-    return uuid;
-  }
   generateFieldName(requiredElm) {
     while (true) {
-      const fieldName = `item-${this.generateUUID(4)}`;
+      const fieldName = `item-${IdUtils.generateUUID(4)}`;
       const oldField = requiredElm.querySelector(`[field-required='${fieldName.toLowerCase()}']`);
       if (!oldField) {
         return fieldName;
@@ -39906,8 +40971,6 @@ var SchemaDesigner = class extends Container {
     }, pnlJsonData);
     this.txtSchema.classList.add("cs-json--text");
     this.uiSchemaPanel = new SchemaDesignerUI(this.pnlUISchema);
-    this.uuid = this.generateUUID();
-    this.uiSchemaPanel.uuid = this.uuid;
     this.createDataSchema(this.pnlSchemaBuilder, "object");
     this.updateJsonData();
   }
@@ -40712,6 +41775,14 @@ var Form = class extends Control {
     super(parent, options);
     this._formRules = [];
     this._formControls = {};
+    this.replacePhrase = (str) => {
+      return str.replace(/([^\/]+)\/items\/properties/g, function(match, p1) {
+        if (p1 === "properties") {
+          return match;
+        }
+        return `${p1}/properties`;
+      });
+    };
     this.validateOnValueChanged = async (currentControl, parent, scope, caption) => {
       var _a, _b;
       const data = (_a = this.validationData) != null ? _a : await this.getFormData();
@@ -40741,15 +41812,7 @@ var Form = class extends Control {
         };
         await getParentIdxs(parentListItem);
         if (scope.includes("/items/properties")) {
-          const replacePhrase = (str) => {
-            return str.replace(/([^\/]+)\/items\/properties/g, function(match, p1) {
-              if (p1 === "properties") {
-                return match;
-              }
-              return `${p1}/properties`;
-            });
-          };
-          _scope = replacePhrase(scope);
+          _scope = this.replacePhrase(scope);
         }
         const scopeWithoutIdx = _scope.replace("#", "");
         const getListFields = (property) => {
@@ -40902,13 +41965,17 @@ var Form = class extends Control {
   }
   setCustomData(scope, value, control, customData) {
     var _a;
-    if (this._formOptions.customControls && typeof ((_a = this._formOptions.customControls[scope]) == null ? void 0 : _a.setData) === "function") {
-      const _control = control || this._formControls[scope].input;
+    let newScope = scope;
+    if (newScope.includes("/items/properties")) {
+      newScope = this.replacePhrase(scope);
+    }
+    if (this._formOptions.customControls && !!((_a = this._formOptions.customControls[newScope]) == null ? void 0 : _a.setData)) {
+      const _control = control || this._formControls[newScope].input;
       if (_control) {
         if (_control.tagName === "I-SCOM-TOKEN-INPUT" && !value && customData) {
-          this._formOptions.customControls[scope].setData(_control, customData.symbol);
+          this._formOptions.customControls[newScope].setData(_control, customData.symbol);
         } else {
-          this._formOptions.customControls[scope].setData(_control, value);
+          this._formOptions.customControls[newScope].setData(_control, value);
         }
       }
     }
@@ -41020,6 +42087,10 @@ var Form = class extends Control {
     } else {
       if (parentElm) {
         _control = parentElm.querySelector(`[scope="${scope}"]`);
+        if (!_control) {
+          const customScope = scope.includes("/items/properties") ? this.replacePhrase(scope) : scope;
+          _control = parentElm.querySelector(`[custom-control="${customScope}"]`);
+        }
       }
       const input = _control || ((_d = this._formControls[scope]) == null ? void 0 : _d.input);
       if (!input && value === void 0) {
@@ -41034,24 +42105,28 @@ var Form = class extends Control {
         return;
       }
       if (input) {
-        switch (input.tagName) {
-          case "I-INPUT":
-            input.value = value;
-            break;
-          case "I-CHECKBOX":
-            input.checked = value;
-            break;
-          case "I-COMBO-BOX":
-            input.value = value;
-            input.selectedItem = input.items.find((v) => v.value === value) || input.items[0];
-            break;
-          case "I-DATEPICKER":
-            let datepicker = input;
-            datepicker.value = moment(value, datepicker.dateTimeFormat || datepicker.defaultDateTimeFormat);
-            break;
-          case "I-UPLOAD":
-            this.setDataUpload(value, input);
-            break;
+        if (input.getAttribute("custom-control")) {
+          this.setCustomData(input.getAttribute("custom-control"), value, input, customData);
+        } else {
+          switch (input.tagName) {
+            case "I-INPUT":
+              input.value = value;
+              break;
+            case "I-CHECKBOX":
+              input.checked = value;
+              break;
+            case "I-COMBO-BOX":
+              input.value = value;
+              input.selectedItem = input.items.find((v) => v.value === value) || input.items[0];
+              break;
+            case "I-DATEPICKER":
+              let datepicker = input;
+              datepicker.value = moment(value, datepicker.dateTimeFormat || datepicker.defaultDateTimeFormat);
+              break;
+            case "I-UPLOAD":
+              this.setDataUpload(value, input);
+              break;
+          }
         }
       }
     }
@@ -41211,7 +42286,7 @@ var Form = class extends Control {
           const newScope = currentSchema.type === "string" ? scope + "/items" : "#";
           for (let i = 0; i < listItems.length; i++) {
             const listItem2 = listItems[i];
-            const data = await this.getDataBySchema(currentSchema, newScope, isErrorShown, parentElm, listItem2, scope);
+            const data = await this.getDataBySchema(currentSchema, newScope, isErrorShown, parentElm, listItem2, customParentScope);
             list.push(data);
           }
           return list;
@@ -41326,7 +42401,10 @@ var Form = class extends Control {
       hideLabel
     };
     if (this._formOptions.customControls) {
-      const customControlScope = parentProp ? `${parentProp}${scope.replace("#", "")}` : scope;
+      let customControlScope = parentProp ? `${parentProp}${scope.replace("#", "")}` : scope;
+      if (customControlScope.includes("/items/properties")) {
+        customControlScope = this.replacePhrase(customControlScope);
+      }
       if (this._formOptions.customControls[customControlScope]) {
         const customRenderer = this._formOptions.customControls[customControlScope];
         const wrapper = new Panel(parent, {

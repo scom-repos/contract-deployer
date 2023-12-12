@@ -171,7 +171,7 @@ img.ProseMirror-separator {
   display: none;
   overflow: hidden;
   height: inherit;
-  background-color: #fff;
+  /* background-color: #fff; */
 }
 
 .auto-height .toastui-editor-main-container {
@@ -227,11 +227,11 @@ img.ProseMirror-separator {
 
 .toastui-editor-defaultUI {
   position: relative;
-  border: 1px solid #dadde6;
+  /* border: 1px solid #dadde6; */
   height: 100%;
   font-family: 'Open Sans', 'Helvetica Neue', 'Helvetica', 'Arial', '나눔바른고딕',
     'Nanum Barun Gothic', '맑은고딕', 'Malgun Gothic', sans-serif;
-  border-radius: 4px;
+  /* border-radius: 4px; */
 }
 
 .toastui-editor-defaultUI button {
@@ -957,15 +957,16 @@ img.ProseMirror-separator {
   font-family: 'Open Sans', 'Helvetica Neue', 'Helvetica', 'Arial', '나눔바른고딕',
     'Nanum Barun Gothic', '맑은고딕', 'Malgun Gothic', sans-serif;
   /* color: #222; */
-  font-size: 13px;
+  /* font-size: 13px; */
   overflow-y: auto;
   overflow-X: hidden;
   height: calc(100% - 36px);
 }
 
-/* .ProseMirror .placeholder {
-  color: #999;
-} */
+.ProseMirror .placeholder {
+  /* color: #999; */
+  color: var(--text-disabled)
+}
 
 .ProseMirror:focus {
   outline: none;
@@ -988,7 +989,7 @@ table.ProseMirror-selectednode {
 .toastui-editor-contents {
   margin: 0;
   padding: 0;
-  font-size: 13px;
+  /* font-size: 13px; */
   font-family: 'Open Sans', 'Helvetica Neue', 'Helvetica', 'Arial', '나눔바른고딕',
     'Nanum Barun Gothic', '맑은고딕', 'Malgun Gothic', sans-serif;
   z-index: 20;
@@ -1141,7 +1142,7 @@ table.ProseMirror-selectednode {
 .toastui-editor-contents table {
   border: 1px solid rgba(0, 0, 0, 0.1);
   margin: 12px 0 14px;
-  color: #222;
+  /* color: #222; */
   width: auto;
   border-collapse: collapse;
   box-sizing: border-box;
@@ -1187,7 +1188,7 @@ table.ProseMirror-selectednode {
   list-style-type: none;
   padding-left: 24px;
   margin: 6px 0 10px;
-  color: #222;
+  /* color: #222; */
 }
 
 .toastui-editor-contents ol {
@@ -1460,7 +1461,7 @@ table.ProseMirror-selectednode {
 }
 
 .toastui-editor-contents th.toastui-editor-md-preview-highlight {
-  color: #222;
+  /* color: #222; */
 }
 
 .toastui-editor-md-heading1 {
@@ -1534,7 +1535,7 @@ table.ProseMirror-selectednode {
 }
 
 .toastui-editor-md-table .toastui-editor-md-table-cell {
-  color: #222;
+  /* color: #222; */
 }
 
 .toastui-editor-md-link.toastui-editor-md-link-desc.toastui-editor-md-marked-text,

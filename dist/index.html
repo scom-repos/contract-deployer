@@ -2,16 +2,21 @@
 <!DOCTYPE html>
 
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0,viewport-fit=cover">
 
-  <script src="libs/@ijstech/components/index.js"></script>
+
+  <script 
+    src="libs/@ijstech/components/index.js"
+    integrity="sha256-2ZUGson/r0jrjzq2Ln32z5gjXiQzUVCmf8CKo8/weEE="
+    crossorigin="anonymous"></script>
+  
+  
 </head>
 <html>
 
 <body>
   <script>
     async function init() {
-      application.LibHost = "";
       let module = await application.init('scconfig.json');
       document.body.append(module);
     };

@@ -17,10 +17,11 @@
         }
     },
     "dependencies": {
+        "@modules/assets": "*",
         "@ijstech/eth-wallet": "*",
         "@ijstech/eth-contract": "*",
-        "@scom/scom-multicall": "*",
         "@scom/scom-network-list": "*",
+        "@scom/scom-multicall": "*",
         "@scom/dapp": "*"
     },
     "menus": [
