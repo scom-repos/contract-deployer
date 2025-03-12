@@ -1,10 +1,9 @@
 {
     "name": "@scom/scom-network-list",
-    "type": "widget",
-    "version": "0.1.7",
+    "type": "sdk",
+    "version": "0.1.13",
     "dependencies": [
         "@ijstech/eth-contract",
-        "@ijstech/eth-wallet",
-        "@ijstech/components"
+        "@ijstech/eth-wallet"
     ]
 }

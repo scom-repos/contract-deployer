@@ -1,14 +1,14 @@
-import { Module, Styles, Container, customModule, application, Panel, CodeEditor, RequireJS } from '@ijstech/components';
-import {Wallet} from '@ijstech/eth-wallet';
-import Assets from '@modules/assets';
+import { Module, Styles, customModule, Panel, RequireJS } from '@ijstech/components';
+import { Wallet } from '@ijstech/eth-wallet';
+import { ScomCodeEditor } from '@scom/scom-code-editor';
 import customStyles from './index.css';
 
 const Theme = Styles.Theme.ThemeVars;
 
 @customModule
 export default class Module1 extends Module {
-    private codeEditorOptions: CodeEditor;
-    private codeEditorResult: CodeEditor;
+    private codeEditorOptions: ScomCodeEditor;
+    private codeEditorResult: ScomCodeEditor;
     private pnlPreview: Panel;
     private logs: HTMLElement;
 
@@ -80,7 +80,7 @@ export default class Module1 extends Module {
                             font={{ size: '1em' }}
                         >
                             <i-panel height="100%" width="100%" minHeight={500} position='relative'>
-                                <i-code-editor id="codeEditorOptions" height="100%" width="100%" position="absolute" language='json'></i-code-editor>
+                                <i-scom-code-editor id="codeEditorOptions" height="100%" width="100%" position="absolute" language='json'></i-scom-code-editor>
                             </i-panel>
                         </i-tab>
                         <i-tab
@@ -88,7 +88,7 @@ export default class Module1 extends Module {
                             font={{ size: '1em' }}
                         >
                             <i-panel height="100%" width="100%" minHeight={500} position='relative'>
-                                <i-code-editor id="codeEditorResult" height="100%" width="100%" position="absolute" language='json'></i-code-editor>
+                                <i-scom-code-editor id="codeEditorResult" height="100%" width="100%" position="absolute" language='json'></i-scom-code-editor>
                             </i-panel>
                         </i-tab>
                     </i-tabs>

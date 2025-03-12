@@ -142,7 +142,32 @@ define("@scom/scom-multicall/utils.ts", ["require", "exports"], function (requir
                 chainId: 42161,
                 contractAddress: '0x11DEE30E710B8d4a8630392781Cc3c0046365d4c',
                 gasBuffer: '3000000'
-            }
+            },
+            {
+                chainId: 5001,
+                contractAddress: '0x78d2856a82ba7037cb98cead2c3990f0e259a26e',
+                gasBuffer: '3000000'
+            },
+            {
+                chainId: 3441005,
+                contractAddress: '0xd026d7d357c97b995fc186e1600099b82dad7c99',
+                gasBuffer: '3000000'
+            },
+            {
+                chainId: 168587773,
+                contractAddress: '0xd1fe13ee84508ccd1f97df4b15c73cb96134e29c',
+                gasBuffer: '3000000'
+            },
+            {
+                chainId: 300,
+                contractAddress: '0xadC07aD804Cd88016aE91B087e27e69C9B53bA75',
+                gasBuffer: '3000000'
+            },
+            {
+                chainId: 324,
+                contractAddress: '0x69A8ac0b9044cB6F8a1d50Ce8F7BF213E71ecA0C',
+                gasBuffer: '3000000'
+            },
         ];
         return list;
     }

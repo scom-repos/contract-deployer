@@ -1,7 +1,13 @@
-define("@scom/scom-network-list", ["require", "exports", "@ijstech/components"], function (require, exports, components_1) {
+define("@scom/scom-network-list", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    let moduleDir = components_1.application.currentModuleDir;
+    exports.getNetworkList = void 0;
+    // import { application } from '@ijstech/components';
+    let moduleDir = '';
+    if (typeof window !== 'undefined') {
+        const application = window['application'];
+        moduleDir = application.currentModuleDir;
+    }
     function fullPath(path) {
         if (path.indexOf('://') > 0)
             return path;
@@ -226,9 +232,21 @@ define("@scom/scom-network-list", ["require", "exports", "@ijstech/components"],
             },
             {
                 chainId: 280,
-                chainName: "zkSync Era Testnet",
+                chainName: "zkSync Era Goerli",
                 rpcUrls: ['https://testnet.era.zksync.dev'],
                 blockExplorerUrls: ['https://goerli.explorer.zksync.io/tx/'],
+                nativeCurrency: {
+                    decimals: 18,
+                    name: 'ETH',
+                    symbol: 'ETH'
+                },
+                image: fullPath('img/zkSyncEra.svg')
+            },
+            {
+                chainId: 300,
+                chainName: "ZKsync Era Sepolia",
+                rpcUrls: ['https://sepolia.era.zksync.dev'],
+                blockExplorerUrls: ['https://sepolia.explorer.zksync.io/tx/'],
                 nativeCurrency: {
                     decimals: 18,
                     name: 'ETH',
@@ -249,6 +267,18 @@ define("@scom/scom-network-list", ["require", "exports", "@ijstech/components"],
                 image: fullPath('img/polygonZkEvm.svg')
             },
             {
+                chainId: 5000,
+                chainName: "Mantle",
+                rpcUrls: ['https://rpc.mantle.xyz'],
+                blockExplorerUrls: ['https://explorer.mantle.xyz'],
+                nativeCurrency: {
+                    decimals: 18,
+                    name: 'MNT',
+                    symbol: 'MNT'
+                },
+                image: fullPath('img/mantle.svg')
+            },
+            {
                 chainId: 5001,
                 chainName: "Mantle Testnet",
                 rpcUrls: ['https://rpc.testnet.mantle.xyz'],
@@ -259,8 +289,93 @@ define("@scom/scom-network-list", ["require", "exports", "@ijstech/components"],
                     symbol: 'MNT'
                 },
                 image: fullPath('img/mantle.svg')
-            }
+            },
+            {
+                chainId: 3441005,
+                chainName: "Manta Testnet",
+                rpcUrls: ['https://pacific-rpc.testnet.manta.network/http'],
+                blockExplorerUrls: ['https://pacific-explorer.testnet.manta.network'],
+                nativeCurrency: {
+                    decimals: 18,
+                    name: 'MANTA',
+                    symbol: 'MANTA'
+                },
+                image: fullPath('img/manta.svg')
+            },
+            {
+                chainId: 169,
+                chainName: "Manta",
+                rpcUrls: ['https://pacific-rpc.manta.network/http'],
+                blockExplorerUrls: ['https://pacific-explorer.manta.network'],
+                nativeCurrency: {
+                    decimals: 18,
+                    name: 'ETH',
+                    symbol: 'ETH'
+                },
+                image: fullPath('img/manta.svg')
+            },
+            {
+                chainId: 168587773,
+                chainName: "Blast Sepolia",
+                rpcUrls: ['https://sepolia.blast.io'],
+                blockExplorerUrls: ['https://testnet.blastscan.io'],
+                nativeCurrency: {
+                    decimals: 18,
+                    name: 'ETH',
+                    symbol: 'ETH'
+                },
+                image: fullPath('img/blast.svg')
+            },
+            {
+                chainId: 57054,
+                chainName: "Sonic Blaze Testnet",
+                rpcUrls: ['https://rpc.blaze.soniclabs.com'],
+                blockExplorerUrls: ['https://testnet.sonicscan.org/tx/'],
+                nativeCurrency: {
+                    decimals: 18,
+                    name: 'S',
+                    symbol: 'S'
+                },
+                image: fullPath('img/sonic.svg')
+            },
+            {
+                chainId: 146,
+                chainName: "Sonic",
+                rpcUrls: ['https://rpc.soniclabs.com'],
+                blockExplorerUrls: ['https://sonicscan.org/tx/'],
+                nativeCurrency: {
+                    decimals: 18,
+                    name: 'S',
+                    symbol: 'S'
+                },
+                image: fullPath('img/sonic.svg')
+            },
+            {
+                chainId: 2021,
+                chainName: "Ronin Saigon Testnet",
+                rpcUrls: ['https://saigon-testnet.roninchain.com/rpc'],
+                blockExplorerUrls: ['https://saigon-app.roninchain.com/tx/'],
+                nativeCurrency: {
+                    decimals: 18,
+                    name: 'RON',
+                    symbol: 'RON'
+                },
+                image: fullPath('img/ronin.svg')
+            },
+            {
+                chainId: 2020,
+                chainName: "Ronin",
+                rpcUrls: ['https://api.roninchain.com/rpc'],
+                blockExplorerUrls: ['https://app.roninchain.com/tx/'],
+                nativeCurrency: {
+                    decimals: 18,
+                    name: 'RON',
+                    symbol: 'RON'
+                },
+                image: fullPath('img/ronin.svg')
+            },
         ];
     }
     exports.default = getNetworkList;
+    exports.getNetworkList = getNetworkList;
 });

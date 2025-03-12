@@ -13,7 +13,8 @@
     },
     "dependencies": {
         "@ijstech/eth-contract": "*",
-        "@scom/scom-network-list": "*"
+        "@scom/scom-network-list": "*",
+        "@scom/scom-code-editor": "*"
     },
     "menus": [
         {
