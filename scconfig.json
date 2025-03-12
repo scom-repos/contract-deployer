@@ -1,4 +1,4 @@
-{    
+{
     "logo": "logo",
     "main": "@scom/dapp",
     "assets": "@modules/assets",
@@ -24,7 +24,7 @@
             "params": {},
             "menus": []
         }
-    ],    
+    ],
     "routes": [
         {
             "url": "/deployer",
@@ -34,7 +34,7 @@
     ],
     "wallets": [
         {
-          "name": "metamask"
+            "name": "metamask"
         }
     ],
     "networks": "*",
@@ -51,5 +51,6 @@
             }
         }
     },
-    "copyright": "&#169; 2022 IJS Technologies. All rights reserved."
+    "copyright": "&#169; 2022 IJS Technologies. All rights reserved.",
+    "version": "0.1.14"
 }

@@ -61,6 +61,7 @@
         }
     },
     "copyright": "&#169; 2022 IJS Technologies. All rights reserved.",
+    "version": "0.1.14",
     "packages": [
         "@ijstech/components",
         "@ijstech/eth-contract",
