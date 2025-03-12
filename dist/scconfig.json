@@ -12,7 +12,7 @@
             "path": "module1",
             "dependencies": [
                 "@ijstech/eth-wallet",
-                "@modules/assets"
+                "@scom/scom-code-editor"
             ]
         }
     },
@@ -22,7 +22,8 @@
         "@ijstech/eth-contract": "*",
         "@scom/scom-network-list": "*",
         "@scom/scom-multicall": "*",
-        "@scom/dapp": "*"
+        "@scom/dapp": "*",
+        "@scom/scom-code-editor": "*"
     },
     "menus": [
         {
@@ -59,5 +60,14 @@
             }
         }
     },
-    "copyright": "&#169; 2022 IJS Technologies. All rights reserved."
+    "copyright": "&#169; 2022 IJS Technologies. All rights reserved.",
+    "packages": [
+        "@ijstech/components",
+        "@ijstech/eth-contract",
+        "@scom/scom-network-list",
+        "@ijstech/eth-wallet",
+        "@scom/scom-code-editor",
+        "@scom/dapp",
+        "@scom/scom-multicall"
+    ]
 }

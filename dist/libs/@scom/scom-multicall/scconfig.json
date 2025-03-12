@@ -1,0 +1,9 @@
+{
+    "name": "@scom/scom-multicall",
+    "type": "contract",
+    "version": "0.1.6",
+    "dependencies": [
+        "@ijstech/eth-contract",
+        "@ijstech/eth-wallet"
+    ]
+}
