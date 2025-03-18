@@ -1,5 +1,4 @@
 {
-    "logo": "logo",
     "main": "@scom/dapp",
     "assets": "@modules/assets",
     "moduleDir": "modules",
@@ -62,6 +61,21 @@
     },
     "copyright": "&#169; 2022 IJS Technologies. All rights reserved.",
     "version": "0.1.14",
+    "footer": {
+        "visible": false
+    },
+    "header": {
+        "customStyles": {
+            "$nest": {
+                "#imgDesktopLogo": {
+                    "display": "none"
+                },
+                "#menuDesktop": {
+                    "border": "none"
+                }
+            }
+        }
+    },
     "packages": [
         "@ijstech/components",
         "@ijstech/eth-contract",
