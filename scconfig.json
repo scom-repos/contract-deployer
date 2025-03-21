@@ -13,7 +13,7 @@
   "dependencies": {
     "@ijstech/eth-contract": "*",
     "@scom/scom-network-list": "*",
-    "@scom/scom-code-editor": "*"
+    "@scom/contract-deployer-widget": "*"
   },
   "menus": [
     {
@@ -110,20 +110,5 @@
   ],
   "networks": "*",
   "copyright": "&#169; 2022 IJS Technologies. All rights reserved.",
-  "version": "0.1.14",
-  "footer": {
-    "visible": false
-  },
-  "header": {
-    "customStyles": {
-      "$nest": {
-        "#imgDesktopLogo": {
-          "display": "none"
-        },
-        "#menuDesktop": {
-          "border": "none"
-        }
-      }
-    }
-  }
+  "version": "0.1.14"
 }

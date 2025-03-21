@@ -11,7 +11,8 @@
         "declaration": false,        
         "baseUrl": ".",
         "paths": {
-            "@modules/*":["modules/*"]
+            "@modules/*":["modules/*"],
+            "@scom/contract-deployer-widget": ["./repos/contract-deployer-widget"]
         }
     },
     "include": ["modules/**/*.ts","modules/**/*.tsx"],
