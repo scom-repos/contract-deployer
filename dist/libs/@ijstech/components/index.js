@@ -17320,7 +17320,7 @@ define("@ijstech/combo-box/combo-box.ts", ["require", "exports", "@ijstech/base"
                 this.inputElm.placeholder = this.placeholder;
         }
         getTranslatedText(value) {
-            if (value?.startsWith('$')) {
+            if (typeof value === 'string' && value?.startsWith('$')) {
                 const translated = this.parentModule?.i18n?.get(value) ||
                     application_1.application.i18n?.get(value) ||
                     '';
@@ -19510,7 +19510,7 @@ define("@ijstech/modal/modal.ts", ["require", "exports", "@ijstech/base", "@ijst
                     const parentModal = this.parentElement?.closest('i-modal');
                     if (parentModal) {
                         parentModal.wrapperDiv.style.overflow = 'hidden auto';
-                        document.body.style.overflow = 'hidden';
+                        document.body.style.overflow = parentModal.visible ? 'hidden' : 'hidden auto';
                     }
                     else {
                         document.body.style.overflow = 'hidden auto';
@@ -43737,7 +43737,8 @@ define("@ijstech/form/form.ts", ["require", "exports", "@ijstech/base", "@ijstec
         setData(scope, value, parentElm, customData) {
             let _control;
             this.setCustomData(scope, value, undefined, customData);
-            if (this._formControls[scope]?.input?.tagName === 'designer-template-areas'.toUpperCase()) {
+            const input = this._formControls[scope]?.input;
+            if (input?.tagName === 'designer-template-areas'.toUpperCase()) {
                 return;
             }
             if (typeof value === 'object') {
@@ -43792,7 +43793,13 @@ define("@ijstech/form/form.ts", ["require", "exports", "@ijstech/base", "@ijstec
                                         const fieldName = field.getAttribute('field') || '';
                                         const columnData = rowData[fieldName];
                                         if (field.tagName === 'I-INPUT') {
-                                            field.value = columnData;
+                                            const customScope = field.getAttribute('custom-control');
+                                            if (customScope) {
+                                                this.setCustomData(customScope, columnData, field, rowData);
+                                            }
+                                            else {
+                                                field.value = columnData;
+                                            }
                                         }
                                         else if (field.tagName === 'I-CHECKBOX') {
                                             field.checked = columnData;

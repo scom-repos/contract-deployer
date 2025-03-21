@@ -13,7 +13,7 @@
         "@ijstech/compiler": "^0.1.22",
         "@scom/dapp": "^0.1.17",
         "@scom/scom-network-list": "^0.1.0",
-        "@scom/scom-code-editor": "^0.1.6"
+        "@scom/contract-deployer-widget": "file:./repos/contract-deployer-widget"
     },
     "scripts": {
         "build": "rm -rf dist && npx @ijstech/compiler",

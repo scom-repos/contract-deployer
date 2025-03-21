@@ -1,12 +1,14 @@
 {
-    "name": "@scom/dapp",
+    "name": "@scom/contract-deployer-widget",
     "type": "widget",
-    "version": "0.1.38",
+    "version": "0.1.0",
     "dependencies": [
         "@ijstech/components",
         "@ijstech/eth-contract",
         "@ijstech/eth-wallet",
+        "@scom/scom-network-list",
         "@scom/scom-multicall",
-        "@scom/scom-network-list"
+        "@scom/scom-dapp-container",
+        "@scom/scom-code-editor"
     ]
 }

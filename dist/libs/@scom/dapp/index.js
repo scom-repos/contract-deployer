@@ -4,13 +4,13 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-///<amd-module name='@scom/scom-dapp/pathToRegexp.ts'/> 
+///<amd-module name='@scom/dapp/pathToRegexp.ts'/> 
 /*---------------------------------------------------------------------------------------------
   *  Copyright (c) 2014 Blake Embrey (hello@blakeembrey.com)
   *  Licensed under the MIT License.
   *  https://github.com/pillarjs/path-to-regexp/blob/1cbb9f3d9c3bff97298ec45b1bb2b0beb879babf/LICENSE
   *--------------------------------------------------------------------------------------------*/
-define("@scom/scom-dapp/pathToRegexp.ts", ["require", "exports"], function (require, exports) {
+define("@scom/dapp/pathToRegexp.ts", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.pathToRegexp = exports.tokensToRegexp = exports.regexpToFunction = exports.match = exports.tokensToFunction = exports.compile = exports.parse = void 0;
@@ -413,13 +413,13 @@ define("@scom/scom-dapp/pathToRegexp.ts", ["require", "exports"], function (requ
     }
     exports.pathToRegexp = pathToRegexp;
 });
-define("@scom/scom-dapp/interface.ts", ["require", "exports"], function (require, exports) {
+define("@scom/dapp/interface.ts", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     ;
     ;
 });
-define("@scom/scom-dapp/assets.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_1) {
+define("@scom/dapp/assets.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.assets = void 0;
@@ -495,7 +495,7 @@ define("@scom/scom-dapp/assets.ts", ["require", "exports", "@ijstech/components"
         fullPath
     };
 });
-define("@scom/scom-dapp/index.css.ts", ["require", "exports", "@ijstech/components", "@scom/scom-dapp/assets.ts"], function (require, exports, components_2, assets_1) {
+define("@scom/dapp/index.css.ts", ["require", "exports", "@ijstech/components", "@scom/dapp/assets.ts"], function (require, exports, components_2, assets_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     // Styles.Theme.darkTheme.background.default = '#192F51';
@@ -584,7 +584,7 @@ define("@scom/scom-dapp/index.css.ts", ["require", "exports", "@ijstech/componen
         fontStyle: 'normal'
     });
 });
-define("@scom/scom-dapp/site.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_3) {
+define("@scom/dapp/site.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.getLoggedInAccount = exports.getIsLoggedIn = exports.getRequireLogin = exports.getEnv = exports.isValidEnv = exports.hasThemeButton = exports.getOAuthProvider = exports.updateConfig = void 0;
@@ -650,12 +650,12 @@ define("@scom/scom-dapp/site.ts", ["require", "exports", "@ijstech/components"],
     };
     exports.getLoggedInAccount = getLoggedInAccount;
 });
-define("@scom/scom-dapp/constants.ts", ["require", "exports"], function (require, exports) {
+define("@scom/dapp/constants.ts", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     ;
 });
-define("@scom/scom-dapp/wallet.ts", ["require", "exports", "@ijstech/components", "@ijstech/eth-wallet", "@scom/scom-multicall", "@scom/scom-network-list", "@scom/scom-dapp/site.ts"], function (require, exports, components_4, eth_wallet_1, scom_multicall_1, scom_network_list_1, site_1) {
+define("@scom/dapp/wallet.ts", ["require", "exports", "@ijstech/components", "@ijstech/eth-wallet", "@scom/scom-multicall", "@scom/scom-network-list", "@scom/dapp/site.ts"], function (require, exports, components_4, eth_wallet_1, scom_multicall_1, scom_network_list_1, site_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.viewOnExplorerByAddress = exports.getWalletConnectConfig = exports.setWalletConnectConfig = exports.getWalletPluginProvider = exports.setWalletPluginProvider = exports.getInfuraId = exports.getDefaultChainId = exports.getNetworkInfo = exports.isDefaultNetworkFromWallet = exports.updateWalletConfig = exports.switchNetwork = exports.hasMetaMask = exports.hasWallet = exports.isWalletConnected = exports.getWalletProvider = exports.getSiteSupportedNetworks = exports.getSupportedWalletProviders = exports.logoutWallet = exports.connectWallet = exports.initWalletPlugins = exports.WalletPlugin = void 0;
@@ -962,7 +962,7 @@ define("@scom/scom-dapp/wallet.ts", ["require", "exports", "@ijstech/components"
     };
     exports.viewOnExplorerByAddress = viewOnExplorerByAddress;
 });
-define("@scom/scom-dapp/header.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_5) {
+define("@scom/dapp/header.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_5) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const Theme = components_5.Styles.Theme.ThemeVars;
@@ -992,6 +992,52 @@ define("@scom/scom-dapp/header.css.ts", ["require", "exports", "@ijstech/compone
                         padding: '1rem',
                         fontWeight: 700,
                         fontSize: '1rem'
+                    },
+                    '.list-view': {
+                        $nest: {
+                            '.list-item:hover': {
+                                $nest: {
+                                    '> *': {
+                                        opacity: 1
+                                    }
+                                }
+                            },
+                            '.list-item': {
+                                cursor: 'pointer',
+                                transition: 'all .3s ease-in',
+                                $nest: {
+                                    '&.disabled-network-selection': {
+                                        cursor: 'default',
+                                        $nest: {
+                                            '&:hover > *': {
+                                                opacity: '0.5 !important',
+                                            }
+                                        }
+                                    },
+                                    '> *': {
+                                        opacity: .5
+                                    }
+                                }
+                            },
+                            '.list-item.is-actived': {
+                                $nest: {
+                                    '> *': {
+                                        opacity: 1
+                                    },
+                                    '&:after': {
+                                        content: "''",
+                                        top: '50%',
+                                        left: 12,
+                                        position: 'absolute',
+                                        background: '#20bf55',
+                                        borderRadius: '50%',
+                                        width: 10,
+                                        height: 10,
+                                        transform: 'translate3d(-50%,-50%,0)'
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -1033,10 +1079,10 @@ define("@scom/scom-dapp/header.css.ts", ["require", "exports", "@ijstech/compone
         }
     });
 });
-define("@scom/scom-dapp/API.ts", ["require", "exports", "@ijstech/eth-wallet"], function (require, exports, eth_wallet_2) {
+define("@scom/dapp/API.ts", ["require", "exports", "@ijstech/eth-wallet"], function (require, exports, eth_wallet_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.verifyAuthCode = exports.sendAuthCode = exports.apiLogout = exports.apiLogin = exports.checkLoginSession = exports.requestLoginSession = void 0;
+    exports.verifyAuthCode = exports.sendAuthCode = exports.apiLogout = exports.apiLogin = exports.checkLoginSession = void 0;
     const API_BASE_URL = '/api/account/v0';
     function constructPersonalSignMessage(walletAddress, uuid) {
         let messageChunks = [
@@ -1048,9 +1094,9 @@ define("@scom/scom-dapp/API.ts", ["require", "exports", "@ijstech/eth-wallet"], 
         ];
         return messageChunks.join('\n\n');
     }
-    async function checkLoginSession() {
-        let body = JSON.stringify({});
-        let response = await fetch(API_BASE_URL + '/check-login-session', {
+    async function checkLoginSession(walletAddress) {
+        let body = JSON.stringify({ walletAddress: walletAddress });
+        let response = await fetch(API_BASE_URL + '/checkLoginSession', {
             body: body,
             method: 'POST',
             credentials: 'include',
@@ -1064,9 +1110,9 @@ define("@scom/scom-dapp/API.ts", ["require", "exports", "@ijstech/eth-wallet"], 
     }
     exports.checkLoginSession = checkLoginSession;
     ;
-    async function requestLoginSession(sessionType) {
-        let body = JSON.stringify({ type: sessionType });
-        let response = await fetch(API_BASE_URL + '/request-login-session', {
+    async function requestLoginSession(walletAddress) {
+        let body = JSON.stringify({ walletAddress: walletAddress });
+        let response = await fetch(API_BASE_URL + '/requestLoginSession', {
             body: body,
             method: 'POST',
             credentials: 'include',
@@ -1078,17 +1124,19 @@ define("@scom/scom-dapp/API.ts", ["require", "exports", "@ijstech/eth-wallet"], 
         let result = await response.json();
         return result;
     }
-    exports.requestLoginSession = requestLoginSession;
     ;
-    async function apiLogin(sessionNonce) {
+    async function apiLogin() {
         const wallet = eth_wallet_2.Wallet.getClientInstance();
-        let msg = constructPersonalSignMessage(wallet.address, sessionNonce);
+        let session = await requestLoginSession(wallet.address);
+        if (session.success && session.data?.account)
+            return { success: true };
+        let msg = constructPersonalSignMessage(wallet.address, session.data.nonce);
         await eth_wallet_2.Wallet.initWeb3();
         let signature = await wallet.signMessage(msg);
         let chainId = await wallet.getChainId();
         let body = JSON.stringify({
             chainId: chainId,
-            uuid: sessionNonce,
+            uuid: session.data.nonce,
             signature: signature,
             walletAddress: wallet.address
         });
@@ -1120,7 +1168,7 @@ define("@scom/scom-dapp/API.ts", ["require", "exports", "@ijstech/eth-wallet"], 
     }
     exports.apiLogout = apiLogout;
     async function sendAuthCode(email) {
-        let response = await fetch(API_BASE_URL + '/send-auth-code', {
+        let response = await fetch(API_BASE_URL + '/sendAuthCode', {
             method: 'POST',
             credentials: 'include',
             headers: {
@@ -1136,7 +1184,7 @@ define("@scom/scom-dapp/API.ts", ["require", "exports", "@ijstech/eth-wallet"], 
     }
     exports.sendAuthCode = sendAuthCode;
     async function verifyAuthCode(verifyAuthCodeArgs) {
-        let response = await fetch(API_BASE_URL + '/verify-auth-code', {
+        let response = await fetch(API_BASE_URL + '/verifyAuthCode', {
             method: 'POST',
             credentials: 'include',
             headers: {
@@ -1150,7 +1198,7 @@ define("@scom/scom-dapp/API.ts", ["require", "exports", "@ijstech/eth-wallet"], 
     }
     exports.verifyAuthCode = verifyAuthCode;
 });
-define("@scom/scom-dapp/alert.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_6) {
+define("@scom/dapp/alert.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_6) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.modalStyle = void 0;
@@ -1163,7 +1211,7 @@ define("@scom/scom-dapp/alert.css.ts", ["require", "exports", "@ijstech/componen
         }
     });
 });
-define("@scom/scom-dapp/alert.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-dapp/alert.css.ts"], function (require, exports, components_7, alert_css_1) {
+define("@scom/dapp/alert.tsx", ["require", "exports", "@ijstech/components", "@scom/dapp/alert.css.ts"], function (require, exports, components_7, alert_css_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Alert = void 0;
@@ -1244,116 +1292,217 @@ define("@scom/scom-dapp/alert.tsx", ["require", "exports", "@ijstech/components"
     exports.Alert = Alert;
     ;
 });
-define("@scom/scom-dapp/selectNetwork.tsx", ["require", "exports", "@ijstech/components", "@ijstech/eth-wallet", "@scom/scom-dapp/wallet.ts"], function (require, exports, components_8, eth_wallet_3, wallet_1) {
+define("@scom/dapp/header.tsx", ["require", "exports", "@ijstech/components", "@ijstech/eth-wallet", "@scom/dapp/header.css.ts", "@scom/dapp/assets.ts", "@scom/dapp/site.ts", "@scom/dapp/wallet.ts", "@scom/dapp/pathToRegexp.ts", "@scom/dapp/API.ts"], function (require, exports, components_8, eth_wallet_3, header_css_1, assets_2, site_2, wallet_1, pathToRegexp_1, API_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.SelectNetwork = void 0;
+    exports.Header = void 0;
     const Theme = components_8.Styles.Theme.ThemeVars;
-    let SelectNetwork = class SelectNetwork extends components_8.Module {
-        async onNetworkSelected() { }
-        async switchNetwork(chainId) {
-            if (!chainId || (0, wallet_1.isDefaultNetworkFromWallet)())
-                return;
-            await (0, wallet_1.switchNetwork)(chainId);
-            this.onNetworkSelected();
-        }
-        isNetworkActive(chainId) {
-            return eth_wallet_3.Wallet.getInstance().chainId === chainId;
-        }
-        renderNetworks() {
-            this.gridNetworkGroup.clearInnerHTML();
-            this.networkMapper = new Map();
-            this.networkActiveIndicatorMap = new Map();
-            const supportedNetworks = (0, wallet_1.getSiteSupportedNetworks)();
-            this.gridNetworkGroup.append(...supportedNetworks.map((network) => {
-                const img = network.image ? this.$render("i-image", { url: network.image, width: 34, height: 34 }) : [];
-                const isActive = this.isNetworkActive(network.chainId);
-                if (isActive)
-                    this.currActiveNetworkId = network.chainId;
-                const activeIndicator = (this.$render("i-panel", { visible: isActive, position: 'absolute', border: { radius: '50%' }, background: { color: '#20bf55' }, width: "10px", height: "10px" }));
-                this.networkActiveIndicatorMap.set(network.chainId, activeIndicator);
-                const hsNetwork = (this.$render("i-hstack", { onClick: () => this.switchNetwork(network.chainId), background: { color: Theme.colors.secondary.light }, border: { radius: 10 }, opacity: isActive ? 1 : 0.5, hover: { opacity: 1 }, position: "relative", cursor: 'pointer', verticalAlignment: "center", padding: { top: '0.65rem', bottom: '0.65rem', left: '0.5rem', right: '0.5rem' } },
-                    activeIndicator,
-                    this.$render("i-hstack", { margin: { left: '1rem' }, verticalAlignment: "center", gap: 12 },
-                        img,
-                        this.$render("i-label", { caption: network.chainName, wordBreak: "break-word", font: { size: '.875rem', bold: true, color: Theme.colors.primary.dark } }))));
-                this.networkMapper.set(network.chainId, hsNetwork);
-                return hsNetwork;
-            }));
-        }
-        setActiveNetworkIndicator(connected) {
-            const wallet = eth_wallet_3.Wallet.getClientInstance();
-            if (this.currActiveNetworkId !== undefined && this.currActiveNetworkId !== null && this.networkMapper.has(this.currActiveNetworkId)) {
-                const networkHStack = this.networkMapper.get(this.currActiveNetworkId);
-                networkHStack.opacity = 0.5;
-                this.networkActiveIndicatorMap.get(this.currActiveNetworkId).visible = false;
-            }
-            if (connected && this.networkMapper.has(wallet.chainId)) {
-                const networkHStack = this.networkMapper.get(wallet.chainId);
-                networkHStack.opacity = 1;
-                this.networkActiveIndicatorMap.get(wallet.chainId).visible = true;
-            }
-            this.currActiveNetworkId = wallet.chainId;
-        }
-        async init() {
-            super.init();
-            this.renderNetworks();
-            this.setActiveNetworkIndicator(eth_wallet_3.Wallet.getClientInstance().isConnected);
-        }
-        render() {
-            return (this.$render("i-vstack", { height: '100%', lineHeight: 1.5, padding: { left: '1rem', right: '1rem', bottom: '2rem' } },
-                this.$render("i-hstack", { margin: { left: '-1.25rem', right: '-1.25rem' }, height: '100%' },
-                    this.$render("i-grid-layout", { id: 'gridNetworkGroup', font: { color: '#f05e61' }, height: "calc(100% - 160px)", width: "100%", overflow: { y: 'auto' }, margin: { top: '1.5rem' }, padding: { left: '1.25rem', right: '1.25rem' }, columnsPerRow: 1, templateRows: ['max-content'], class: 'list-view', gap: { row: '0.5rem' } }))));
-        }
-    };
-    SelectNetwork = __decorate([
-        (0, components_8.customElements)('scom-dapp--select-network')
-    ], SelectNetwork);
-    exports.SelectNetwork = SelectNetwork;
-});
-define("@scom/scom-dapp/connectWallet.tsx", ["require", "exports", "@ijstech/components", "@ijstech/eth-wallet", "@scom/scom-dapp/API.ts", "@scom/scom-dapp/assets.ts", "@scom/scom-dapp/site.ts", "@scom/scom-dapp/wallet.ts"], function (require, exports, components_9, eth_wallet_4, API_1, assets_2, site_2, wallet_2) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ConnectWallet = void 0;
-    const Theme = components_9.Styles.Theme.ThemeVars;
-    let ConnectWallet = class ConnectWallet extends components_9.Module {
-        constructor() {
-            super(...arguments);
-            this.connectToProviderFunc = async (walletPlugin) => {
-                const provider = (0, wallet_2.getWalletPluginProvider)(walletPlugin);
-                if (provider?.installed()) {
-                    let loginSessionResult = await (0, API_1.requestLoginSession)(2 /* LoginSessionType.Email */);
-                    if (!loginSessionResult.success) {
-                        return;
+    ;
+    let Header = class Header extends components_8.Module {
+        constructor(parent, options) {
+            super(parent, options);
+            this.supportedNetworks = [];
+            this.walletInfo = {
+                address: '',
+                balance: '',
+                networkId: 0
+            };
+            this.handleChainChanged = async (chainId) => {
+                this.walletInfo.networkId = chainId;
+                this.selectedNetwork = (0, wallet_1.getNetworkInfo)(chainId);
+                let wallet = eth_wallet_3.Wallet.getClientInstance();
+                this.walletInfo.address = wallet.address;
+                const isConnected = wallet.isConnected;
+                this.walletInfo.balance = isConnected ? components_8.FormatUtils.formatNumber((await wallet.balance).toFixed(), { decimalFigures: 2 }) : '0';
+                this.updateConnectedStatus(isConnected);
+                this.updateList(isConnected);
+                this.renderMobileMenu();
+                this.renderDesktopMenu();
+            };
+            this.updateConnectedStatus = (isConnected) => {
+                if (isConnected) {
+                    this.lblBalance.caption = `${this.walletInfo.balance} ${this.symbol}`;
+                    const address = this.walletInfo.address;
+                    const displayedAddress = address ? components_8.FormatUtils.truncateWalletAddress(address) : '-';
+                    this.btnWalletDetail.caption = displayedAddress;
+                    this.lblWalletAddress.caption = displayedAddress;
+                    const networkInfo = (0, wallet_1.getNetworkInfo)(eth_wallet_3.Wallet.getInstance().chainId);
+                    this.hsViewAccount.visible = !!networkInfo?.explorerAddressUrl;
+                }
+                else {
+                    this.hsViewAccount.visible = false;
+                }
+                const isSupportedNetwork = this.selectedNetwork && this.supportedNetworks.findIndex(network => network === this.selectedNetwork) !== -1;
+                if (isSupportedNetwork) {
+                    const img = this.selectedNetwork?.image ? this.selectedNetwork.image : undefined;
+                    this.btnNetwork.icon = img ? this.$render("i-icon", { width: 26, height: 26, image: { url: img } }) : undefined;
+                    this.btnNetwork.caption = this.selectedNetwork?.chainName ?? "";
+                }
+                else {
+                    this.btnNetwork.icon = undefined;
+                    this.btnNetwork.caption = (0, wallet_1.isDefaultNetworkFromWallet)() ? "Unknown Network" : "Unsupported Network";
+                }
+                this.btnNetwork.visible = true;
+                this.btnConnectWallet.visible = !isConnected;
+                this.hsBalance.visible = !this._hideWalletBalance && isConnected;
+                this.pnlWalletDetail.visible = isConnected;
+            };
+            this.openConnectModal = () => {
+                this.initWallet();
+                this.mdConnectWallet.title = "Connect wallet";
+                this.mdConnectWallet.visible = true;
+            };
+            this.openNetworkModal = () => {
+                if ((0, wallet_1.isDefaultNetworkFromWallet)())
+                    return;
+                this.mdNetwork.visible = true;
+            };
+            this.openWalletDetailModal = () => {
+                this.mdWalletDetail.visible = true;
+            };
+            this.openAccountModal = (target, event) => {
+                event.stopPropagation();
+                this.mdWalletDetail.visible = false;
+                this.mdAccount.visible = true;
+            };
+            this.openSwitchModal = (target, event) => {
+                event.stopPropagation();
+                this.mdWalletDetail.visible = false;
+                this.mdConnectWallet.title = "Switch wallet";
+                this.mdConnectWallet.visible = true;
+            };
+            this.login = async () => {
+                let errMsg = '';
+                let isLoggedIn = false;
+                let expireAt = 0;
+                if (!this.isLoginRequestSent) {
+                    try {
+                        this.isLoginRequestSent = true;
+                        const loginAPIResult = await (0, API_1.apiLogin)();
+                        if (loginAPIResult.error || !loginAPIResult.success) {
+                            errMsg = loginAPIResult.error?.message || 'Login failed';
+                        }
+                        else {
+                            isLoggedIn = true;
+                            expireAt = loginAPIResult.expireAt;
+                        }
                     }
-                    this.loginSessionNonce = loginSessionResult.data.nonce;
-                    this.loginSessionExpireAt = loginSessionResult.data.expireAt;
-                    await (0, wallet_2.connectWallet)(walletPlugin, {
-                        userTriggeredConnect: true,
-                        sessionNonce: this.loginSessionNonce,
-                        sessionExpireAt: this.loginSessionExpireAt,
+                    catch (err) {
+                        errMsg = 'Login failed';
+                    }
+                    this.isLoginRequestSent = false;
+                }
+                return {
+                    success: isLoggedIn,
+                    error: errMsg,
+                    expireAt
+                };
+            };
+            this.handleLogoutClick = async (target, event) => {
+                if (event)
+                    event.stopPropagation();
+                this.mdWalletDetail.visible = false;
+                if ((0, site_2.getRequireLogin)()) {
+                    await (0, API_1.apiLogout)();
+                    localStorage.removeItem('loggedInAccount');
+                    components_8.application.EventBus.dispatch("isAccountLoggedIn" /* EventId.IsAccountLoggedIn */, false);
+                }
+                await (0, wallet_1.logoutWallet)();
+                this.mdAccount.visible = false;
+            };
+            this.connectToProviderFunc = async (walletPlugin) => {
+                const provider = (0, wallet_1.getWalletPluginProvider)(walletPlugin);
+                if (walletPlugin === wallet_1.WalletPlugin.Email) {
+                    this.mdEmailLogin.visible = true;
+                    this.mdEmailLogin.title = 'Enter your email';
+                    this.lbEmailLoginMsg.caption = 'A verification code will be sent to the email address you provide.';
+                    this.pnlInputEmailAddress.visible = true;
+                    this.pnlInputAuthCode.visible = false;
+                }
+                else if (provider?.installed()) {
+                    await (0, wallet_1.connectWallet)(walletPlugin, {
+                        userTriggeredConnect: true
                     });
                 }
                 else {
                     let homepage = provider.homepage;
                     this.openLink(homepage);
                 }
-                await this.onWalletSelected();
+                this.mdConnectWallet.visible = false;
+            };
+            this.copyWalletAddress = () => {
+                components_8.application.copyToClipboard(this.walletInfo.address || "");
             };
             this.initWallet = async () => {
-                await (0, wallet_2.initWalletPlugins)();
-                this.walletMapper = new Map();
-                const walletList = (0, wallet_2.getSupportedWalletProviders)();
-                this.pnlWalletPlugins.clearInnerHTML();
-                walletList.forEach((wallet) => {
-                    if (wallet.name === wallet_2.WalletPlugin.Email) {
-                        this.pnlEmail.visible = true;
+                if (this.wallet)
+                    return;
+                const onAccountChanged = async (payload) => {
+                    const { userTriggeredConnect, account } = payload;
+                    let requireLogin = (0, site_2.getRequireLogin)();
+                    let connected = !!account;
+                    if (connected) {
+                        if (requireLogin) {
+                            if (userTriggeredConnect) {
+                                let loginResult = await this.login();
+                                if (loginResult.success) {
+                                    this.keepSessionAlive(account, loginResult.expireAt);
+                                    localStorage.setItem('loggedInAccount', account);
+                                }
+                                else {
+                                    this.mdMainAlert.message = {
+                                        status: 'error',
+                                        content: loginResult.error
+                                    };
+                                    this.mdMainAlert.showModal();
+                                }
+                                components_8.application.EventBus.dispatch("isAccountLoggedIn" /* EventId.IsAccountLoggedIn */, loginResult.success);
+                            }
+                            else {
+                                const { success, error, expireAt } = await (0, API_1.checkLoginSession)(account);
+                                if (success) {
+                                    this.keepSessionAlive(account, expireAt);
+                                    localStorage.setItem('loggedInAccount', account);
+                                    components_8.application.EventBus.dispatch("isAccountLoggedIn" /* EventId.IsAccountLoggedIn */, true);
+                                }
+                                else {
+                                    localStorage.removeItem('loggedInAccount');
+                                    components_8.application.EventBus.dispatch("isAccountLoggedIn" /* EventId.IsAccountLoggedIn */, false);
+                                }
+                            }
+                        }
+                        else {
+                            await this.doActionOnWalletConnected(connected);
+                        }
+                        const walletProviderName = eth_wallet_3.Wallet.getClientInstance()?.clientSideProvider?.name || '';
+                        localStorage.setItem('walletProvider', walletProviderName);
                     }
-                    else if (wallet.name === wallet_2.WalletPlugin.Google) {
-                        const googleContainer = new components_9.HStack();
-                        this.pnlOAuthPlugins.append(googleContainer);
+                    else {
+                        if (requireLogin) {
+                            localStorage.removeItem('loggedInAccount');
+                            components_8.application.EventBus.dispatch("isAccountLoggedIn" /* EventId.IsAccountLoggedIn */, false);
+                        }
+                        else {
+                            await this.doActionOnWalletConnected(connected);
+                        }
+                    }
+                };
+                let wallet = eth_wallet_3.Wallet.getClientInstance();
+                this.wallet = wallet;
+                wallet.registerWalletEvent(this, eth_wallet_3.Constants.ClientWalletEvent.AccountsChanged, onAccountChanged);
+                wallet.registerWalletEvent(this, eth_wallet_3.Constants.ClientWalletEvent.ChainChanged, async (chainIdHex) => {
+                    const chainId = Number(chainIdHex);
+                    await this.handleChainChanged(chainId);
+                });
+                await (0, wallet_1.initWalletPlugins)();
+                this.gridWalletList.clearInnerHTML();
+                this.walletMapper = new Map();
+                const walletList = (0, wallet_1.getSupportedWalletProviders)();
+                walletList.forEach((wallet) => {
+                    if (wallet.name === 'google') {
+                        const googleContainer = new components_8.HStack();
+                        this.gridWalletList.append(googleContainer);
                         google.accounts.id.initialize({
-                            client_id: (0, site_2.getOAuthProvider)(wallet_2.WalletPlugin.Google).clientId,
+                            client_id: (0, site_2.getOAuthProvider)('google').clientId,
                             context: 'signin',
                             ux_mode: 'popup',
                             callback: this.handleSignInWithGoogle.bind(this)
@@ -1373,393 +1522,15 @@ define("@scom/scom-dapp/connectWallet.tsx", ["require", "exports", "@ijstech/com
                         if (isActive)
                             this.currActiveWallet = wallet.name;
                         const imageUrl = wallet.image;
-                        const hsWallet = (this.$render("i-hstack", { verticalAlignment: "center", horizontalAlignment: "space-between", gap: '0.5rem', height: '2.75rem', border: { radius: '0.35rem', width: '1px', style: 'solid', color: Theme.colors.secondary.light }, padding: { top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }, cursor: 'pointer', onClick: () => this.connectToProviderFunc(wallet.name) },
-                            this.$render("i-button", { caption: wallet.displayName, icon: {
-                                    width: '1.75rem',
-                                    height: '1.75rem',
-                                    image: {
-                                        width: '1.75rem',
-                                        height: '1.75rem',
-                                        display: 'inline-block',
-                                        url: imageUrl
-                                    },
-                                    margin: { right: '0.438rem' }
-                                }, padding: { top: '0px', bottom: '0px', left: '0px', right: '0px' }, font: { weight: 500, size: '0.875rem' }, background: { color: 'transparent' }, boxShadow: 'none', width: '100%', height: '100%', grid: { horizontalAlignment: 'start' } }),
-                            this.$render("i-label", { caption: 'Connect', font: { color: Theme.colors.primary.main } })));
+                        const hsWallet = (this.$render("i-hstack", { class: isActive ? 'is-actived list-item' : 'list-item', verticalAlignment: 'center', gap: 12, background: { color: Theme.colors.secondary.light }, border: { radius: 10 }, position: "relative", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, horizontalAlignment: "space-between", onClick: () => this.connectToProviderFunc(wallet.name) },
+                            this.$render("i-label", { caption: wallet.displayName, margin: { left: '1rem' }, wordBreak: "break-word", font: { size: '.875rem', bold: true, color: Theme.colors.primary.dark } }),
+                            this.$render("i-image", { width: 34, height: 34, url: imageUrl })));
                         this.walletMapper.set(wallet.name, hsWallet);
-                        this.pnlWalletPlugins.append(hsWallet);
+                        this.gridWalletList.append(hsWallet);
                     }
                 });
             };
-        }
-        async onWalletSelected() { }
-        isWalletActive(walletPlugin) {
-            const provider = (0, wallet_2.getWalletPluginProvider)(walletPlugin);
-            return provider ? provider.installed() && eth_wallet_4.Wallet.getClientInstance().clientSideProvider?.name === walletPlugin : false;
-        }
-        openLink(link) {
-            return window.open(link, '_blank');
-        }
-        ;
-        async handleSignInWithGoogle(response) {
-            let idToken = response.credential;
-            let payload = JSON.parse(atob(idToken.split('.')[1]));
-            let email = payload.email;
-            let loginSessionResult = await (0, API_1.requestLoginSession)(2 /* LoginSessionType.Email */);
-            if (!loginSessionResult.success) {
-                return;
-            }
-            this.loginSessionNonce = loginSessionResult.data.nonce;
-            this.loginSessionExpireAt = loginSessionResult.data.expireAt;
-            await (0, wallet_2.connectWallet)(wallet_2.WalletPlugin.Email, {
-                sessionNonce: this.loginSessionNonce,
-                sessionExpireAt: this.loginSessionExpireAt,
-                userTriggeredConnect: true,
-                verifyAuthCode: API_1.verifyAuthCode,
-                verifyAuthCodeArgs: {
-                    email: email,
-                    authCode: idToken,
-                    provider: 'google'
-                }
-            });
-            await this.onWalletSelected();
-            console.log(email);
-        }
-        onDigitInputKeyUp(target, event, index) {
-            if (target.value.length === 1) {
-                if (index === this.digitInputs.length - 1) {
-                    this.handleEmailLogin();
-                }
-                else {
-                    this.digitInputs[index + 1].focus();
-                }
-            }
-            else if (event.key === 'Backspace' && target.value === '' && index !== 0) {
-                this.digitInputs[index - 1].focus();
-            }
-        }
-        renderAuthCodeDigits() {
-            this.digitInputs = [];
-            this.pnlAuthCodeDigits.clearInnerHTML();
-            for (let i = 0; i < 6; i++) {
-                const digitInput = (this.$render("i-input", { inputType: 'number', maxLength: 1, height: '3.625rem', width: '2.875rem', border: { radius: '0.75rem', width: '1px', style: 'solid', color: Theme.colors.secondary.light }, padding: { left: '0.625rem', right: '0.625rem' }, font: { size: '1.125rem' }, onFocus: this.onInputFocused, onBlur: this.onInputBlured, onKeyUp: (target, event) => this.onDigitInputKeyUp(target, event, i) }));
-                this.digitInputs.push(digitInput);
-                this.pnlAuthCodeDigits.appendChild(digitInput);
-            }
-        }
-        async onSubmitEmail() {
-            let loginSessionResult = await (0, API_1.requestLoginSession)(2 /* LoginSessionType.Email */);
-            if (!loginSessionResult.success) {
-                return;
-            }
-            this.loginSessionNonce = loginSessionResult.data.nonce;
-            this.loginSessionExpireAt = loginSessionResult.data.expireAt;
-            await (0, API_1.sendAuthCode)(this.inputEmailAddress.value);
-            this.lbConfirmEmailRecipient.caption = this.inputEmailAddress.value;
-            this.renderAuthCodeDigits();
-            this.pnlConfirmEmail.visible = true;
-            this.pnlLogin.visible = false;
-        }
-        async handleEmailLogin() {
-            let authCode = '';
-            this.digitInputs.forEach((digitInput) => {
-                authCode += digitInput.value;
-            });
-            if (authCode.length !== 6)
-                return;
-            await (0, wallet_2.connectWallet)(wallet_2.WalletPlugin.Email, {
-                sessionNonce: this.loginSessionNonce,
-                sessionExpireAt: this.loginSessionExpireAt,
-                userTriggeredConnect: true,
-                verifyAuthCode: API_1.verifyAuthCode,
-                verifyAuthCodeArgs: {
-                    email: this.inputEmailAddress.value,
-                    authCode: authCode
-                }
-            });
-            await this.onWalletSelected();
-        }
-        setActiveWalletIndicator(connected) {
-            const wallet = eth_wallet_4.Wallet.getClientInstance();
-            if (this.currActiveWallet && this.walletMapper.has(this.currActiveWallet)) {
-                this.walletMapper.get(this.currActiveWallet).classList.remove('is-actived');
-            }
-            if (connected && this.walletMapper.has(wallet.clientSideProvider?.name)) {
-                this.walletMapper.get(wallet.clientSideProvider?.name).classList.add('is-actived');
-            }
-            this.currActiveWallet = wallet.clientSideProvider?.name;
-        }
-        onTogglePanel(target) {
-            const groups = this.querySelectorAll('.group');
-            for (let group of groups) {
-                group.visible = false;
-            }
-            const nextElm = target.nextSibling;
-            if (nextElm)
-                nextElm.visible = true;
-        }
-        onEmailInputChanged(target) {
-            this.btnSubmitEmail.enabled = target.value;
-            this.btnSubmitEmail.font = { color: this.btnSubmitEmail.enabled ? Theme.colors.primary.contrastText : Theme.text.disabled };
-        }
-        onInputFocused(target, isParent = false) {
-            if (!target)
-                return;
-            target.border.color = Theme.colors.primary.light;
-            target.border.width = '1px';
-            target.border.style = 'solid';
-            target.border.radius = isParent ? '0.375rem 0 0 0.375rem' : '0.75rem';
-            target.boxShadow = `0 0 0 1px ${Theme.colors.primary.light})`;
-        }
-        onInputBlured(target, isParent = false) {
-            if (!target)
-                return;
-            target.border.color = isParent ? 'transparent' : Theme.colors.secondary.light;
-            target.boxShadow = `none`;
-        }
-        show() {
-            this.pnlConfirmEmail.visible = false;
-            this.pnlLogin.visible = true;
-        }
-        async init() {
-            super.init();
-            await this.initWallet();
-        }
-        render() {
-            return (this.$render("i-vstack", { padding: { left: '1rem', right: '1rem', bottom: '2rem' }, lineHeight: 1.5 },
-                this.$render("i-vstack", { id: "pnlLogin", height: '100%', stack: { grow: '1' } },
-                    this.$render("i-vstack", { width: "100%", padding: { left: '0.75rem', right: '0.75rem', top: '0.75rem', bottom: '0.75rem' }, gap: "0.75rem", border: { radius: '0.75rem', width: '1px', style: 'solid', color: Theme.colors.primary.light }, margin: { bottom: '1rem' } },
-                        this.$render("i-panel", { height: "100%", cursor: "pointer", onClick: this.onTogglePanel },
-                            this.$render("i-label", { caption: 'Connect Wallet', font: { size: '0.875rem', weight: 500 }, lineHeight: 1.25 })),
-                        this.$render("i-vstack", { gap: "0.75rem", class: "group" },
-                            this.$render("i-vstack", { gap: '0.5rem', id: "pnlWalletPlugins" }))),
-                    this.$render("i-vstack", { width: "100%", padding: { left: '0.75rem', right: '0.75rem', top: '0.75rem', bottom: '0.75rem' }, gap: "0.75rem", border: { radius: '0.75rem', width: '1px', style: 'solid', color: Theme.colors.primary.light } },
-                        this.$render("i-panel", { cursor: "pointer", onClick: this.onTogglePanel },
-                            this.$render("i-label", { caption: 'Email & Social', font: { size: '0.875rem', weight: 500 }, lineHeight: 1.25 })),
-                        this.$render("i-vstack", { gap: "0.75rem", visible: false, class: "group" },
-                            this.$render("i-vstack", { id: "pnlEmail", visible: false },
-                                this.$render("i-hstack", { border: { radius: '0.375rem', width: '1px', style: 'solid', color: Theme.colors.secondary.light }, height: '2.75rem', width: '100%' },
-                                    this.$render("i-hstack", { verticalAlignment: "center", gap: '1.25rem', width: '100%', stack: { grow: '1' }, padding: { left: '0.5rem' }, background: { color: Theme.input.background }, border: { radius: '0.375rem 0 0 0.375rem', width: '1px', style: 'solid', color: 'transparent' } },
-                                        this.$render("i-icon", { name: "envelope", fill: Theme.text.secondary, width: '1.25rem', height: '1.25rem' }),
-                                        this.$render("i-input", { id: "inputEmailAddress", border: { radius: '0.375rem 0 0.375rem 0' }, height: '100%', width: '100%', placeholder: 'your@email.com', onChanged: this.onEmailInputChanged, onFocus: (target) => this.onInputFocused(target.parent, true), onBlur: (target) => this.onInputBlured(target.parent, true) })),
-                                    this.$render("i-button", { id: "btnSubmitEmail", caption: 'Submit', boxShadow: 'none', height: '100%', padding: { left: '0.9rem', right: '0.9rem' }, border: { radius: '0 0.375rem 0.375rem 0' }, enabled: false, stack: { basis: '4.688rem' }, onClick: this.onSubmitEmail })),
-                                this.$render("i-label", { caption: `Get started without a wallet.`, font: { color: Theme.text.secondary, size: '0.813rem' } }),
-                                this.$render("i-hstack", { width: '100%', gap: '0.5rem', verticalAlignment: "center", padding: { left: '0.5rem', right: '0.5rem' } },
-                                    this.$render("i-panel", { width: '100%', height: 1, border: { top: { width: '1px', style: 'solid', color: Theme.colors.secondary.light } } }),
-                                    this.$render("i-label", { caption: 'Or', font: { color: Theme.text.secondary, size: '0.813rem' } }),
-                                    this.$render("i-panel", { width: '100%', height: 1, border: { top: { width: '1px', style: 'solid', color: Theme.colors.secondary.light } } }))),
-                            this.$render("i-hstack", { id: "pnlOAuthPlugins", gap: '0.25rem', verticalAlignment: "center", height: '2.75rem' })))),
-                this.$render("i-vstack", { id: "pnlConfirmEmail", justifyContent: "center", alignItems: 'center', gap: '1rem', height: '100%', width: '100%', visible: false },
-                    this.$render("i-image", { url: `${assets_2.default.fullPath('img/envelop.svg')}`, width: '3rem', height: '3rem' }),
-                    this.$render("i-label", { caption: 'Enter confirmation code', font: { size: '1.063rem', weight: 500 } }),
-                    this.$render("i-hstack", { gap: '0.25rem', verticalAlignment: 'center', horizontalAlignment: 'center', margin: { bottom: '1.5rem' }, wrap: 'wrap' },
-                        this.$render("i-label", { caption: 'Please check', font: { color: Theme.text.secondary, weight: 300 } }),
-                        this.$render("i-label", { id: "lbConfirmEmailRecipient", font: { color: Theme.text.secondary, weight: 600 } }),
-                        this.$render("i-label", { caption: 'for an email and enter your code below.', font: { color: Theme.text.secondary, weight: 300 } })),
-                    this.$render("i-hstack", { id: "pnlAuthCodeDigits", width: '100%', margin: { top: '1.25rem' }, horizontalAlignment: "space-between", overflow: 'hidden' }),
-                    this.$render("i-hstack", { verticalAlignment: "center", horizontalAlignment: "space-between", width: '100%' },
-                        this.$render("i-label", { caption: `Didn't get an email?`, font: { color: Theme.text.secondary, size: '0.813rem' } }),
-                        this.$render("i-label", { caption: `Resend Code`, font: { color: Theme.text.secondary, size: '0.813rem' }, link: { href: '' } })))));
-        }
-    };
-    ConnectWallet = __decorate([
-        (0, components_9.customElements)('scom-dapp--connect-wallet')
-    ], ConnectWallet);
-    exports.ConnectWallet = ConnectWallet;
-});
-define("@scom/scom-dapp/header.tsx", ["require", "exports", "@ijstech/components", "@ijstech/eth-wallet", "@scom/scom-dapp/header.css.ts", "@scom/scom-dapp/assets.ts", "@scom/scom-dapp/site.ts", "@scom/scom-dapp/wallet.ts", "@scom/scom-dapp/pathToRegexp.ts", "@scom/scom-dapp/API.ts", "@scom/scom-dapp/selectNetwork.tsx", "@scom/scom-dapp/connectWallet.tsx"], function (require, exports, components_10, eth_wallet_5, header_css_1, assets_3, site_3, wallet_3, pathToRegexp_1, API_2, selectNetwork_1, connectWallet_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Header = void 0;
-    const Theme = components_10.Styles.Theme.ThemeVars;
-    ;
-    let Header = class Header extends components_10.Module {
-        constructor(parent, options) {
-            super(parent, options);
-            this.walletInfo = {
-                address: '',
-                balance: '',
-                networkId: 0
-            };
-            this.handleChainChanged = async (chainId) => {
-                this.walletInfo.networkId = chainId;
-                this.selectedNetwork = (0, wallet_3.getNetworkInfo)(chainId);
-                let wallet = eth_wallet_5.Wallet.getClientInstance();
-                this.walletInfo.address = wallet.address;
-                const isConnected = wallet.isConnected;
-                this.walletInfo.balance = isConnected ? components_10.FormatUtils.formatNumber((await wallet.balance).toFixed(), { decimalFigures: 2 }) : '0';
-                this.updateConnectedStatus(isConnected);
-                this.updateList(isConnected);
-                this.renderMobileMenu();
-                this.renderDesktopMenu();
-            };
-            this.updateConnectedStatus = (isConnected) => {
-                if (isConnected) {
-                    this.lblBalance.caption = `${this.walletInfo.balance} ${this.symbol}`;
-                    const address = this.walletInfo.address;
-                    const displayedAddress = address ? components_10.FormatUtils.truncateWalletAddress(address) : '-';
-                    this.btnWalletDetail.caption = displayedAddress;
-                    this.lblWalletAddress.caption = displayedAddress;
-                    const networkInfo = (0, wallet_3.getNetworkInfo)(eth_wallet_5.Wallet.getInstance().chainId);
-                    this.hsViewAccount.visible = !!networkInfo?.explorerAddressUrl;
-                }
-                else {
-                    this.hsViewAccount.visible = false;
-                }
-                const supportedNetworks = (0, wallet_3.getSiteSupportedNetworks)();
-                const isSupportedNetwork = this.selectedNetwork && supportedNetworks.findIndex(network => network === this.selectedNetwork) !== -1;
-                if (isSupportedNetwork) {
-                    const img = this.selectedNetwork?.image ? this.selectedNetwork.image : undefined;
-                    this.btnNetwork.icon = img ? this.$render("i-icon", { width: 26, height: 26, image: { url: img } }) : undefined;
-                    this.btnNetwork.caption = this.selectedNetwork?.chainName ?? "";
-                }
-                else {
-                    this.btnNetwork.icon = undefined;
-                    this.btnNetwork.caption = (0, wallet_3.isDefaultNetworkFromWallet)() ? "Unknown Network" : "Unsupported Network";
-                }
-                this.btnNetwork.visible = true;
-                this.btnConnectWallet.visible = !isConnected;
-                this.hsBalance.visible = !this._hideWalletBalance && isConnected;
-                this.pnlWalletDetail.visible = isConnected;
-            };
-            this.openConnectModal = () => {
-                this.initWallet();
-                if (!this.connectWalletModule) {
-                    this.connectWalletModule = new connectWallet_1.ConnectWallet();
-                    this.connectWalletModule.onWalletSelected = async () => {
-                        this.connectWalletModule.closeModal();
-                    };
-                }
-                let modal = this.connectWalletModule.openModal({
-                    // title: 'Connect wallet',
-                    width: '28rem'
-                });
-                this.connectWalletModule.show();
-            };
-            this.openNetworkModal = async () => {
-                if ((0, wallet_3.isDefaultNetworkFromWallet)())
-                    return;
-                if (!this.selectNetworkModule) {
-                    this.selectNetworkModule = new selectNetwork_1.SelectNetwork();
-                    this.selectNetworkModule.onNetworkSelected = async () => {
-                        this.selectNetworkModule.closeModal();
-                    };
-                }
-                let modal = this.selectNetworkModule.openModal({
-                    title: 'Select a Network',
-                    width: '28rem'
-                });
-            };
-            this.openWalletDetailModal = () => {
-                this.mdWalletDetail.visible = true;
-            };
-            this.openAccountModal = (target, event) => {
-                event.stopPropagation();
-                this.mdWalletDetail.visible = false;
-                this.mdAccount.visible = true;
-            };
-            this.login = async (sessionNonce) => {
-                let errMsg = '';
-                let isLoggedIn = false;
-                if (!this.isLoginRequestSent) {
-                    try {
-                        this.isLoginRequestSent = true;
-                        const loginAPIResult = await (0, API_2.apiLogin)(sessionNonce);
-                        if (loginAPIResult.error || !loginAPIResult.success) {
-                            errMsg = loginAPIResult.error?.message || 'Login failed';
-                        }
-                        else {
-                            isLoggedIn = true;
-                        }
-                    }
-                    catch (err) {
-                        errMsg = 'Login failed';
-                    }
-                    this.isLoginRequestSent = false;
-                }
-                return {
-                    success: isLoggedIn,
-                    error: errMsg
-                };
-            };
-            this.handleLogoutClick = async (target, event) => {
-                if (event)
-                    event.stopPropagation();
-                this.mdWalletDetail.visible = false;
-                if ((0, site_3.getRequireLogin)()) {
-                    await (0, API_2.apiLogout)();
-                    localStorage.removeItem('loggedInAccount');
-                    components_10.application.EventBus.dispatch("isAccountLoggedIn" /* EventId.IsAccountLoggedIn */, false);
-                }
-                await (0, wallet_3.logoutWallet)();
-                this.mdAccount.visible = false;
-            };
-            this.copyWalletAddress = () => {
-                components_10.application.copyToClipboard(this.walletInfo.address || "");
-            };
-            this.initWallet = async () => {
-                if (this.wallet)
-                    return;
-                const onAccountChanged = async (payload) => {
-                    const { userTriggeredConnect, account, sessionNonce, sessionExpireAt } = payload;
-                    let requireLogin = (0, site_3.getRequireLogin)();
-                    let connected = !!account;
-                    if (connected) {
-                        if (requireLogin) {
-                            if (userTriggeredConnect) {
-                                let loginResult = await this.login(sessionNonce);
-                                if (loginResult.success) {
-                                    this.keepSessionAlive(sessionExpireAt);
-                                    localStorage.setItem('loggedInAccount', account);
-                                }
-                                else {
-                                    this.mdMainAlert.message = {
-                                        status: 'error',
-                                        content: loginResult.error
-                                    };
-                                    this.mdMainAlert.showModal();
-                                }
-                                components_10.application.EventBus.dispatch("isAccountLoggedIn" /* EventId.IsAccountLoggedIn */, loginResult.success);
-                            }
-                            else {
-                                const { success, error, expireAt } = await (0, API_2.checkLoginSession)();
-                                if (success) {
-                                    this.keepSessionAlive(expireAt);
-                                    localStorage.setItem('loggedInAccount', account);
-                                    components_10.application.EventBus.dispatch("isAccountLoggedIn" /* EventId.IsAccountLoggedIn */, true);
-                                }
-                                else {
-                                    localStorage.removeItem('loggedInAccount');
-                                    components_10.application.EventBus.dispatch("isAccountLoggedIn" /* EventId.IsAccountLoggedIn */, false);
-                                }
-                            }
-                        }
-                        else {
-                            await this.doActionOnWalletConnected(connected);
-                        }
-                        const walletProviderName = eth_wallet_5.Wallet.getClientInstance()?.clientSideProvider?.name || '';
-                        localStorage.setItem('walletProvider', walletProviderName);
-                    }
-                    else {
-                        if (requireLogin) {
-                            localStorage.removeItem('loggedInAccount');
-                            components_10.application.EventBus.dispatch("isAccountLoggedIn" /* EventId.IsAccountLoggedIn */, false);
-                        }
-                        else {
-                            await this.doActionOnWalletConnected(connected);
-                        }
-                    }
-                };
-                let wallet = eth_wallet_5.Wallet.getClientInstance();
-                await wallet.init();
-                this.wallet = wallet;
-                wallet.registerWalletEvent(this, eth_wallet_5.Constants.ClientWalletEvent.AccountsChanged, onAccountChanged);
-                wallet.registerWalletEvent(this, eth_wallet_5.Constants.ClientWalletEvent.ChainChanged, async (chainIdHex) => {
-                    const chainId = Number(chainIdHex);
-                    await this.handleChainChanged(chainId);
-                });
-            };
-            this.$eventBus = components_10.application.EventBus;
+            this.$eventBus = components_8.application.EventBus;
         }
         ;
         get symbol() {
@@ -1786,11 +1557,11 @@ define("@scom/scom-dapp/header.tsx", ["require", "exports", "@ijstech/components
                 this.hsBalance.visible = false;
         }
         async doActionOnWalletConnected(connected) {
-            let wallet = eth_wallet_5.Wallet.getClientInstance();
+            let wallet = eth_wallet_3.Wallet.getClientInstance();
             this.walletInfo.address = wallet.address;
-            this.walletInfo.balance = connected ? components_10.FormatUtils.formatNumber((await wallet.balance).toFixed(), { decimalFigures: 2 }) : '0';
+            this.walletInfo.balance = connected ? components_8.FormatUtils.formatNumber((await wallet.balance).toFixed(), { decimalFigures: 2 }) : '0';
             this.walletInfo.networkId = wallet.chainId;
-            this.selectedNetwork = (0, wallet_3.getNetworkInfo)(wallet.chainId);
+            this.selectedNetwork = (0, wallet_1.getNetworkInfo)(wallet.chainId);
             this.updateConnectedStatus(connected);
             this.updateList(connected);
             this.renderMobileMenu();
@@ -1804,10 +1575,10 @@ define("@scom/scom-dapp/header.tsx", ["require", "exports", "@ijstech/components
             //   await this.doActionOnWalletConnected(false);
             // })
             this.$eventBus.register(this, "isAccountLoggedIn" /* EventId.IsAccountLoggedIn */, async (loggedIn) => {
-                const requireLogin = (0, site_3.getRequireLogin)();
+                const requireLogin = (0, site_2.getRequireLogin)();
                 if (!requireLogin)
                     return;
-                let connected = loggedIn && eth_wallet_5.Wallet.getClientInstance().isConnected;
+                let connected = loggedIn && eth_wallet_3.Wallet.getClientInstance().isConnected;
                 await this.doActionOnWalletConnected(connected);
             });
             this.$eventBus.register(this, "chainChanged" /* EventId.chainChanged */, async (chainId) => {
@@ -1816,11 +1587,11 @@ define("@scom/scom-dapp/header.tsx", ["require", "exports", "@ijstech/components
         }
         async init() {
             this.classList.add(header_css_1.default);
-            this.selectedNetwork = (0, wallet_3.getNetworkInfo)((0, wallet_3.getDefaultChainId)());
+            this.selectedNetwork = (0, wallet_1.getNetworkInfo)((0, wallet_1.getDefaultChainId)());
             super.init();
             try {
                 const customStyleAttr = this.getAttribute('customStyles', true);
-                const customStyle = components_10.Styles.style(customStyleAttr);
+                const customStyle = components_8.Styles.style(customStyleAttr);
                 customStyle && this.classList.add(customStyle);
             }
             catch { }
@@ -1828,23 +1599,24 @@ define("@scom/scom-dapp/header.tsx", ["require", "exports", "@ijstech/components
             this.renderMobileMenu();
             this.renderDesktopMenu();
             this.controlMenuDisplay();
+            this.renderNetworks();
             this.registerEvent();
             let selectedProvider = localStorage.getItem('walletProvider');
-            if (!selectedProvider && (0, wallet_3.hasMetaMask)()) {
-                selectedProvider = wallet_3.WalletPlugin.MetaMask;
+            if (!selectedProvider && (0, wallet_1.hasMetaMask)()) {
+                selectedProvider = wallet_1.WalletPlugin.MetaMask;
             }
-            if (!eth_wallet_5.Wallet.getClientInstance().chainId) {
-                eth_wallet_5.Wallet.getClientInstance().chainId = (0, wallet_3.getDefaultChainId)();
+            if (!eth_wallet_3.Wallet.getClientInstance().chainId) {
+                eth_wallet_3.Wallet.getClientInstance().chainId = (0, wallet_1.getDefaultChainId)();
             }
             const themeType = document.body.style.getPropertyValue('--theme');
             this.switchTheme.checked = themeType === 'light';
-            const requireLogin = (0, site_3.getRequireLogin)();
+            const requireLogin = (0, site_2.getRequireLogin)();
             if (requireLogin) {
                 this.btnConnectWallet.caption = 'Login';
                 this.doActionOnWalletConnected(false);
                 await this.initWallet();
-                const loggedInAccount = (0, site_3.getLoggedInAccount)();
-                await (0, wallet_3.connectWallet)(selectedProvider, {
+                const loggedInAccount = (0, site_2.getLoggedInAccount)();
+                await (0, wallet_1.connectWallet)(selectedProvider, {
                     userTriggeredConnect: false,
                     loggedInAccount
                 });
@@ -1852,10 +1624,10 @@ define("@scom/scom-dapp/header.tsx", ["require", "exports", "@ijstech/components
             else {
                 this.btnConnectWallet.caption = 'Connect Wallet';
                 await this.initWallet();
-                await (0, wallet_3.connectWallet)(selectedProvider, {
+                await (0, wallet_1.connectWallet)(selectedProvider, {
                     userTriggeredConnect: false,
                 });
-                this.doActionOnWalletConnected((0, wallet_3.isWalletConnected)());
+                this.doActionOnWalletConnected((0, wallet_1.isWalletConnected)());
             }
         }
         connectedCallback() {
@@ -1867,7 +1639,7 @@ define("@scom/scom-dapp/header.tsx", ["require", "exports", "@ijstech/components
             window.removeEventListener('resize', this.controlMenuDisplay.bind(this));
         }
         controlMenuDisplay() {
-            const url = assets_3.assets.logo.header;
+            const url = assets_2.assets.logo.header;
             if (window.innerWidth < 760) {
                 this.hsMobileMenu.visible = true;
                 this.hsDesktopMenu.visible = false;
@@ -1881,34 +1653,94 @@ define("@scom/scom-dapp/header.tsx", ["require", "exports", "@ijstech/components
                     this.imgDesktopLogo.url = url;
             }
         }
+        updateDot(connected, type) {
+            const wallet = eth_wallet_3.Wallet.getClientInstance();
+            if (type === 'network') {
+                if (this.currActiveNetworkId !== undefined && this.currActiveNetworkId !== null && this.networkMapper.has(this.currActiveNetworkId)) {
+                    this.networkMapper.get(this.currActiveNetworkId).classList.remove('is-actived');
+                }
+                if (connected && this.networkMapper.has(wallet.chainId)) {
+                    this.networkMapper.get(wallet.chainId).classList.add('is-actived');
+                }
+                this.currActiveNetworkId = wallet.chainId;
+            }
+            else {
+                if (this.currActiveWallet && this.walletMapper.has(this.currActiveWallet)) {
+                    this.walletMapper.get(this.currActiveWallet).classList.remove('is-actived');
+                }
+                if (connected && this.walletMapper.has(wallet.clientSideProvider?.name)) {
+                    this.walletMapper.get(wallet.clientSideProvider?.name).classList.add('is-actived');
+                }
+                this.currActiveWallet = wallet.clientSideProvider?.name;
+            }
+        }
         updateList(isConnected) {
-            this.connectWalletModule?.setActiveWalletIndicator(isConnected);
-            this.selectNetworkModule?.setActiveNetworkIndicator(isConnected);
+            this.updateDot(isConnected, 'wallet');
+            this.updateDot(isConnected, 'network');
         }
         viewOnExplorerByAddress() {
-            (0, wallet_3.viewOnExplorerByAddress)(eth_wallet_5.Wallet.getInstance().chainId, this.walletInfo.address);
+            (0, wallet_1.viewOnExplorerByAddress)(eth_wallet_3.Wallet.getInstance().chainId, this.walletInfo.address);
+        }
+        async switchNetwork(chainId) {
+            if (!chainId || (0, wallet_1.isDefaultNetworkFromWallet)())
+                return;
+            await (0, wallet_1.switchNetwork)(chainId);
+            this.mdNetwork.visible = false;
         }
         openLink(link) {
             return window.open(link, '_blank');
         }
         ;
+        async handleSignInWithGoogle(response) {
+            let idToken = response.credential;
+            let payload = JSON.parse(atob(idToken.split('.')[1]));
+            let email = payload.email;
+            await (0, wallet_1.connectWallet)(wallet_1.WalletPlugin.Email, {
+                userTriggeredConnect: true,
+                verifyAuthCode: API_1.verifyAuthCode,
+                verifyAuthCodeArgs: {
+                    email: email,
+                    authCode: idToken,
+                    provider: 'google'
+                }
+            });
+            this.mdConnectWallet.visible = false;
+            console.log(email);
+        }
         isWalletActive(walletPlugin) {
-            const provider = (0, wallet_3.getWalletPluginProvider)(walletPlugin);
-            return provider ? provider.installed() && eth_wallet_5.Wallet.getClientInstance().clientSideProvider?.name === walletPlugin : false;
+            const provider = (0, wallet_1.getWalletPluginProvider)(walletPlugin);
+            return provider ? provider.installed() && eth_wallet_3.Wallet.getClientInstance().clientSideProvider?.name === walletPlugin : false;
         }
         isNetworkActive(chainId) {
-            return eth_wallet_5.Wallet.getInstance().chainId === chainId;
+            return eth_wallet_3.Wallet.getInstance().chainId === chainId;
         }
-        keepSessionAlive(expireAt) {
+        keepSessionAlive(account, expireAt) {
             if (this.keepAliveInterval) {
                 clearInterval(this.keepAliveInterval);
             }
             if (expireAt) {
                 const interval = Math.floor((expireAt - Date.now()) / 2);
                 this.keepAliveInterval = setInterval(async () => {
-                    await (0, API_2.checkLoginSession)();
+                    await (0, API_1.checkLoginSession)(account);
                 }, interval);
             }
+        }
+        renderNetworks() {
+            this.gridNetworkGroup.clearInnerHTML();
+            this.networkMapper = new Map();
+            this.supportedNetworks = (0, wallet_1.getSiteSupportedNetworks)();
+            this.gridNetworkGroup.append(...this.supportedNetworks.map((network) => {
+                const img = network.image ? this.$render("i-image", { url: network.image, width: 34, height: 34 }) : [];
+                const isActive = this.isNetworkActive(network.chainId);
+                if (isActive)
+                    this.currActiveNetworkId = network.chainId;
+                const hsNetwork = (this.$render("i-hstack", { onClick: () => this.switchNetwork(network.chainId), background: { color: Theme.colors.secondary.light }, border: { radius: 10 }, position: "relative", class: isActive ? 'is-actived list-item' : 'list-item', padding: { top: '0.65rem', bottom: '0.65rem', left: '0.5rem', right: '0.5rem' } },
+                    this.$render("i-hstack", { margin: { left: '1rem' }, verticalAlignment: "center", gap: 12 },
+                        img,
+                        this.$render("i-label", { caption: network.chainName, wordBreak: "break-word", font: { size: '.875rem', bold: true, color: Theme.colors.primary.dark } }))));
+                this.networkMapper.set(network.chainId, hsNetwork);
+                return hsNetwork;
+            }));
         }
         getMenuPath(url, params) {
             try {
@@ -1930,7 +1762,7 @@ define("@scom/scom-dapp/header.tsx", ["require", "exports", "@ijstech/components
                 if (mode === 'mobile') {
                     _menuItem.font = { color: Theme.colors.primary.main };
                     if (item.img)
-                        _menuItem.icon = { width: 24, height: 24, image: { width: 24, height: 24, url: components_10.application.assets(item.img) } };
+                        _menuItem.icon = { width: 24, height: 24, image: { width: 24, height: 24, url: components_8.application.assets(item.img) } };
                 }
                 if (item.menus && item.menus.length) {
                     _menuItem.items = this._getMenuData(item.menus, mode, validMenuItemsFn);
@@ -1940,15 +1772,15 @@ define("@scom/scom-dapp/header.tsx", ["require", "exports", "@ijstech/components
             return menuItems;
         }
         getMenuData(list, mode) {
-            let wallet = eth_wallet_5.Wallet.getClientInstance();
-            let isLoggedIn = (item) => !item.isLoginRequired || (0, site_3.getIsLoggedIn)(wallet.address);
+            let wallet = eth_wallet_3.Wallet.getClientInstance();
+            let isLoggedIn = (item) => !item.isLoginRequired || (0, site_2.getIsLoggedIn)(wallet.address);
             let chainId = this.selectedNetwork?.chainId || wallet.chainId;
             let validMenuItemsFn;
             if (chainId) {
-                validMenuItemsFn = (item) => isLoggedIn(item) && !item.isDisabled && (!item.networks || item.networks.includes(chainId)) && (0, site_3.isValidEnv)(item.env);
+                validMenuItemsFn = (item) => isLoggedIn(item) && !item.isDisabled && (!item.networks || item.networks.includes(chainId)) && (0, site_2.isValidEnv)(item.env);
             }
             else {
-                validMenuItemsFn = (item) => isLoggedIn(item) && !item.isDisabled && (0, site_3.isValidEnv)(item.env);
+                validMenuItemsFn = (item) => isLoggedIn(item) && !item.isDisabled && (0, site_2.isValidEnv)(item.env);
             }
             return this._getMenuData(list, mode, validMenuItemsFn);
         }
@@ -1964,12 +1796,30 @@ define("@scom/scom-dapp/header.tsx", ["require", "exports", "@ijstech/components
             this.mdMobileMenu.visible = !this.mdMobileMenu.visible;
         }
         onThemeChanged() {
-            const themeValues = this.switchTheme.checked ? components_10.Styles.Theme.defaultTheme : components_10.Styles.Theme.darkTheme;
-            components_10.Styles.Theme.applyTheme(themeValues);
+            const themeValues = this.switchTheme.checked ? components_8.Styles.Theme.defaultTheme : components_8.Styles.Theme.darkTheme;
+            components_8.Styles.Theme.applyTheme(themeValues);
             const themeType = this.switchTheme.checked ? 'light' : 'dark';
             document.body.style.setProperty('--theme', themeType);
-            components_10.application.EventBus.dispatch("themeChanged" /* EventId.themeChanged */, themeType);
+            components_8.application.EventBus.dispatch("themeChanged" /* EventId.themeChanged */, themeType);
             this.controlMenuDisplay();
+        }
+        async handleSendAuthCode() {
+            await (0, API_1.sendAuthCode)(this.inputEmailAddress.value);
+            this.mdEmailLogin.title = 'Check your email';
+            this.lbEmailLoginMsg.caption = 'Please enter the 6-digit verification code that was sent. The code is valid for 5 minutes.';
+            this.pnlInputEmailAddress.visible = false;
+            this.pnlInputAuthCode.visible = true;
+        }
+        async handleEmailLogin() {
+            await (0, wallet_1.connectWallet)(wallet_1.WalletPlugin.Email, {
+                userTriggeredConnect: true,
+                verifyAuthCode: API_1.verifyAuthCode,
+                verifyAuthCodeArgs: {
+                    email: this.inputEmailAddress.value,
+                    authCode: this.inputAuthCode.value
+                }
+            });
+            this.mdEmailLogin.visible = false;
         }
         render() {
             return (this.$render("i-hstack", { height: 60, position: "relative", padding: { top: '0.5rem', bottom: '0.5rem', left: '1rem', right: '1rem' }, background: { color: Theme.background.paper }, verticalAlignment: "center" },
@@ -1977,14 +1827,14 @@ define("@scom/scom-dapp/header.tsx", ["require", "exports", "@ijstech/components
                     this.$render("i-hstack", { id: "hsMobileMenu", verticalAlignment: "center", width: "max-content", visible: false },
                         this.$render("i-icon", { id: "hamburger", class: 'pointer', name: "bars", width: "20px", height: "20px", display: "inline-block", margin: { right: 5 }, fill: Theme.text.primary, onClick: this.toggleMenu }),
                         this.$render("i-modal", { id: "mdMobileMenu", height: "auto", minWidth: "250px", showBackdrop: false, popupPlacement: "bottomLeft", background: { color: Theme.background.modal } },
-                            this.$render("i-menu", { id: "menuMobile", mode: "inline", font: { color: Theme.text.primary } })),
+                            this.$render("i-menu", { id: "menuMobile", mode: "inline" })),
                         this.$render("i-image", { id: "imgMobileLogo", class: "header-logo", height: 40, margin: { right: '0.5rem' } })),
                     this.$render("i-hstack", { id: "hsDesktopMenu", wrap: "nowrap", verticalAlignment: "center", width: "100%", overflow: "hidden" },
                         this.$render("i-image", { id: "imgDesktopLogo", class: "header-logo", height: 40, margin: { right: '1.25rem' } }),
-                        this.$render("i-menu", { id: "menuDesktop", width: "100%", border: { left: { color: Theme.divider, width: '1px', style: 'solid' } }, font: { color: Theme.text.primary } })),
+                        this.$render("i-menu", { id: "menuDesktop", width: "100%", border: { left: { color: Theme.divider, width: '1px', style: 'solid' } } })),
                     this.$render("i-hstack", { verticalAlignment: 'center', horizontalAlignment: 'end' },
                         this.$render("i-panel", { margin: { right: '0.5rem' } },
-                            this.$render("i-switch", { id: "switchTheme", checkedText: '\u263C', uncheckedText: '\u263E', checkedThumbColor: "transparent", uncheckedThumbColor: "transparent", class: "custom-switch", visible: (0, site_3.hasThemeButton)(), onChanged: this.onThemeChanged.bind(this) })),
+                            this.$render("i-switch", { id: "switchTheme", checkedText: '\u263C', uncheckedText: '\u263E', checkedThumbColor: "transparent", uncheckedThumbColor: "transparent", class: "custom-switch", visible: (0, site_2.hasThemeButton)(), onChanged: this.onThemeChanged.bind(this) })),
                         this.$render("i-panel", { id: "pnlNetwork" },
                             this.$render("i-button", { id: "btnNetwork", visible: false, height: 38, class: "btn-network", margin: { right: '0.5rem' }, padding: { top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }, border: { radius: 5 }, font: { color: Theme.colors.primary.contrastText }, onClick: this.openNetworkModal })),
                         this.$render("i-hstack", { id: "hsBalance", height: 38, visible: false, horizontalAlignment: "center", verticalAlignment: "center", background: { color: Theme.colors.primary.main }, border: { radius: 5 }, padding: { top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' } },
@@ -1996,6 +1846,15 @@ define("@scom/scom-dapp/header.tsx", ["require", "exports", "@ijstech/components
                                     this.$render("i-button", { caption: "Account", width: "100%", height: "auto", border: { radius: 5 }, font: { color: Theme.colors.primary.contrastText }, background: { color: Theme.colors.error.light }, padding: { top: '0.5rem', bottom: '0.5rem' }, onClick: this.openAccountModal }),
                                     this.$render("i-button", { caption: "Logout", width: "100%", height: "auto", border: { radius: 5 }, font: { color: Theme.colors.primary.contrastText }, background: { color: Theme.colors.error.light }, padding: { top: '0.5rem', bottom: '0.5rem' }, onClick: this.handleLogoutClick })))),
                         this.$render("i-button", { id: "btnConnectWallet", height: 38, caption: "Connect Wallet", border: { radius: 5 }, font: { color: Theme.colors.error.contrastText }, background: { color: Theme.colors.error.light }, padding: { top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }, onClick: this.openConnectModal }))),
+                this.$render("i-modal", { id: 'mdNetwork', title: 'Select a Network', class: 'os-modal', width: 440, closeIcon: { name: 'times' }, border: { radius: 10 } },
+                    this.$render("i-vstack", { height: '100%', lineHeight: 1.5, padding: { left: '1rem', right: '1rem', bottom: '2rem' } },
+                        this.$render("i-hstack", { margin: { left: '-1.25rem', right: '-1.25rem' }, height: '100%' },
+                            this.$render("i-grid-layout", { id: 'gridNetworkGroup', font: { color: '#f05e61' }, height: "calc(100% - 160px)", width: "100%", overflow: { y: 'auto' }, margin: { top: '1.5rem' }, padding: { left: '1.25rem', right: '1.25rem' }, columnsPerRow: 1, templateRows: ['max-content'], class: 'list-view', gap: { row: '0.5rem' } })))),
+                this.$render("i-modal", { id: 'mdConnectWallet', title: 'Connect Wallet', class: 'os-modal', width: 440, closeIcon: { name: 'times' }, border: { radius: 10 } },
+                    this.$render("i-vstack", { padding: { left: '1rem', right: '1rem', bottom: '2rem' }, lineHeight: 1.5 },
+                        this.$render("i-label", { font: { size: '.875rem' }, caption: 'Recommended wallet for Chrome', margin: { top: '1rem' }, wordBreak: "break-word" }),
+                        this.$render("i-panel", null,
+                            this.$render("i-grid-layout", { id: 'gridWalletList', class: 'list-view', margin: { top: '0.5rem' }, columnsPerRow: 1, templateRows: ['max-content'], gap: { row: 8 } })))),
                 this.$render("i-modal", { id: 'mdAccount', title: 'Account', class: 'os-modal', width: 440, height: 200, closeIcon: { name: 'times' }, border: { radius: 10 } },
                     this.$render("i-vstack", { width: "100%", padding: { top: "1.75rem", bottom: "1rem", left: "2.75rem", right: "2.75rem" }, gap: 5 },
                         this.$render("i-hstack", { horizontalAlignment: "space-between", verticalAlignment: 'center' },
@@ -2009,23 +1868,35 @@ define("@scom/scom-dapp/header.tsx", ["require", "exports", "@ijstech/components
                             this.$render("i-hstack", { id: "hsViewAccount", class: "pointer", verticalAlignment: "center", onClick: this.viewOnExplorerByAddress.bind(this) },
                                 this.$render("i-icon", { name: "external-link-alt", width: "16", height: "16", fill: Theme.text.secondary, display: "inline-block" }),
                                 this.$render("i-label", { caption: "View on Explorer", margin: { left: "0.5rem" }, font: { size: "0.875rem", bold: true } }))))),
+                this.$render("i-modal", { id: 'mdEmailLogin', width: 600, closeIcon: { name: 'times' }, border: { radius: 10 } },
+                    this.$render("i-hstack", { margin: { bottom: '2rem' } },
+                        this.$render("i-label", { id: "lbEmailLoginMsg", font: { size: '1rem' } })),
+                    this.$render("i-vstack", { id: "pnlInputEmailAddress", padding: { left: '1rem', right: '1rem', bottom: '2rem' }, lineHeight: 1.5 },
+                        this.$render("i-label", { caption: 'Email' }),
+                        this.$render("i-input", { width: "100%", id: 'inputEmailAddress', margin: { bottom: '1rem' } }),
+                        this.$render("i-button", { caption: 'Send verification code', onClick: this.handleSendAuthCode, width: '100%' }),
+                        this.$render("i-vstack", { id: 'pnlSignInWithGoogle' })),
+                    this.$render("i-vstack", { id: "pnlInputAuthCode", padding: { left: '1rem', right: '1rem', bottom: '2rem' }, lineHeight: 1.5, visible: false },
+                        this.$render("i-label", { caption: 'Verification code' }),
+                        this.$render("i-input", { width: "100%", id: 'inputAuthCode', margin: { bottom: '1rem' } }),
+                        this.$render("i-button", { caption: 'Verify code', onClick: this.handleEmailLogin, width: '100%' }))),
                 this.$render("main-alert", { id: "mdMainAlert" }),
                 this.$render("i-hstack", { position: 'absolute', width: "100%", bottom: "0px", left: "0px", class: "custom-bd" })));
         }
     };
     __decorate([
-        (0, components_10.observable)()
+        (0, components_8.observable)()
     ], Header.prototype, "walletInfo", void 0);
     Header = __decorate([
-        (0, components_10.customElements)('main-header')
+        (0, components_8.customElements)('main-header')
     ], Header);
     exports.Header = Header;
 });
-define("@scom/scom-dapp/footer.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_11) {
+define("@scom/dapp/footer.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_9) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.logoStyle = void 0;
-    exports.logoStyle = components_11.Styles.style({
+    exports.logoStyle = components_9.Styles.style({
         $nest: {
             '> img': {
                 maxHeight: 'unset',
@@ -2034,13 +1905,13 @@ define("@scom/scom-dapp/footer.css.ts", ["require", "exports", "@ijstech/compone
         }
     });
 });
-define("@scom/scom-dapp/footer.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-dapp/footer.css.ts", "@scom/scom-dapp/assets.ts"], function (require, exports, components_12, footer_css_1, assets_4) {
+define("@scom/dapp/footer.tsx", ["require", "exports", "@ijstech/components", "@scom/dapp/footer.css.ts", "@scom/dapp/assets.ts"], function (require, exports, components_10, footer_css_1, assets_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Footer = void 0;
-    const Theme = components_12.Styles.Theme.ThemeVars;
+    const Theme = components_10.Styles.Theme.ThemeVars;
     ;
-    let Footer = class Footer extends components_12.Module {
+    let Footer = class Footer extends components_10.Module {
         init() {
             super.init();
             const hasLogo = this.getAttribute("hasLogo", true, true);
@@ -2055,7 +1926,7 @@ define("@scom/scom-dapp/footer.tsx", ["require", "exports", "@ijstech/components
             this.lblCopyright.visible = !!copyright;
             try {
                 const customStyleAttr = this.getAttribute('customStyles', true);
-                const customStyle = components_12.Styles.style(customStyleAttr);
+                const customStyle = components_10.Styles.style(customStyleAttr);
                 customStyle && this.classList.add(customStyle);
             }
             catch { }
@@ -2069,12 +1940,12 @@ define("@scom/scom-dapp/footer.tsx", ["require", "exports", "@ijstech/components
             window.removeEventListener('resize', this.updateLogo);
         }
         updateLogo() {
-            const url = assets_4.assets.logo.footer;
+            const url = assets_3.assets.logo.footer;
             if (this.imgLogo.url !== url)
                 this.imgLogo.url = url;
         }
         render() {
-            return (this.$render("i-panel", { height: 105, padding: { top: '1rem', bottom: '1rem', right: '2rem', left: '2rem' }, background: { color: components_12.Styles.Theme.ThemeVars.background.main } },
+            return (this.$render("i-panel", { height: 105, padding: { top: '1rem', bottom: '1rem', right: '2rem', left: '2rem' }, background: { color: components_10.Styles.Theme.ThemeVars.background.main } },
                 this.$render("i-hstack", { horizontalAlignment: "space-between", verticalAlignment: "center", width: "100%" },
                     this.$render("i-vstack", { gap: "0.5rem", width: "100%", class: "footer-content" },
                         this.$render("i-hstack", { padding: { bottom: '0.5rem' }, border: { bottom: { width: 1, style: 'solid', color: Theme.divider } }, verticalAlignment: "center", gap: 8, class: "footer-content_logo" },
@@ -2089,17 +1960,194 @@ define("@scom/scom-dapp/footer.tsx", ["require", "exports", "@ijstech/components
         }
     };
     Footer = __decorate([
-        (0, components_12.customElements)('main-footer')
+        (0, components_10.customElements)('main-footer')
     ], Footer);
     exports.Footer = Footer;
 });
-define("@scom/scom-dapp", ["require", "exports", "@ijstech/components", "@scom/scom-dapp/index.css.ts", "@scom/scom-dapp/site.ts", "@scom/scom-dapp/wallet.ts", "@scom/scom-dapp/header.tsx", "@scom/scom-dapp/footer.tsx", "@scom/scom-dapp/alert.tsx", "@scom/scom-dapp/pathToRegexp.ts", "@scom/scom-dapp/assets.ts"], function (require, exports, components_13, index_css_1, site_4, wallet_4, header_1, footer_1, alert_1, pathToRegexp_2, assets_5) {
+define("@scom/dapp/theme/light.theme.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_11) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    const Theme = JSON.parse(JSON.stringify(components_11.Styles.Theme.defaultTheme));
+    // Background
+    Theme.background.main = '#FFFFFF';
+    Theme.background.paper = '#FAFAFA';
+    Theme.background.modal = '#FFFFFF';
+    Theme.background.default = '#EEEEEE';
+    // Theme.background.gradient = '';
+    // Colors
+    Theme.colors.primary.main = '#FF6600';
+    Theme.colors.primary.light = '#FF8533';
+    Theme.colors.primary.dark = '#FF8533';
+    Theme.colors.primary.contrastText = '#FFFFFF';
+    Theme.colors.secondary.main = '#AAAAAA';
+    Theme.colors.secondary.light = '#f5f5f5';
+    // Theme.colors.secondary.dark = '';
+    // Theme.colors.secondary.contrastText = '';
+    Theme.colors.success.main = '#77B24D';
+    // Theme.colors.success.light = '';
+    // Theme.colors.success.dark = '';
+    Theme.colors.success.contrastText = '#FFFFFF';
+    Theme.colors.error.main = '#B2554D';
+    // Theme.colors.error.light = '';
+    // Theme.colors.error.dark = '';
+    Theme.colors.error.contrastText = '#FFFFFF';
+    // Theme.colors.info.main = '';
+    // Theme.colors.info.light = '';
+    // Theme.colors.info.dark = '';
+    // Theme.colors.info.contrastText = '';
+    // Theme.colors.warning.main = '';
+    // Theme.colors.warning.light = '';
+    // Theme.colors.warning.dark = '';
+    // Theme.colors.warning.contrastText = '';
+    // Text
+    Theme.text.primary = '#5f6368';
+    // Theme.text.secondary = '';
+    // Theme.text.third = '';
+    // Theme.text.hint = '';
+    // Theme.text.disabled = '';
+    // Typography
+    // Theme.typography.fontSize = '';
+    // Theme.typography.fontFamily = '';
+    // Shadows
+    // Theme.shadows["0"] = '';
+    // Theme.shadows["1"] = '';
+    // Theme.shadows["2"] = '';
+    // Theme.shadows["3"] = '';
+    // Theme.shadows["4"] = '';
+    // Breakpoints
+    // Theme.breakboints.xs = 0;
+    // Theme.breakboints.sm = 0;
+    // Theme.breakboints.md = 0;
+    // Theme.breakboints.lg = 0;
+    // Theme.breakboints.xl = 0;
+    // Divider
+    Theme.divider = 'rgba(217,225,232,.6)';
+    // Docs
+    // Theme.docs.background = '';
+    // Theme.docs.text0 = '';
+    // Theme.docs.text1 = '';
+    // Input
+    Theme.input.background = '#FAFAFA';
+    // Theme.input.fontColor = '';
+    // Combobox
+    Theme.combobox.background = '#FAFAFA';
+    // Theme.combobox.fontColor = '';
+    // Action
+    Theme.action.hover = 'rgba(0, 0, 0, 0.04)';
+    // Theme.action.hoverOpacity = 1;
+    // Theme.action.active = '';
+    // Theme.action.activeOpacity = 1;
+    // Theme.action.disabled = '';
+    // Theme.action.disabledBackground = '';
+    // Theme.action.disabledOpacity = 1;
+    // Theme.action.focus = '';
+    // Theme.action.focusOpacity = 1;
+    // Theme.action.selected = '';
+    // Theme.action.selectedOpacity = 1;
+    // Layout
+    Theme.layout.container.width = '1400px';
+    // Layout
+    exports.default = Theme;
+});
+define("@scom/dapp/theme/dark.theme.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_12) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    const Theme = JSON.parse(JSON.stringify(components_12.Styles.Theme.darkTheme));
+    // Background
+    Theme.background.main = '#0C1234';
+    Theme.background.paper = '#192046';
+    Theme.background.modal = '#192046';
+    Theme.background.default = '#1E1E1E';
+    Theme.background.gradient = 'transparent linear-gradient(90deg, #AC1D78 0%, #E04862 100%) 0% 0% no-repeat padding-box';
+    // Colors
+    Theme.colors.primary.main = '#ff9800';
+    Theme.colors.primary.light = '#2B2B2B';
+    Theme.colors.primary.dark = '#F05E61';
+    Theme.colors.primary.contrastText = '#FFFFFF';
+    Theme.colors.secondary.main = '#222237';
+    Theme.colors.secondary.light = '#2B2B2B';
+    Theme.colors.secondary.dark = '#3B3B3B';
+    Theme.colors.secondary.contrastText = '#FFFFFF';
+    // Theme.colors.success.main = '';
+    // Theme.colors.success.light = '';
+    // Theme.colors.success.dark = '';
+    // Theme.colors.success.contrastText = '';
+    Theme.colors.error.main = '#B2554D';
+    // Theme.colors.error.light = '';
+    // Theme.colors.error.dark = '';
+    // Theme.colors.error.contrastText = '';
+    // Theme.colors.info.main = '';
+    // Theme.colors.info.light = '';
+    // Theme.colors.info.dark = '';
+    // Theme.colors.info.contrastText = '';
+    Theme.colors.warning.main = '#ffa726';
+    Theme.colors.warning.light = '#F6C958';
+    Theme.colors.warning.dark = '#f57c00';
+    Theme.colors.warning.contrastText = '#FFFFFF';
+    // Text
+    Theme.text.primary = '#FFFFFF';
+    Theme.text.secondary = 'hsla(0, 0%, 100%, 0.55)';
+    Theme.text.third = '#f7d064';
+    // Theme.text.hint = '';
+    // Theme.text.disabled = '';
+    // Typography
+    // Theme.typography.fontSize = '';
+    // Theme.typography.fontFamily = '';
+    // Shadows
+    // Theme.shadows["0"] = '';
+    // Theme.shadows["1"] = '';
+    // Theme.shadows["2"] = '';
+    // Theme.shadows["3"] = '';
+    // Theme.shadows["4"] = '';
+    // Breakpoints
+    // Theme.breakboints.xs = 0;
+    // Theme.breakboints.sm = 0;
+    // Theme.breakboints.md = 0;
+    // Theme.breakboints.lg = 0;
+    // Theme.breakboints.xl = 0;
+    // Divider
+    Theme.divider = '#D9D9D9';
+    // Docs
+    Theme.docs.background = '#181C1F';
+    Theme.docs.text0 = '#fff';
+    Theme.docs.text1 = '#fff';
+    // Input
+    Theme.input.background = '#232B5A';
+    Theme.input.fontColor = '#fff';
+    // Combobox
+    Theme.combobox.background = '#232B5A';
+    Theme.combobox.fontColor = '#fff';
+    // Action
+    Theme.action.hover = 'rgba(255,255,255,0.08)';
+    Theme.action.hoverOpacity = 0.08;
+    Theme.action.active = 'rgba(0, 0, 0, 0.54)';
+    Theme.action.activeOpacity = 0.12;
+    Theme.action.disabled = '#404040';
+    Theme.action.disabledBackground = 'transparent linear-gradient(270deg,#351f52,#552a42) 0% 0% no-repeat padding-box';
+    Theme.action.disabledOpacity = 0.38;
+    Theme.action.focus = 'rgba(255,255,255, 0.12)';
+    // Theme.action.focusOpacity = 1;
+    // Theme.action.selected = '';
+    // Theme.action.selectedOpacity = 1;
+    // Layout
+    Theme.layout.container.width = '1400px';
+    exports.default = Theme;
+});
+define("@scom/dapp/theme/index.ts", ["require", "exports", "@scom/dapp/theme/light.theme.ts", "@scom/dapp/theme/dark.theme.ts"], function (require, exports, light_theme_1, dark_theme_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.DarkTheme = exports.LightTheme = void 0;
+    exports.LightTheme = light_theme_1.default;
+    exports.DarkTheme = dark_theme_1.default;
+});
+define("@scom/dapp", ["require", "exports", "@ijstech/components", "@scom/dapp/index.css.ts", "@scom/dapp/site.ts", "@scom/dapp/wallet.ts", "@scom/dapp/header.tsx", "@scom/dapp/footer.tsx", "@scom/dapp/alert.tsx", "@scom/dapp/pathToRegexp.ts", "@scom/dapp/assets.ts", "@scom/dapp/theme/index.ts"], function (require, exports, components_13, index_css_1, site_3, wallet_2, header_1, footer_1, alert_1, pathToRegexp_2, assets_4, theme_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Alert = exports.Footer = exports.Header = void 0;
     Object.defineProperty(exports, "Header", { enumerable: true, get: function () { return header_1.Header; } });
     Object.defineProperty(exports, "Footer", { enumerable: true, get: function () { return footer_1.Footer; } });
     Object.defineProperty(exports, "Alert", { enumerable: true, get: function () { return alert_1.Alert; } });
+    components_13.Styles.Theme.applyTheme(theme_1.DarkTheme);
     ;
     let MainLauncher = class MainLauncher extends components_13.Module {
         constructor(parent, options) {
@@ -2128,15 +2176,12 @@ define("@scom/scom-dapp", ["require", "exports", "@ijstech/components", "@scom/s
         }
         ;
         async init() {
-            if (this.options?.type !== 'widget') {
-                window.onhashchange = this.handleHashChange.bind(this);
-            }
+            window.onhashchange = this.handleHashChange.bind(this);
             this.menuItems = this.options.menus || [];
-            assets_5.assets.breakpoints = this.options.breakpoints;
-            (0, site_4.updateConfig)(this.options);
-            (0, wallet_4.updateWalletConfig)(this.options);
-            if (this.options.themes)
-                this.updateThemes(this.options.themes);
+            assets_4.assets.breakpoints = this.options.breakpoints;
+            (0, site_3.updateConfig)(this.options);
+            (0, wallet_2.updateWalletConfig)(this.options);
+            this.updateThemes(this.options.themes);
             this.customHeaderStyles = this._options?.header?.customStyles ?? {};
             this.customFooterStyles = this._options?.footer?.customStyles ?? {};
             this.hasFooterLogo = this._options?.footer?.hasLogo ?? true;

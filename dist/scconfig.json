@@ -10,8 +10,13 @@
         "@modules/module1": {
             "path": "module1",
             "dependencies": [
+                "@scom/scom-code-editor",
+                "@scom/scom-dapp-container",
+                "@scom/scom-multicall",
+                "@scom/scom-network-list",
                 "@ijstech/eth-wallet",
-                "@scom/scom-code-editor"
+                "@ijstech/eth-contract",
+                "@scom/contract-deployer-widget"
             ]
         }
     },
@@ -22,7 +27,9 @@
         "@scom/scom-network-list": "*",
         "@scom/scom-multicall": "*",
         "@scom/dapp": "*",
-        "@scom/scom-code-editor": "*"
+        "@scom/scom-code-editor": "*",
+        "@scom/scom-dapp-container": "*",
+        "@scom/contract-deployer-widget": "*"
     },
     "menus": [
         {
@@ -119,29 +126,16 @@
     ],
     "networks": "*",
     "copyright": "&#169; 2022 IJS Technologies. All rights reserved.",
-    "version": "0.1.15",
-    "footer": {
-        "visible": false
-    },
-    "header": {
-        "customStyles": {
-            "$nest": {
-                "#imgDesktopLogo": {
-                    "display": "none"
-                },
-                "#menuDesktop": {
-                    "border": "none"
-                }
-            }
-        }
-    },
+    "version": "0.1.14",
     "packages": [
         "@ijstech/components",
         "@ijstech/eth-contract",
         "@scom/scom-network-list",
         "@ijstech/eth-wallet",
+        "@scom/contract-deployer-widget",
+        "@scom/scom-multicall",
+        "@scom/scom-dapp-container",
         "@scom/scom-code-editor",
-        "@scom/dapp",
-        "@scom/scom-multicall"
+        "@scom/dapp"
     ]
 }
