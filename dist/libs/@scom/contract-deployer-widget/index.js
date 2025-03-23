@@ -62,7 +62,7 @@ define("@scom/contract-deployer-widget/deployer.tsx", ["require", "exports", "@i
     let ScomContractDeployerDeployer = class ScomContractDeployerDeployer extends components_2.Module {
         constructor() {
             super(...arguments);
-            this._data = { contract: '' };
+            this._data = { contract: '', dependencies: [], script: '' };
         }
         get contract() {
             return this._data.contract;
@@ -76,31 +76,54 @@ define("@scom/contract-deployer-widget/deployer.tsx", ["require", "exports", "@i
         set script(value) {
             this._data.script = value;
         }
+        get dependencies() {
+            return this._data.dependencies || [];
+        }
+        set dependencies(value) {
+            this._data.dependencies = value || [];
+        }
         async setData(value) {
+            this.clear();
             this._data = value;
-            if (this.codeEditorOptions)
-                this.codeEditorOptions.value = '';
-            if (this.codeEditorResult)
-                this.codeEditorResult.value = '';
-            if (value.script) {
-                await components_2.application.loadScript(this.contract, value.script, true);
+            console.log('setData', value);
+            if (this.script) {
+                if (this.dependencies?.length) {
+                    for (const dep of this.dependencies) {
+                        if (!dep.script)
+                            continue;
+                        await components_2.application.loadScript(dep.module, dep.script, true);
+                    }
+                }
+                await components_2.application.loadScript(this.contract, this.script, true);
             }
             const pkg = await components_2.application.loadPackage(this.contract);
             if (pkg?.DefaultDeployOptions) {
                 this.codeEditorOptions.value = JSON.stringify(pkg.DefaultDeployOptions, null, 4);
             }
         }
+        clear() {
+            if (this.codeEditorOptions)
+                this.codeEditorOptions.value = '';
+            if (this.codeEditorResult)
+                this.codeEditorResult.value = '';
+            if (this.logs)
+                this.logs.clearInnerHTML();
+            if (this.pnlPreview)
+                this.pnlPreview.visible = false;
+        }
         renderDeployResult(content) {
             const newContent = content.replace(/(<)(.*)(>)/g, '&lt$2&gt');
             this.logs.append(this.$render("i-label", { caption: newContent }));
         }
-        init() {
+        async init() {
             components_2.application.store.publicIndexingRelay = "https://relay.decom.app/api/v1";
             super.init();
             this.deploy = this.deploy.bind(this);
             const contract = this.getAttribute('contract', true);
+            const script = this.getAttribute('script', true);
+            const dependencies = this.getAttribute('dependencies', true);
             if (contract)
-                this.contract = contract;
+                await this.setData({ contract, script, dependencies });
             components_2.application.EventBus.register(this, 'IsTonWalletConnected', async (walletModel) => {
                 (0, store_1.setWalletModel)(walletModel);
             });
@@ -247,12 +270,19 @@ define("@scom/contract-deployer-widget", ["require", "exports", "@ijstech/compon
         set script(value) {
             this._data.script = value;
         }
+        get dependencies() {
+            return this._data?.dependencies || [];
+        }
+        set dependencies(value) {
+            this._data.dependencies = value || [];
+        }
         async setData(data) {
             this._data = data;
             if (this.contract)
                 this.deployer.setData({
                     contract: this.contract,
-                    script: this.script
+                    script: this.script,
+                    dependencies: this.dependencies
                 });
             if (this.dappContainer) {
                 this.initRpcWallet(this.defaultChainId);
@@ -292,9 +322,10 @@ define("@scom/contract-deployer-widget", ["require", "exports", "@ijstech/compon
             super.init();
             const contract = this.getAttribute('contract', true);
             const script = this.getAttribute('script', true);
+            const dependencies = this.getAttribute('dependencies', true);
             const networks = this.getAttribute('networks', true);
             const wallets = this.getAttribute('wallets', true);
-            await this.setData({ contract, networks, wallets, script });
+            await this.setData({ contract, networks, wallets, script, dependencies });
         }
         ;
         render() {
